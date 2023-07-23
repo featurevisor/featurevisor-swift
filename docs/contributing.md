@@ -27,7 +27,7 @@ Prerequsites:
 
 - [npm](https://www.npmjs.com/) v8+
 - [Git](https://git-scm.com/) v2+
-- [SwiftFormat](https://github.com/nicklockwood/SwiftFormat)
+- [swift-format](https://github.com/apple/swift-format)
 
 ### Local Development
 
@@ -37,7 +37,7 @@ Then on your iOS or tvOS application, import this local package
 
 1. Go to File > Add Packages...
 2. Select "Add Local" at the bottom of the modal
-3. Select the folder where you cloned `featurevisor/featurevisor-swift`
+3. Select the folder where you cloned this project
 3. Select your project in "Add to project" option menu
 
 Once the package has been added, you can use it like this
@@ -45,13 +45,12 @@ Once the package has been added, you can use it like this
 ```swift
 import FeaturevisorSDK
 
+let featurevisorOptions = FeaturevisorSDK.InstanceOptions()
+let featurevisorSdk = FeaturevisorSDK.createInstance(options: featurevisorOptions)
 
-    let featurevisorOptions = FeaturevisorSDK.InstanceOptions()
-    let featurevisorSdk = FeaturevisorSDK.createInstance(options: featurevisorOptions)
+let isBannerEnabled = featurevisorSdk.isEnabled(featureKey: "showBanner", context: [:]);
 
-    let featureKey = "showBanner";
-    let isBannerEnabled = featurevisorSdk.isEnabled(featureKey: featureKey, context: [:]);
-    print("isBannerEnabled? " + String(isBannerEnabled))
+print("isBannerEnabled? " + String(isBannerEnabled))
 ```
 
 When you build your Xcode project, FeaturevisorSDK will be automatically built.
@@ -62,7 +61,8 @@ No such module 'FeaturevisorSDK'
 
 If you see this error, please double-check the target of your app:
 1. Go to the "General" tab in your app's target settings in Xcode.
-1. Scroll down to "Frameworks, Libraries, and Embedded Content" and make sure FeaturevisorSDK is listed and set to "Do Not Embed" (because it's a Swift package).
+1. Scroll down to "Frameworks, Libraries, and Embedded Content"
+1. Make sure FeaturevisorSDK is listed and set to "Do Not Embed" (because it's a Swift package).
 
 ### Tests
 
