@@ -3,10 +3,10 @@ install:
 
 format:
 	xcrun swift -version
-	which swiftformat
-	swiftformat --version
-	swiftformat ./Sources
-	swiftformat ./Tests
+	which swift-format
+	swift-format --version
+	swift-format format -i -r ./Sources
+	swift-format format -i -r ./Tests
 
 build:
 	# make clean-swift

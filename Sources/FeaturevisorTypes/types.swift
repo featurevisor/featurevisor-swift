@@ -258,13 +258,19 @@ public struct DatafileContent {
   public let segments: [Segment]
   public let features: [Feature]
 
-  public init(schemaVersion: String, revision: String, attributes: [Attribute], segments: [Segment], features: [Feature]) {
-        self.schemaVersion = schemaVersion
-        self.revision = revision
-        self.attributes = attributes
-        self.segments = segments
-        self.features = features
-    }
+  public init(
+    schemaVersion: String,
+    revision: String,
+    attributes: [Attribute],
+    segments: [Segment],
+    features: [Feature]
+  ) {
+    self.schemaVersion = schemaVersion
+    self.revision = revision
+    self.attributes = attributes
+    self.segments = segments
+    self.features = features
+  }
 }
 
 public struct OverrideFeature {
