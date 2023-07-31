@@ -52,22 +52,24 @@ public struct Evaluation {
 }
 
 func fetchDatafileContent(from url: String, completion: @escaping (Result<DatafileContent, Error>) -> Void) {
-    // TODO: review method below
-//    let datafileUrl = URL(string: url)!
-//    let task = URLSession.shared.dataTask(with: datafileUrl) { (data, response, error) in
-//        if let error = error {
-//            completion(.failure(error))
-//        } else if let data = data {
-//            do {
-//                let decoder = JSONDecoder()
-//                let content = try decoder.decode(DatafileContent.self, from: data)
-//                completion(.success(content))
-//            } catch {
-//                completion(.failure(error))
-//            }
-//        }
-//    }
-//    task.resume()
+  let datafileUrl = URL(string: url)!
+  let task = URLSession.shared.dataTask(with: datafileUrl) { (data, response, error) in
+    if let error = error {
+      completion(.failure(error))
+    } else if let data = data {
+      let decoder = JSONDecoder()
+      // TODO: use real implementation instead of the mock one
+      // Here we've got the non trivial problem that DatafileContnent is not decoadable
+      // let content = try decoder.decode(DatafileContent.self, from: data)
+      let mockAttributes: [Attribute] = [
+        Attribute(key: "deviceId", type: "string", archived: false),
+        Attribute(key: "userId", type: "string", archived: false)
+      ]
+      let content = DatafileContent(schemaVersion: "1", revision: "0.0.3", attributes: mockAttributes, segments: [], features: [])
+      completion(.success(content))
+    }
+  }
+  task.resume()
 }
 
 
@@ -78,7 +80,7 @@ public struct InstanceOptions {
   public var configureBucketValue: ConfigureBucketValue?
   public var datafile: DatafileContent?
   public var datafileUrl: String?
-  public var handleDatafileFetch: DatafileFetchHandler?
+  //public var handleDatafileFetch: DatafileFetchHandler?
   public var initialFeatures: InitialFeatures?
   public var interceptContext: InterceptContext?
   public var logger: Logger?
@@ -99,7 +101,7 @@ public struct InstanceOptions {
     configureBucketValue: ConfigureBucketValue? = nil,
     datafile: DatafileContent? = nil,
     datafileUrl: String? = nil,
-    handleDatafileFetch: DatafileFetchHandler? = nil,
+    // handleDatafileFetch: DatafileFetchHandler? = nil,
     initialFeatures: InitialFeatures? = nil,
     interceptContext: InterceptContext? = nil,
     logger: Logger? = nil,
@@ -115,7 +117,7 @@ public struct InstanceOptions {
     self.configureBucketValue = configureBucketValue
     self.datafile = datafile
     self.datafileUrl = datafileUrl
-    self.handleDatafileFetch = handleDatafileFetch
+    // self.handleDatafileFetch = handleDatafileFetch
     self.initialFeatures = initialFeatures
     self.interceptContext = interceptContext
     self.logger = logger
@@ -160,7 +162,7 @@ public class FeaturevisorInstance {
   private var configureBucketKey: ConfigureBucketKey?
   private var configureBucketValue: ConfigureBucketValue?
   private var datafileUrl: String?
-  private var handleDatafileFetch: DatafileFetchHandler?
+  //private var handleDatafileFetch: DatafileFetchHandler?
   private var initialFeatures: InitialFeatures?
   private var interceptContext: InterceptContext?
   private var logger: Logger
@@ -187,7 +189,7 @@ public class FeaturevisorInstance {
     configureBucketKey = options.configureBucketKey
     configureBucketValue = options.configureBucketValue
     datafileUrl = options.datafileUrl
-    handleDatafileFetch = options.handleDatafileFetch
+    //handleDatafileFetch = options.handleDatafileFetch
     initialFeatures = options.initialFeatures
     interceptContext = options.interceptContext
     logger = options.logger ?? createLogger()
@@ -224,29 +226,24 @@ public class FeaturevisorInstance {
 
     // datafile
     if let datafileUrl = options.datafileUrl {
-        // TODO: implementation below doesn't compile
-        datafileReader = DatafileReader(datafileContent: options.datafile ?? emptyDatafile)
-//
-//        fetchDatafileContent(from: datafileUrl) { result in
-//            switch result {
-//            case .success(let datafileContent):
-//                //print("Received datafile content: \(datafileContent)")
-//                datafileReader = DatafileReader(datafileContent: datafileContent)
-//
-//                // this.setDatafile(datafile);
-//                //
-//                // this.statuses.ready = true;
-//                // this.emitter.emit("ready");
-//                //
-//                // if (this.refreshInterval) {
-//                //    this.startRefreshing();
-//                // }
-//
-//            case .failure(let error):
-//                throw FeaturevisorError.downloadingDatafile
-//                //print("Failed to fetch datafile content: \(error)")
-//            }
-//        }
+      datafileReader = DatafileReader(datafileContent: options.datafile ?? emptyDatafile)
+
+      // TODO: missing option `handleDatafileFetch`
+      fetchDatafileContent(from: datafileUrl) { result in
+        switch result {
+        case .success(let datafileContent):
+          self.datafileReader = DatafileReader(datafileContent: datafileContent)
+
+          self.statuses.ready = true
+          self.emitter.emit(EventName.ready)
+
+          if self.refreshInterval != nil {
+            self.startRefreshing()
+          }
+        case .failure(let error):
+          self.logger.error("Failed to fetch datafile: \(error)")
+        }
+      }
     }
     else if let datafile = options.datafile {
       datafileReader = DatafileReader(datafileContent: datafile)
@@ -255,11 +252,9 @@ public class FeaturevisorInstance {
       emitter.emit(EventName.ready)
     }
     else {
-        throw FeaturevisorError.missingDatafileOptions
+      throw FeaturevisorError.missingDatafileOptions
     }
   }
-
-  // func setDataFile() not needed since editing it directly
 
   func setStickyFeatures(stickyFeatures: StickyFeatures?) {
       self.stickyFeatures = stickyFeatures
@@ -273,11 +268,6 @@ public class FeaturevisorInstance {
 
   private func getFeature(featureKey: String) -> Feature? {
       return self.datafileReader.getFeature(featureKey)
-  }
-
-  private func getFeature(featureKey: Feature) -> Feature? {
-   // TODO: since we split this method in two with the above one, does it still make sense?
-    return featureKey;
   }
 
 //    private func getBucketKey(feature: Feature, context: Context) -> BucketKey {

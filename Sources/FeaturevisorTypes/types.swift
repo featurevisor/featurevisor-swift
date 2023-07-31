@@ -14,9 +14,15 @@ public enum AttributeValue {
 public typealias Context = [AttributeKey: AttributeValue]
 
 public struct Attribute {
-  public let archived: Bool?  // only available in YAML
   public let key: AttributeKey
   public let type: String
+  public let archived: Bool?  // only available in YAML
+
+  public init(key: AttributeKey, type: String, archived: Bool?) {
+    self.key = key
+    self.type = type
+    self.archived = archived
+  }
 }
 
 public enum Operator: String {

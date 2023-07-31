@@ -76,11 +76,11 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 |                     | `refreshInternal`                                   | ✅     |
 |                     | `stickyFeatures`                                    | ✅     |
 |                     |                                                     |        |
-| Instance methods    | `constructor`                                       |        |
-|                     | `setDatafile`                                       |        |
-|                     | `setStickyFeatures`                                 |        |
-|                     | `getRevision`                                       |        |
-|                     | `getFeature`                                        |        |
+| Instance methods    | `constructor` missing fetch datafile content        | ⚠️      |
+|                     | `setDatafile` removed to workaround init issues     | ✅     |
+|                     | `setStickyFeatures`                                 | ✅     |
+|                     | `getRevision`                                       | ✅     |
+|                     | `getFeature`                                        | ✅     |
 |                     | `getBucketBy`                                       |        |
 |                     | `getBucketValue`                                    |        |
 |                     | `isReady`                                           |        |
@@ -103,7 +103,7 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 |                     | `getVariableJSON`                                   |        |
 |                     |                                                     |        |
 | Functions           | `createInstance` missing proper error handling      | ⚠️      |
-|                     | `fetchDatafileContent`                              |        |
+|                     | `fetchDatafileContent` decoadable issue             | ⚠️      |
 |                     | `getValueByType`                                    |        |
 
 ### Test runner
