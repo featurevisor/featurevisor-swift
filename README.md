@@ -59,22 +59,25 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 |                     | SDK's `instance.ts` ➡️ `Instance.swift`             |        |
 |                     | SDK's `logger.ts` ➡️ `Logger.swift`                 | ✅      |
 |                     | SDK's `segments.ts` ➡️ `segments.swift`             | ✅      |
-| Constructor options | `bucketKeySeparator`                                |        |
-|                     | `configureBucketKey`                                |        |
-|                     | `configureBucketValue`                              |        |
-|                     | `datafile`                                          |        |
-|                     | `datafileUrl`                                       |        |
+|                     |                                                     |        |
+| Constructor options | `bucketKeySeparator`                                | ✅     |
+|                     | `configureBucketKey`                                | ✅     |
+|                     | `configureBucketValue`                              | ✅     |
+|                     | `datafile`                                          | ✅     |
+|                     | `datafileUrl`                                       | ✅     |
 |                     | `handleDatafileFetch`                               |        |
-|                     | `initialFeatures`                                   |        |
-|                     | `interceptContext`                                  |        |
-|                     | `logger`                                            |        |
+|                     | `initialFeatures`                                   | ✅     |
+|                     | `interceptContext`                                  | ✅     |
+|                     | `logger`                                            | ✅     |
 |                     | `onActivation`                                      |        |
-|                     | `onReady`                                           |        |
-|                     | `onRefresh`                                         |        |
-|                     | `onUpdate`                                          |        |
-|                     | `refreshInternal`                                   |        |
-|                     | `stickyFeatures`                                    |        |
-| Instance methods    | `setDatafile`                                       |        |
+|                     | `onReady`                                           | ✅     |
+|                     | `onRefresh`                                         | ✅     |
+|                     | `onUpdate`                                          | ✅     |
+|                     | `refreshInternal`                                   | ✅     |
+|                     | `stickyFeatures`                                    | ✅     |
+|                     |                                                     |        |
+| Instance methods    | `constructor`                                       |        |
+|                     | `setDatafile`                                       |        |
 |                     | `setStickyFeatures`                                 |        |
 |                     | `getRevision`                                       |        |
 |                     | `getFeature`                                        |        |
@@ -87,7 +90,7 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 |                     | `evaluateFlag`                                      |        |
 |                     | `isEnabled`                                         |        |
 |                     | `evaluateVariation`                                 |        |
-|                     | `getVariation`                                      |        |
+|                     | `getVariation`                                      | ✅     |
 |                     | `activate`                                          |        |
 |                     | `evaluateVariable`                                  |        |
 |                     | `getVariable`                                       |        |
@@ -98,7 +101,10 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 |                     | `getVariableArray`                                  |        |
 |                     | `getVariableObject`                                 |        |
 |                     | `getVariableJSON`                                   |        |
-| Functions           | `createInstance`                                    |        |
+|                     |                                                     |        |
+| Functions           | `createInstance` missing proper error handling      | ⚠️      |
+|                     | `fetchDatafileContent`                              |        |
+|                     | `getValueByType`                                    |        |
 
 ### Test runner
 

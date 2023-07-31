@@ -45,12 +45,15 @@ Once the package has been added, you can use it like this
 ```swift
 import FeaturevisorSDK
 
-let featurevisorOptions = FeaturevisorSDK.InstanceOptions()
-let featurevisorSdk = FeaturevisorSDK.createInstance(options: featurevisorOptions)
+let featurevisorOptions = FeaturevisorSDK.InstanceOptions(
+    datafileUrl: "https://featurevisor-example-cloudflare.pages.dev/production/datafile-tag-all.json"
+)
+if let featurevisorSdk = FeaturevisorSDK.createInstance(options: featurevisorOptions) {
+    let featureKey = "headerBanner";
+    let showBanner = featurevisorSdk.getVariation(featureKey: featureKey, context: [:]);
 
-let isBannerEnabled = featurevisorSdk.isEnabled(featureKey: "showBanner", context: [:]);
-
-print("isBannerEnabled? " + String(isBannerEnabled))
+    print(showBanner ?? "not found")
+}
 ```
 
 When you build your Xcode project, FeaturevisorSDK will be automatically built.

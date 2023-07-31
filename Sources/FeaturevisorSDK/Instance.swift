@@ -4,7 +4,7 @@ import Foundation
 public typealias ConfigureBucketKey = (Feature, Context, BucketKey) -> BucketKey
 public typealias ConfigureBucketValue = (Feature, Context, BucketValue) -> BucketValue
 public typealias InterceptContext = (Context) -> Context
-// @TODO: handle async here
+// TODO: handle async here
 public typealias DatafileFetchHandler = (String) -> DatafileContent
 
 public struct Statuses {
@@ -51,6 +51,27 @@ public struct Evaluation {
   public let variableSchema: VariableSchema?
 }
 
+func fetchDatafileContent(from url: String, completion: @escaping (Result<DatafileContent, Error>) -> Void) {
+    // TODO: review method below
+//    let datafileUrl = URL(string: url)!
+//    let task = URLSession.shared.dataTask(with: datafileUrl) { (data, response, error) in
+//        if let error = error {
+//            completion(.failure(error))
+//        } else if let data = data {
+//            do {
+//                let decoder = JSONDecoder()
+//                let content = try decoder.decode(DatafileContent.self, from: data)
+//                completion(.success(content))
+//            } catch {
+//                completion(.failure(error))
+//            }
+//        }
+//    }
+//    task.resume()
+}
+
+
+
 public struct InstanceOptions {
   public var bucketKeySeparator: String?
   public var configureBucketKey: ConfigureBucketKey?
@@ -61,7 +82,7 @@ public struct InstanceOptions {
   public var initialFeatures: InitialFeatures?
   public var interceptContext: InterceptContext?
   public var logger: Logger?
-  // @TODO: Make listener more specific like https://github.com/fahad19/featurevisor/blob/main/packages/sdk/src/instance.ts#L32C13-L32C31
+  // TODO: Make listener more specific like https://github.com/fahad19/featurevisor/blob/main/packages/sdk/src/instance.ts#L32C13-L32C31
   public var onActivation: Listener?
   public var onReady: Listener?
   public var onRefresh: Listener?
@@ -69,6 +90,9 @@ public struct InstanceOptions {
   public var refreshInterval: Int?  // seconds
   public var stickyFeatures: StickyFeatures?
 
+  // I hate the duplication here but I haven't found a better way.
+  // We have to explicitely declare "public" the init if we want to use it
+  // in another module.
   public init(
     bucketKeySeparator: String? = nil,
     configureBucketKey: ConfigureBucketKey? = nil,
@@ -112,6 +136,22 @@ let emptyDatafile = DatafileContent(
   features: []
 )
 
+public enum FeaturevisorError: Error {
+    case missingDatafileOptions
+    case downloadingDatafile(String)
+}
+
+extension FeaturevisorError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .missingDatafileOptions:
+            return "Featurevisor SDK instance cannot be created without both `datafile` and `datafileUrl` options"
+        case .downloadingDatafile(let datafileUrl):
+            return "Featurevisor SDK was not able to download the data file at: \(datafileUrl)"
+        }
+    }
+}
+
 public class FeaturevisorInstance {
   static let DEFAULT_BUCKET_KEY_SEPARATOR = "."
 
@@ -128,7 +168,7 @@ public class FeaturevisorInstance {
   private var stickyFeatures: StickyFeatures?
 
   // internally created
-  // private var datafileReader: DatafileReader
+  private var datafileReader: DatafileReader
   private var emitter: Emitter
   private var statuses: Statuses
   // private var intervalId: Timer?
@@ -140,7 +180,7 @@ public class FeaturevisorInstance {
   public var removeListener: ((EventName, Listener) -> Void)?
   public var removeAllListeners: ((EventName?) -> Void)?
 
-  public init(options: InstanceOptions) {
+  public init(options: InstanceOptions) throws {
     // from options
     bucketKeySeparator =
       options.bucketKeySeparator ?? FeaturevisorInstance.DEFAULT_BUCKET_KEY_SEPARATOR
@@ -154,6 +194,7 @@ public class FeaturevisorInstance {
     refreshInterval = options.refreshInterval
     stickyFeatures = options.stickyFeatures
 
+    // internal
     emitter = Emitter()
     statuses = Statuses(ready: false, refreshInProgress: false)
 
@@ -174,6 +215,7 @@ public class FeaturevisorInstance {
       emitter.addListener(.activation, onActivation)
     }
 
+    // expose emitter methods
     on = emitter.addListener
     addListener = emitter.addListener
     off = emitter.removeListener
@@ -182,85 +224,352 @@ public class FeaturevisorInstance {
 
     // datafile
     if let datafileUrl = options.datafileUrl {
-      setDatafile(datafile: options.datafile ?? emptyDatafile)
-
-      // @TODO: implement this
-      //            fetchDatafileContent(options.datafileUrl, options.handleDatafileFetch)
-      //                    .then((datafile) => {
-      //                      this.setDatafile(datafile);
-      //
-      //                      this.statuses.ready = true;
-      //                      this.emitter.emit("ready");
-      //
-      //                      if (this.refreshInterval) {
-      //                        this.startRefreshing();
-      //                      }
-      //                    })
-      //                    .catch((e) => {
-      //                      this.logger.error("failed to fetch datafile", { error: e });
-      //                    });
+        // TODO: implementation below doesn't compile
+        datafileReader = DatafileReader(datafileContent: options.datafile ?? emptyDatafile)
+//
+//        fetchDatafileContent(from: datafileUrl) { result in
+//            switch result {
+//            case .success(let datafileContent):
+//                //print("Received datafile content: \(datafileContent)")
+//                datafileReader = DatafileReader(datafileContent: datafileContent)
+//
+//                // this.setDatafile(datafile);
+//                //
+//                // this.statuses.ready = true;
+//                // this.emitter.emit("ready");
+//                //
+//                // if (this.refreshInterval) {
+//                //    this.startRefreshing();
+//                // }
+//
+//            case .failure(let error):
+//                throw FeaturevisorError.downloadingDatafile
+//                //print("Failed to fetch datafile content: \(error)")
+//            }
+//        }
     }
     else if let datafile = options.datafile {
-      setDatafile(datafile: datafile)
+      datafileReader = DatafileReader(datafileContent: datafile)
       statuses.ready = true
 
       emitter.emit(EventName.ready)
     }
     else {
-      // @TODO: throw error
-      //            throw new Error(
-      //                "Featurevisor SDK instance cannot be created without both `datafile` and `datafileUrl` options",
-      //            );
+        throw FeaturevisorError.missingDatafileOptions
     }
   }
 
-  private func setDatafile(datafile _: DatafileContent) {
-    // @TODO: implement this
-    //        try {
-    //              this.datafileReader = new DatafileReader(
-    //                typeof datafile === "string" ? JSON.parse(datafile) : datafile,
-    //              );
-    //            } catch (e) {
-    //              this.logger.error("could not parse datafile", { error: e });
-    //            }
+  // func setDataFile() not needed since editing it directly
+
+  func setStickyFeatures(stickyFeatures: StickyFeatures?) {
+      self.stickyFeatures = stickyFeatures
   }
 
-  /**
-     * Flag
-     */
-  private func evaluateFlag(featureKey: FeatureKey, context _: Context) -> Evaluation {
-    // @TODO: swap line below with real implementation (which is not trivial)
-    Evaluation(
-      featureKey: featureKey,
-      reason: .allocated,
-      bucketValue: nil,
-      ruleKey: nil,
-      error: nil,
-      enabled: true,
-      traffic: nil,
-      sticky: nil,
-      initial: nil,
-      variation: nil,
-      variationValue: nil,
-      variableKey: nil,
-      variableValue: nil,
-      variableSchema: nil
-    )
+  func getRevision() -> String {
+    return self.datafileReader.getRevision();
   }
 
-  public func isEnabled(featureKey: FeatureKey, context: Context) -> Bool {
-    do {
-      let evaluation = evaluateFlag(featureKey: featureKey, context: context)
+  // MARK: - Bucketing
 
-      return evaluation.enabled == true
+  private func getFeature(featureKey: String) -> Feature? {
+      return self.datafileReader.getFeature(featureKey)
+  }
+
+  private func getFeature(featureKey: Feature) -> Feature? {
+   // TODO: since we split this method in two with the above one, does it still make sense?
+    return featureKey;
+  }
+
+//    private func getBucketKey(feature: Feature, context: Context) -> BucketKey {
+//        // TODO: write implementation
+//        let featureKey = feature.key;
+//
+//        let type:BucketBy
+//        let attributeKeys: [BucketBy]
+//
+//        switch feature.bucketBy {
+//        case .single:
+//            type = BucketBy.single(feature.key)
+//            attributeKeys = [feature.bucketBy]
+//        case .and:
+//            type = BucketBy.and(feature.key)
+//            attributeKeys = feature.bucketBy
+//        case .or:
+//            type = BucketBy.or(feature.key)
+//        }
+//    }
+
+  // MARK: - Statuses
+
+  func isReady() -> Bool {
+    return self.statuses.ready
+  }
+
+  // MARK: - Refresh
+
+  func refresh() -> Void {
+      // TODO: write implementation
+  }
+
+  func startRefreshing() -> Void {
+      // TODO: write implementation
+  }
+
+  func stopRefreshing() -> Void {
+      // TODO: write implementation
+  }
+
+  // MARK: - Variation
+
+
+  func evaluateVariation(feature: Feature, context: Context) -> Evaluation {
+      return evaluateVariation(featureKey: feature.key, context: context)
+  }
+  func evaluateVariation(featureKey: FeatureKey, context: Context) -> Evaluation {
+    //TODO: write real implementation
+    return Evaluation(featureKey: "headerBanner", reason: EvaluationReason.allocated, bucketValue: nil, ruleKey: nil, error: nil, enabled: nil, traffic: nil, sticky: nil, initial: nil, variation: nil, variationValue: "twitter", variableKey: nil, variableValue: nil, variableSchema: nil)
+  }
+
+//  // TODO: write implementation
+  public func getVariation(feature: Feature, context: Context) -> VariationValue? {
+      return getVariation(featureKey: feature.key, context: context)
+  }
+  public func getVariation(featureKey: FeatureKey, context: Context) -> VariationValue? {
+    let evaluation = self.evaluateVariation(featureKey: featureKey, context: context)
+
+    if let variationValue = evaluation.variationValue {
+        return variationValue
     }
-    catch {
-      logger.error("isEnabled", ["featureKey": featureKey])
-      return false
+
+    if let variation = evaluation.variation {
+        return variation.value
     }
+
+    return nil
   }
+
+//  func getVariationBoolean(feature: Feature, context: Context) -> Bool? {
+//      return getVariationBoolean(featureKey: feature.key, context: context)
+//  }
+//  func getVariationBoolean(featureKey: FeatureKey, context: Context) -> Bool? {
+//      let variationValue = self.getVariation(featureKey: featureKey, context: context)
+//
+//      // TODO: complete implementation
+//      // return getValueByType(variationValue, "boolean") as boolean | undefined;
+//  }
+//
+//  func getVariationString(feature: Feature, context: Context) -> String? {
+//      return getVariationString(featureKey: feature.key, context: context)
+//  }
+//  func getVariationString(featureKey: FeatureKey, context: Context) -> String? {
+//      let variationValue = self.getVariation(featureKey: featureKey, context: context)
+//
+//      // TODO: complete implementation
+//      // return getValueByType(variationValue, "string") as string | undefined;
+//  }
+//
+//  func getVariationInteger(feature: Feature, context: Context) -> Int? {
+//      return getVariationInteger(featureKey: feature.key, context: context)
+//  }
+//  func getVariationInteger(featureKey: FeatureKey, context: Context) -> Int? {
+//      let variationValue = self.getVariation(featureKey: featureKey, context: context)
+//
+//      // TODO: complete implementation
+//      // return getValueByType(variationValue, "integer") as number | undefined;
+//  }
+//
+//  func getVariationDouble(feature: Feature, context: Context) -> Double? {
+//      return getVariationDouble(featureKey: feature.key, context: context)
+//  }
+//  func getVariationDouble(featureKey: FeatureKey, context: Context) -> Double? {
+//      let variationValue = self.getVariation(featureKey: featureKey, context: context)
+//
+//      // TODO: complete implementation
+//      // return getValueByType(variationValue, "double") as number | undefined;
+//  }
+
+  // MARK: - Activate
+
+//  func activate(featureKey: FeatureKey, context: Context) -> VariationValue? {
+//      // TODO: complete implementation
+//  }
+//
+//  func activateBoolean(featureKey: FeatureKey, context: Context) -> Bool? {
+//      let variationValue = self.activate(featureKey: featureKey, context: context)
+////      TODO: implement in Swift
+////      return getValueByType(variationValue, "boolean") as boolean | undefined;
+//  }
+//
+//  func activateString(featureKey: FeatureKey, context: Context) ->  String? {
+//      let variationValue = self.activate(featureKey: featureKey, context: context)
+//      //      TODO: implement in Swift
+////        return getValueByType(variationValue, "string") as string | undefined;
+//  }
+//
+//  func activateInteger(featureKey: FeatureKey, context: Context) -> Int? {
+//      let variationValue = self.activate(featureKey: featureKey, context: context)
+//
+//      //      TODO: implement in Swift
+//    //return getValueByType(variationValue, "integer") as number | undefined;
+//  }
+//
+//  func activateDouble(featureKey: FeatureKey, context: Context) -> Double {
+//      let variationValue = self.activate(featureKey: featureKey, context: context)
+//      //      TODO: implement in Swift
+//    // return getValueByType(variationValue, "double") as number | undefined;
+//  }
+
+  // MARK: - Variable
+//  func evaluateVariable(
+//    feature: Feature,
+//    variableKey: VariableKey,
+//    context: Context
+//  ) ->  Evaluation {
+//      return evaluateVariable(featureKey: feature.key, variableKey: variableKey, context: context)
+//  }
+//  func evaluateVariable(
+//    featureKey: FeatureKey,
+//    variableKey: VariableKey,
+//    context: Context
+//  ) ->  Evaluation {
+//      // TODO: implement
+//  }
+
+//  func getVariable(
+//      feature: Feature,
+//      variableKey: String,
+//      context: Context
+//  ) ->  VariableValue? {
+//      return getVariable(featureKey: feature.key, variableKey: variableKey, context: context)
+//  }
+//  func getVariable(
+//      featureKey: FeatureKey,
+//      variableKey: String,
+//      context: Context
+//  ) ->  VariableValue? {
+//      // TODO: implement
+//  }
+
+//  func getVariableBoolean(
+//    feature: Feature,
+//    variableKey: String,
+//    context: Context
+//  ) -> Bool? {
+//      return getVariableBoolean(featureKey: feature.key, variableKey: variableKey, context: context)
+//  }
+//  func getVariableBoolean(
+//    featureKey: FeatureKey,
+//    variableKey: String,
+//    context: Context
+//  ) -> Bool? {
+//      let variableValue = self.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
+//      // TODO: implement in Swift
+//    //return getValueByType(variableValue, "boolean") as boolean | undefined;
+//  }
+
+//  func getVariableString(
+//    feature: Feature,
+//    variableKey: String,
+//    context: Context
+//  ) ->  String? {
+//      return getVariableString(featureKey: feature.key, variableKey: variableKey, context: context)
+//  }
+//  func getVariableString(
+//    featureKey: FeatureKey,
+//    variableKey: String,
+//    context: Context
+//  ) ->  String? {
+//      let variableValue = self.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
+//      // TODO: implement
+////      return getValueByType(variableValue, "string") as string | undefined;
+//  }
+
+//  func getVariableInteger(
+//    feature: Feature,
+//    variableKey: String,
+//    context: Context
+//  ) ->  Int? {
+//      return getVariableInteger(featureKey: feature.key, variableKey: variableKey, context: context)
+//  }
+//  func getVariableInteger(
+//    featureKey: FeatureKey,
+//    variableKey: String,
+//    context: Context
+//  ) ->  Int? {
+//      let variableValue = self.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
+//      // TODO: implement
+//    // return getValueByType(variableValue, "integer") as number | undefined;
+//  }
+
+//  func getVariableDouble(
+//    feature: Feature,
+//    variableKey: String,
+//    context: Context
+//  ) -> Double? {
+//      return getVariableDouble(featureKey: feature.key, variableKey: variableKey, context: context)
+//  }
+//  func getVariableDouble(
+//    featureKey: FeatureKey,
+//    variableKey: String,
+//    context: Context
+//  ) -> Double? {
+//      let variableValue = self.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
+//      // TODO: implement
+//    // return getValueByType(variableValue, "double") as number | undefined;
+//  }
+
+//  func getVariableArray(
+//    feature: Feature,
+//    variableKey: String,
+//    context: Context
+//  ) -> [String]? {
+//      return getVariableArray(featureKey: feature.key, variableKey: variableKey, context: context)
+//  }
+//  func getVariableArray(
+//    featureKey: FeatureKey,
+//    variableKey: String,
+//    context: Context
+//  ) -> [String]? {
+//      let variableValue = self.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
+//      // TODO: implement
+//    // return getValueByType(variableValue, "array") as string[] | undefined;
+//  }
+
+
+  // TODO: implement in Swift
+//    getVariableObject<T>(
+//      featureKey: FeatureKey | Feature,
+//      variableKey: string,
+//      context: Context = {},
+//    ): T | undefined {
+//      const variableValue = this.getVariable(featureKey, variableKey, context);
+//
+//      return getValueByType(variableValue, "object") as T | undefined;
+//    }
+
+  // TODO: implement in Swift
+//    getVariableJSON<T>(
+//      featureKey: FeatureKey | Feature,
+//      variableKey: string,
+//      context: Context = {},
+//    ): T | undefined {
+//      const variableValue = this.getVariable(featureKey, variableKey, context);
+//
+//      return getValueByType(variableValue, "json") as T | undefined;
+//    }
+//  }
 }
 
-public func createInstance(options: InstanceOptions) -> FeaturevisorInstance {
-  FeaturevisorInstance(options: options)
+public func createInstance(options: InstanceOptions) -> FeaturevisorInstance? {
+  do {
+      let instance = try FeaturevisorInstance(options: options)
+      return instance
+    // TODO: What to do in case initialisation fails?
+//  } catch FeaturevisorError.missingDatafileOptions{
+//  } catch FeaturevisorError.downloadingDatafile(let datafileUrl) {
+  } catch let error{
+    print(error.localizedDescription)
+  }
+
+  return nil
 }
