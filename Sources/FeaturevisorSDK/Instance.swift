@@ -270,24 +270,61 @@ public class FeaturevisorInstance {
       return self.datafileReader.getFeature(featureKey)
   }
 
-//    private func getBucketKey(feature: Feature, context: Context) -> BucketKey {
-//        // TODO: write implementation
-//        let featureKey = feature.key;
-//
-//        let type:BucketBy
-//        let attributeKeys: [BucketBy]
-//
-//        switch feature.bucketBy {
-//        case .single:
-//            type = BucketBy.single(feature.key)
-//            attributeKeys = [feature.bucketBy]
-//        case .and:
-//            type = BucketBy.and(feature.key)
-//            attributeKeys = feature.bucketBy
-//        case .or:
-//            type = BucketBy.or(feature.key)
-//        }
-//    }
+  private func getBucketKey(feature: Feature, context: Context) -> BucketKey {
+    let featureKey = feature.key
+
+    var type: String
+    var attributeKeys: [AttributeKey]
+
+    switch feature.bucketBy {
+    case .single(let bucketBy):
+      type = "plain"
+      attributeKeys = [bucketBy]
+    case .and(let bucketBy):
+      type = "and"
+      attributeKeys = bucketBy
+    case .or(let bucketBy):
+      type = "or"
+      attributeKeys = bucketBy.or
+    }
+
+    var bucketKey: [AttributeValue] = []
+
+    attributeKeys.forEach { attributeKey in
+      guard let attributeValue = context[attributeKey] else {
+        return
+      }
+
+      if type == "plain" || type == "and" {
+        bucketKey.append(attributeValue)
+      } else {  // or
+        if bucketKey.isEmpty {
+          bucketKey.append(attributeValue)
+        }
+      }
+    }
+
+    bucketKey.append(.string(featureKey))
+
+    let result = bucketKey.map { $0.stringValue }.joined(separator: self.bucketKeySeparator)
+
+    if let configureBucketKey = self.configureBucketKey {
+      return configureBucketKey(feature, context, result)
+    }
+
+    return result
+  }
+
+  private func getBucketValue(feature: Feature, context: Context) -> BucketValue {
+    let bucketKey = getBucketKey(feature: feature, context: context)
+    let value = getBucketedNumber(bucketKey: bucketKey)
+
+    if let configureBucketValue = self.configureBucketValue {
+      return configureBucketValue(feature, context, value)
+    }
+
+    return value
+  }
 
   // MARK: - Statuses
 
@@ -320,7 +357,6 @@ public class FeaturevisorInstance {
     return Evaluation(featureKey: "headerBanner", reason: EvaluationReason.allocated, bucketValue: nil, ruleKey: nil, error: nil, enabled: nil, traffic: nil, sticky: nil, initial: nil, variation: nil, variationValue: "twitter", variableKey: nil, variableValue: nil, variableSchema: nil)
   }
 
-//  // TODO: write implementation
   public func getVariation(feature: Feature, context: Context) -> VariationValue? {
       return getVariation(featureKey: feature.key, context: context)
   }

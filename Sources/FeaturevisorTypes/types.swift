@@ -10,6 +10,23 @@ public enum AttributeValue {
   case date(Date)
   // @TODO: add `null` and `undefined` somehow
 }
+public extension AttributeValue {
+  var stringValue: String {
+    switch self {
+    case .string(let value):
+      return value
+    case .integer(let value):
+      return String(value)
+    case .double(let value):
+      return String(value)
+    case .boolean(let value):
+      return String(value)
+    case .date(let value):
+      return String(describing: value)
+    }
+  }
+}
+
 
 public typealias Context = [AttributeKey: AttributeValue]
 
