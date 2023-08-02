@@ -66,8 +66,8 @@ func fetchDatafileContent(
             // Here we've got the non trivial problem that DatafileContnent is not decoadable
             // let content = try decoder.decode(DatafileContent.self, from: data)
             let mockAttributes: [Attribute] = [
-                Attribute(key: "deviceId", type: "string", archived: false),
-                Attribute(key: "userId", type: "string", archived: false),
+                Attribute(key: "deviceId", type: "string", archived: false, capture: false),
+                Attribute(key: "userId", type: "string", archived: false, capture: false),
             ]
             let content = DatafileContent(
                 schemaVersion: "1",
@@ -363,7 +363,7 @@ public class FeaturevisorInstance {
     func evaluateFlag(featureKey: FeatureKey, context: Context = [:]) -> Evaluation {
         //TODO: write real implementation
         return Evaluation(
-            featureKey: "headerBanner",
+            featureKey: featureKey,
             reason: EvaluationReason.allocated,
             bucketValue: nil,
             ruleKey: nil,
@@ -433,65 +433,91 @@ public class FeaturevisorInstance {
 
     // MARK: - Activate
 
-    //  func activate(featureKey: FeatureKey, context: Context) -> VariationValue? {
-    //      // TODO: complete implementation
-    //  }
-    //
-    //  func activateBoolean(featureKey: FeatureKey, context: Context) -> Bool? {
-    //      let variationValue = self.activate(featureKey: featureKey, context: context)
-    ////      TODO: implement in Swift
-    ////      return getValueByType(variationValue, "boolean") as boolean | undefined;
-    //  }
-    //
-    //  func activateString(featureKey: FeatureKey, context: Context) ->  String? {
-    //      let variationValue = self.activate(featureKey: featureKey, context: context)
-    //      //      TODO: implement in Swift
-    ////        return getValueByType(variationValue, "string") as string | undefined;
-    //  }
-    //
-    //  func activateInteger(featureKey: FeatureKey, context: Context) -> Int? {
-    //      let variationValue = self.activate(featureKey: featureKey, context: context)
-    //
-    //      //      TODO: implement in Swift
-    //    //return getValueByType(variationValue, "integer") as number | undefined;
-    //  }
-    //
-    //  func activateDouble(featureKey: FeatureKey, context: Context) -> Double {
-    //      let variationValue = self.activate(featureKey: featureKey, context: context)
-    //      //      TODO: implement in Swift
-    //    // return getValueByType(variationValue, "double") as number | undefined;
-    //  }
+    func activate(featureKey: FeatureKey, context: Context = [:]) -> VariationValue? {
+        do {
+            let evaluation = evaluateVariation(featureKey: featureKey, context: context)
+            let variationValue = evaluation.variation?.value ?? evaluation.variationValue
+
+            if variationValue == nil {
+                return nil
+            }
+
+            let finalContext = interceptContext != nil ? interceptContext!(context) : context
+
+            var captureContext: Context = [:]
+
+            let attributesForCapturing = datafileReader.getAllAttributes().filter { $0.capture == true }
+
+            for attribute in attributesForCapturing {
+                if finalContext[attribute.key] != nil {
+                    captureContext[attribute.key] = context[attribute.key]
+                }
+            }
+
+            emitter.emit(EventName.activation, featureKey, variationValue!, finalContext, captureContext, evaluation)
+
+            return variationValue
+        } catch {
+            logger.error("activate", ["featureKey": featureKey, "error": error])
+            return nil
+        }
+    }
 
     // MARK: - Variable
-    //  func evaluateVariable(
-    //    feature: Feature,
-    //    variableKey: VariableKey,
-    //    context: Context
-    //  ) ->  Evaluation {
-    //      return evaluateVariable(featureKey: feature.key, variableKey: variableKey, context: context)
-    //  }
-    //  func evaluateVariable(
-    //    featureKey: FeatureKey,
-    //    variableKey: VariableKey,
-    //    context: Context
-    //  ) ->  Evaluation {
-    //      // TODO: implement
-    //  }
 
-    //  func getVariable(
-    //      feature: Feature,
-    //      variableKey: String,
-    //      context: Context
-    //  ) ->  VariableValue? {
-    //      return getVariable(featureKey: feature.key, variableKey: variableKey, context: context)
-    //  }
-    //  func getVariable(
-    //      featureKey: FeatureKey,
-    //      variableKey: String,
-    //      context: Context
-    //  ) ->  VariableValue? {
-    //      // TODO: implement
-    //  }
+      func evaluateVariable(
+        feature: Feature,
+        variableKey: VariableKey,
+        context: Context
+      ) ->  Evaluation {
+          return evaluateVariable(featureKey: feature.key, variableKey: variableKey, context: context)
+      }
+      func evaluateVariable(
+        featureKey: FeatureKey,
+        variableKey: VariableKey,
+        context: Context = [:]
+      ) ->  Evaluation {
+          //TODO: write real implementation
+          return Evaluation(
+              featureKey: featureKey,
+              reason: EvaluationReason.allocated,
+              bucketValue: nil,
+              ruleKey: nil,
+              error: nil,
+              enabled: nil,
+              traffic: nil,
+              sticky: nil,
+              initial: nil,
+              variation: nil,
+              variationValue: "twitter",
+              variableKey: variableKey,
+              variableValue: nil,
+              variableSchema: nil
+          )
+      }
+
+      func getVariable(
+          feature: Feature,
+          variableKey: String,
+          context: Context = [:]
+      ) ->  VariableValue? {
+          return getVariable(featureKey: feature.key, variableKey: variableKey, context: context)
+      }
+      func getVariable(
+          featureKey: FeatureKey,
+          variableKey: String,
+          context: Context = [:]
+      ) ->  VariableValue? {
+          do {
+              let evaluation = self.evaluateVariable(featureKey: featureKey, variableKey: variableKey, context: context)
+
+              // TODO: missing part here
+              return nil
+          } catch {
+              self.logger.error("getVariable", ["featureKey": featureKey, "variableKey": variableKey, "error": error])
+              return nil
+          }
+      }
 
     //  func getVariableBoolean(
     //    feature: Feature,

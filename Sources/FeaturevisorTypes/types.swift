@@ -33,11 +33,13 @@ public struct Attribute {
     public let key: AttributeKey
     public let type: String
     public let archived: Bool?  // only available in YAML
+    public let capture: Bool?
 
-    public init(key: AttributeKey, type: String, archived: Bool?) {
+    public init(key: AttributeKey, type: String, archived: Bool?, capture: Bool?) {
         self.key = key
         self.type = type
         self.archived = archived
+        self.capture = capture
     }
 }
 
