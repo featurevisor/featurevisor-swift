@@ -4,12 +4,12 @@ import XCTest
 
 class FeaturevisorInstanceTests: XCTestCase {
 
-  func testInitializationWithoutDatafileOptions() {
+    func testInitializationWithoutDatafileOptions() {
 
-    let featurevisorOptions = FeaturevisorSDK.InstanceOptions()
+        let featurevisorOptions = FeaturevisorSDK.InstanceOptions()
 
-    XCTAssertThrowsError(try createInstance(options: featurevisorOptions)) { error in
-      XCTAssertEqual(error as? FeaturevisorError, FeaturevisorError.missingDatafileOptions)
+        XCTAssertThrowsError(try createInstance(options: featurevisorOptions)) { error in
+            XCTAssertEqual(error as? FeaturevisorError, FeaturevisorError.missingDatafileOptions)
+        }
     }
-  }
 }
