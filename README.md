@@ -87,17 +87,11 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 |                     | `refresh`                                           |        |
 |                     | `startRefreshing`                                   |        |
 |                     | `stopRefreshing`                                    |        |
+|                     | `evaluateFlag`                                      |        |
+|                     | `isEnabled`                                         | ✅     |
 |                     | `evaluateVariation`                                 |        |
 |                     | `getVariation`                                      | ✅     |
-|                     | `getVariationBoolean`                               |        |
-|                     | `getVariationString`                                |        |
-|                     | `getVariationInteger`                               |        |
-|                     | `getVariationDouble`                                |        |
 |                     | `activate`                                          |        |
-|                     | `activateBoolean`                                   |        |
-|                     | `activateString`                                    |        |
-|                     | `activateInteger`                                   |        |
-|                     | `activateDouble`                                    |        |
 |                     | `evaluateVariable`                                  |        |
 |                     | `getVariable`                                       |        |
 |                     | `getVariableBoolean`                                |        |

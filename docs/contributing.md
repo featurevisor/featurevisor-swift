@@ -49,10 +49,10 @@ let featurevisorOptions = FeaturevisorSDK.InstanceOptions(
     datafileUrl: "https://featurevisor-example-cloudflare.pages.dev/production/datafile-tag-all.json"
 )
 if let featurevisorSdk = FeaturevisorSDK.createInstance(options: featurevisorOptions) {
-    let featureKey = "headerBanner";
-    let showBanner = featurevisorSdk.getVariation(featureKey: featureKey, context: [:]);
+    let featureKey = "showBanner";
+    let showBanner = featurevisorSdk.isEnabled(featureKey: featureKey, context: [:]);
 
-    print(showBanner ?? "not found")
+    print(showBanner)
 }
 ```
 

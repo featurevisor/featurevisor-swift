@@ -346,18 +346,35 @@ public class FeaturevisorInstance {
       // TODO: write implementation
   }
 
-  // MARK: - Variation
-
-
-  func evaluateVariation(feature: Feature, context: Context) -> Evaluation {
-      return evaluateVariation(featureKey: feature.key, context: context)
+  // MARK: - Flag
+  func evaluateFlag(feature: Feature, context: Context = [:]) ->  Evaluation {
+    return evaluateFlag(featureKey: feature.key, context: context)
   }
-  func evaluateVariation(featureKey: FeatureKey, context: Context) -> Evaluation {
+  func evaluateFlag(featureKey: FeatureKey, context: Context = [:]) ->  Evaluation {
     //TODO: write real implementation
     return Evaluation(featureKey: "headerBanner", reason: EvaluationReason.allocated, bucketValue: nil, ruleKey: nil, error: nil, enabled: nil, traffic: nil, sticky: nil, initial: nil, variation: nil, variationValue: "twitter", variableKey: nil, variableValue: nil, variableSchema: nil)
   }
 
-  public func getVariation(feature: Feature, context: Context) -> VariationValue? {
+  public func isEnabled(featureKey: FeatureKey, context: Context = [:]) -> Bool {
+      do {
+          let evaluation = try evaluateFlag(featureKey: featureKey, context: context)
+          return evaluation.enabled == true
+      } catch {
+          self.logger.error("isEnabled", ["featureKey": featureKey, "error": error])
+          return false
+      }
+  }
+
+
+  func evaluateVariation(feature: Feature, context: Context = [:]) -> Evaluation {
+      return evaluateVariation(featureKey: feature.key, context: context)
+  }
+  func evaluateVariation(featureKey: FeatureKey, context: Context = [:]) -> Evaluation {
+    // TODO: write real implementation
+    return Evaluation(featureKey: "headerBanner", reason: EvaluationReason.allocated, bucketValue: nil, ruleKey: nil, error: nil, enabled: nil, traffic: nil, sticky: nil, initial: nil, variation: nil, variationValue: "twitter", variableKey: nil, variableValue: nil, variableSchema: nil)
+  }
+
+  public func getVariation(feature: Feature, context: Context = [:]) -> VariationValue? {
       return getVariation(featureKey: feature.key, context: context)
   }
   public func getVariation(featureKey: FeatureKey, context: Context) -> VariationValue? {
@@ -373,46 +390,6 @@ public class FeaturevisorInstance {
 
     return nil
   }
-
-//  func getVariationBoolean(feature: Feature, context: Context) -> Bool? {
-//      return getVariationBoolean(featureKey: feature.key, context: context)
-//  }
-//  func getVariationBoolean(featureKey: FeatureKey, context: Context) -> Bool? {
-//      let variationValue = self.getVariation(featureKey: featureKey, context: context)
-//
-//      // TODO: complete implementation
-//      // return getValueByType(variationValue, "boolean") as boolean | undefined;
-//  }
-//
-//  func getVariationString(feature: Feature, context: Context) -> String? {
-//      return getVariationString(featureKey: feature.key, context: context)
-//  }
-//  func getVariationString(featureKey: FeatureKey, context: Context) -> String? {
-//      let variationValue = self.getVariation(featureKey: featureKey, context: context)
-//
-//      // TODO: complete implementation
-//      // return getValueByType(variationValue, "string") as string | undefined;
-//  }
-//
-//  func getVariationInteger(feature: Feature, context: Context) -> Int? {
-//      return getVariationInteger(featureKey: feature.key, context: context)
-//  }
-//  func getVariationInteger(featureKey: FeatureKey, context: Context) -> Int? {
-//      let variationValue = self.getVariation(featureKey: featureKey, context: context)
-//
-//      // TODO: complete implementation
-//      // return getValueByType(variationValue, "integer") as number | undefined;
-//  }
-//
-//  func getVariationDouble(feature: Feature, context: Context) -> Double? {
-//      return getVariationDouble(featureKey: feature.key, context: context)
-//  }
-//  func getVariationDouble(featureKey: FeatureKey, context: Context) -> Double? {
-//      let variationValue = self.getVariation(featureKey: featureKey, context: context)
-//
-//      // TODO: complete implementation
-//      // return getValueByType(variationValue, "double") as number | undefined;
-//  }
 
   // MARK: - Activate
 
