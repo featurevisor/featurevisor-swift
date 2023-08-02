@@ -51,7 +51,7 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 | Section             | Task                                                | Status |
 |---------------------|-----------------------------------------------------|--------|
 | Files               | `@featurevisor/types` ➡️ `FeaturevisorTypes`        | ✅      |
-|                     | SDK's `bucket.ts` ➡️ `bucket.swift`                 |        |
+|                     | SDK's `bucket.ts` ➡️ `bucket.swift`                 | ✅      |
 |                     | SDK's `conditions.ts` ➡️ `conditions.swift`         | ✅      |
 |                     | SDK's `datafileReader.ts` ➡️ `DatafileReader.swift` | ✅      |
 |                     | SDK's `emitter.ts` ➡️ `Emitter.swift`               | ✅      |
