@@ -10,13 +10,35 @@ public enum AttributeValue {
   case date(Date)
   // @TODO: add `null` and `undefined` somehow
 }
+extension AttributeValue {
+  public var stringValue: String {
+    switch self {
+      case .string(let value):
+        return value
+      case .integer(let value):
+        return String(value)
+      case .double(let value):
+        return String(value)
+      case .boolean(let value):
+        return String(value)
+      case .date(let value):
+        return String(describing: value)
+    }
+  }
+}
 
 public typealias Context = [AttributeKey: AttributeValue]
 
 public struct Attribute {
-  public let archived: Bool?  // only available in YAML
   public let key: AttributeKey
   public let type: String
+  public let archived: Bool?  // only available in YAML
+
+  public init(key: AttributeKey, type: String, archived: Bool?) {
+    self.key = key
+    self.type = type
+    self.archived = archived
+  }
 }
 
 public enum Operator: String {
@@ -257,6 +279,20 @@ public struct DatafileContent {
   public let attributes: [Attribute]
   public let segments: [Segment]
   public let features: [Feature]
+
+  public init(
+    schemaVersion: String,
+    revision: String,
+    attributes: [Attribute],
+    segments: [Segment],
+    features: [Feature]
+  ) {
+    self.schemaVersion = schemaVersion
+    self.revision = revision
+    self.attributes = attributes
+    self.segments = segments
+    self.features = features
+  }
 }
 
 public struct OverrideFeature {

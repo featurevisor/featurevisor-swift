@@ -3,6 +3,7 @@ coverage
 build
 
 .DS_Store
+*.swp
 
 npm-debug.log*
 yarn-debug.log*

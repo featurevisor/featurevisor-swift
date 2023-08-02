@@ -59,35 +59,38 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 |                     | SDK's `instance.ts` ➡️ `Instance.swift`             |        |
 |                     | SDK's `logger.ts` ➡️ `Logger.swift`                 | ✅      |
 |                     | SDK's `segments.ts` ➡️ `segments.swift`             | ✅      |
-| Constructor options | `bucketKeySeparator`                                |        |
-|                     | `configureBucketKey`                                |        |
-|                     | `configureBucketValue`                              |        |
-|                     | `datafile`                                          |        |
-|                     | `datafileUrl`                                       |        |
+|                     |                                                     |        |
+| Constructor options | `bucketKeySeparator`                                | ✅     |
+|                     | `configureBucketKey`                                | ✅     |
+|                     | `configureBucketValue`                              | ✅     |
+|                     | `datafile`                                          | ✅     |
+|                     | `datafileUrl`                                       | ✅     |
 |                     | `handleDatafileFetch`                               |        |
-|                     | `initialFeatures`                                   |        |
-|                     | `interceptContext`                                  |        |
-|                     | `logger`                                            |        |
+|                     | `initialFeatures`                                   | ✅     |
+|                     | `interceptContext`                                  | ✅     |
+|                     | `logger`                                            | ✅     |
 |                     | `onActivation`                                      |        |
-|                     | `onReady`                                           |        |
-|                     | `onRefresh`                                         |        |
-|                     | `onUpdate`                                          |        |
-|                     | `refreshInternal`                                   |        |
-|                     | `stickyFeatures`                                    |        |
-| Instance methods    | `setDatafile`                                       |        |
-|                     | `setStickyFeatures`                                 |        |
-|                     | `getRevision`                                       |        |
-|                     | `getFeature`                                        |        |
-|                     | `getBucketBy`                                       |        |
-|                     | `getBucketValue`                                    |        |
-|                     | `isReady`                                           |        |
+|                     | `onReady`                                           | ✅     |
+|                     | `onRefresh`                                         | ✅     |
+|                     | `onUpdate`                                          | ✅     |
+|                     | `refreshInternal`                                   | ✅     |
+|                     | `stickyFeatures`                                    | ✅     |
+|                     |                                                     |        |
+| Instance methods    | `constructor` missing fetch datafile content        | ⚠️      |
+|                     | `setDatafile` removed to workaround init issues     | ✅     |
+|                     | `setStickyFeatures`                                 | ✅     |
+|                     | `getRevision`                                       | ✅     |
+|                     | `getFeature`                                        | ✅     |
+|                     | `getBucketKey`                                      | ✅     |
+|                     | `getBucketValue`                                    | ✅     |
+|                     | `isReady`                                           | ✅     |
 |                     | `refresh`                                           |        |
 |                     | `startRefreshing`                                   |        |
 |                     | `stopRefreshing`                                    |        |
 |                     | `evaluateFlag`                                      |        |
-|                     | `isEnabled`                                         |        |
+|                     | `isEnabled`                                         | ✅     |
 |                     | `evaluateVariation`                                 |        |
-|                     | `getVariation`                                      |        |
+|                     | `getVariation`                                      | ✅     |
 |                     | `activate`                                          |        |
 |                     | `evaluateVariable`                                  |        |
 |                     | `getVariable`                                       |        |
@@ -98,7 +101,10 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 |                     | `getVariableArray`                                  |        |
 |                     | `getVariableObject`                                 |        |
 |                     | `getVariableJSON`                                   |        |
-| Functions           | `createInstance`                                    |        |
+|                     |                                                     |        |
+| Functions           | `createInstance` missing proper error handling      | ⚠️      |
+|                     | `fetchDatafileContent` decoadable issue             | ⚠️      |
+|                     | `getValueByType`                                    |        |
 
 ### Test runner
 

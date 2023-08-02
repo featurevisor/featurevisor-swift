@@ -13,11 +13,11 @@ func parseDateFromString(dateString: String) -> Date? {
   }
 }
 
-public func conditionIsMatched(condition: PlainCondition, attributes: Attributes) -> Bool {
+public func conditionIsMatched(condition: PlainCondition, context: Context) -> Bool {
   let attribute = condition.attribute
   let op = condition.operator
   let valueInCondition = condition.value
-  let valueInAttributes = attributes[attribute]
+  let valueInAttributes = context[attribute]
 
   switch (valueInAttributes, valueInCondition) {
     // boolean, boolean
@@ -164,29 +164,29 @@ public func conditionIsMatched(condition: PlainCondition, attributes: Attributes
   }
 }
 
-public func allConditionsAreMatched(condition: Condition, attributes: Attributes) -> Bool {
+public func allConditionsAreMatched(condition: Condition, context: Context) -> Bool {
   switch condition {
     case let .plain(condition):
-      return conditionIsMatched(condition: condition, attributes: attributes)
+      return conditionIsMatched(condition: condition, context: context)
 
     case let .multiple(condition):
       return condition.allSatisfy { condition in
-        allConditionsAreMatched(condition: condition, attributes: attributes)
+        allConditionsAreMatched(condition: condition, context: context)
       }
 
     case let .and(condition):
       return condition.and.allSatisfy { condition in
-        allConditionsAreMatched(condition: condition, attributes: attributes)
+        allConditionsAreMatched(condition: condition, context: context)
       }
 
     case let .or(condition):
       return condition.or.contains { condition in
-        allConditionsAreMatched(condition: condition, attributes: attributes)
+        allConditionsAreMatched(condition: condition, context: context)
       }
 
     case let .not(condition):
       return !condition.not.allSatisfy { condition in
-        allConditionsAreMatched(condition: condition, attributes: attributes)
+        allConditionsAreMatched(condition: condition, context: context)
       }
   }
 }

@@ -1,13 +1,13 @@
 import FeaturevisorTypes
 import Foundation
 
-public func segmentIsMatched(segment: Segment, attributes: Attributes) -> Bool {
-  return allConditionsAreMatched(condition: segment.conditions, attributes: attributes)
+public func segmentIsMatched(segment: Segment, context: Context) -> Bool {
+  return allConditionsAreMatched(condition: segment.conditions, context: context)
 }
 
 public func allGroupSegmentsAreMatched(
   groupSegments: GroupSegment,
-  attributes: Attributes,
+  context: Context,
   datafileReader: DatafileReader
 ) -> Bool {
   switch groupSegments {
@@ -17,7 +17,7 @@ public func allGroupSegmentsAreMatched(
       }
 
       if let segment = datafileReader.getSegment(segmentKey) {
-        return segmentIsMatched(segment: segment, attributes: attributes)
+        return segmentIsMatched(segment: segment, context: context)
       }
 
       return false
@@ -26,7 +26,7 @@ public func allGroupSegmentsAreMatched(
       return groupSegments.allSatisfy { groupSegment in
         allGroupSegmentsAreMatched(
           groupSegments: groupSegment,
-          attributes: attributes,
+          context: context,
           datafileReader: datafileReader
         )
       }
@@ -35,7 +35,7 @@ public func allGroupSegmentsAreMatched(
       return andGroupSegment.and.allSatisfy { groupSegment in
         allGroupSegmentsAreMatched(
           groupSegments: groupSegment,
-          attributes: attributes,
+          context: context,
           datafileReader: datafileReader
         )
       }
@@ -44,7 +44,7 @@ public func allGroupSegmentsAreMatched(
       return orGroupSegment.or.contains { groupSegment in
         allGroupSegmentsAreMatched(
           groupSegments: groupSegment,
-          attributes: attributes,
+          context: context,
           datafileReader: datafileReader
         )
       }
@@ -53,7 +53,7 @@ public func allGroupSegmentsAreMatched(
       return !notGroupSegment.not.allSatisfy { groupSegment in
         allGroupSegmentsAreMatched(
           groupSegments: groupSegment,
-          attributes: attributes,
+          context: context,
           datafileReader: datafileReader
         )
       }
