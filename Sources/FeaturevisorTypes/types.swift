@@ -263,11 +263,23 @@ public enum BucketBy {
     case or(OrBucketBy)
 }
 
+public struct RequiredWithVariation {
+    public let key: FeatureKey
+    public let variation: VariationValue
+}
+
+public enum Required {
+    case featureKey(FeatureKey)
+    case withVariation(RequiredWithVariation)
+}
+
 public struct Feature {
     public let key: FeatureKey
+    public let deprecated: Bool?
     public let variablesSchema: [VariableSchema]?
     public let variations: [Variation]
     public let bucketBy: BucketBy
+    public let required: [Required]?
     public let traffic: [Traffic]
     public let force: [Force]?
     public let ranges: [Range]?  // if in a Group (mutex), these are available slot ranges
@@ -338,11 +350,15 @@ public typealias Environments = [EnvironmentKey: Environment]
 public struct ParsedFeature {
     public let key: FeatureKey
 
-    public let archived: Bool
+    public let archived: Bool?
+    public let deprecated: Bool?
+
     public let description: String
     public let tags: [String]
 
     public let bucketBy: BucketBy
+
+    public let required: [Required]?
 
     public let variablesSchema: [VariableSchema]
     public let variations: [Variation]
@@ -370,7 +386,7 @@ public struct TestFeature {
 public struct SegmentAssertion {
     public let description: String?
     public let context: Context
-    public let expected: Bool
+    public let expectedToMatch: Bool
 }
 
 public struct TestSegment {
