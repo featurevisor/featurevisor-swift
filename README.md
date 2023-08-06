@@ -91,7 +91,7 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 |                     | `isEnabled`                                         | ✅     |
 |                     | `evaluateVariation`                                 |        |
 |                     | `getVariation`                                      | ✅     |
-|                     | `activate`                                          |        |
+|                     | `activate`                                          | ✅     |
 |                     | `evaluateVariable`                                  |        |
 |                     | `getVariable`                                       |        |
 |                     | `getVariableBoolean`                                |        |
