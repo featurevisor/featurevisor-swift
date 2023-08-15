@@ -55,28 +55,25 @@ func fetchDatafileContent(
     from url: String,
     completion: @escaping (Result<DatafileContent, Error>) -> Void
 ) {
-    let datafileUrl = URL(string: url)!
-    let task = URLSession.shared.dataTask(with: datafileUrl) { (data, response, error) in
+    guard let datafileUrl = URL(string: url) else {
+        return
+    }
+
+    var request = URLRequest(url: datafileUrl)
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    
+    let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
         if let error = error {
             completion(.failure(error))
         }
         else if let data = data {
             let decoder = JSONDecoder()
-            // TODO: use real implementation instead of the mock one
-            // Here we've got the non trivial problem that DatafileContnent is not decoadable
-            // let content = try decoder.decode(DatafileContent.self, from: data)
-            let mockAttributes: [Attribute] = [
-                Attribute(key: "deviceId", type: "string", archived: false, capture: false),
-                Attribute(key: "userId", type: "string", archived: false, capture: false),
-            ]
-            let content = DatafileContent(
-                schemaVersion: "1",
-                revision: "0.0.3",
-                attributes: mockAttributes,
-                segments: [],
-                features: []
-            )
-            completion(.success(content))
+            do {
+                let content = try decoder.decode(DatafileContent.self, from: data)
+                completion(.success(content))
+            } catch {
+                completion(.failure(FeaturevisorError.unparseableDatafileJSON(data: data, errorMessage: error.localizedDescription)))
+            }
         }
     }
     task.resume()
@@ -145,23 +142,6 @@ let emptyDatafile = DatafileContent(
     segments: [],
     features: []
 )
-
-public enum FeaturevisorError: Error {
-    case missingDatafileOptions
-    case downloadingDatafile(String)
-}
-
-extension FeaturevisorError: LocalizedError {
-    public var errorDescription: String? {
-        switch self {
-            case .missingDatafileOptions:
-                return
-                    "Featurevisor SDK instance cannot be created without both `datafile` and `datafileUrl` options"
-            case .downloadingDatafile(let datafileUrl):
-                return "Featurevisor SDK was not able to download the data file at: \(datafileUrl)"
-        }
-    }
-}
 
 public class FeaturevisorInstance {
     static let DEFAULT_BUCKET_KEY_SEPARATOR = "."
