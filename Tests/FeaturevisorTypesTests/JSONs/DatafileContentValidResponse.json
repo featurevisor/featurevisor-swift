@@ -1,0 +1,100 @@
+{
+    "schemaVersion": "1",
+    "revision": "0.0.13",
+    "attributes": [
+        {
+            "key": "chapter",
+            "type": "string"
+        },
+        {
+            "key": "deviceId",
+            "type": "string",
+            "capture": true
+        },
+        {
+            "key": "userId",
+            "type": "string",
+            "capture": true
+        }
+    ],
+    "segments": [
+        {
+            "key": "myAccount",
+            "conditions": "[{\"attribute\":\"chapter\",\"operator\":\"equals\",\"value\":\"account\"}]"
+        }
+    ],
+    "features": [
+        {
+            "key": "e_bar",
+            "bucketBy": "userId",
+            "variations": [
+                {
+                    "value": "control",
+                    "weight": 33.34
+                },
+                {
+                    "value": "treatment",
+                    "weight": 33.33
+                },
+                {
+                    "value": "anotherTreatment",
+                    "weight": 33.33
+                }
+            ],
+            "traffic": [
+                {
+                    "key": "1",
+                    "segments": "[\"myAccount\"]",
+                    "percentage": 100000,
+                    "allocation": [
+                        {
+                            "variation": "control",
+                            "range": [
+                                0,
+                                33340
+                            ]
+                        },
+                        {
+                            "variation": "treatment",
+                            "range": [
+                                33340,
+                                66670
+                            ]
+                        },
+                        {
+                            "variation": "anotherTreatment",
+                            "range": [
+                                66670,
+                                100000
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "key": "2",
+                    "segments": "*",
+                    "percentage": 0,
+                    "allocation": []
+                }
+            ]
+        },
+        {
+            "key": "f_foo",
+            "bucketBy": "userId",
+            "traffic": [
+                {
+                    "key": "1",
+                    "segments": "[\"myAccount\"]",
+                    "percentage": 50000,
+                    "allocation": []
+                },
+                {
+                    "key": "2",
+                    "segments": "*",
+                    "percentage": 0,
+                    "allocation": []
+                }
+            ]
+        }
+    ]
+}
