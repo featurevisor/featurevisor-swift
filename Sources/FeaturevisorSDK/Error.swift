@@ -6,22 +6,32 @@ public enum FeaturevisorError: Error, Equatable {
     /// - Parameters:
     ///   - data: The data being parsed.
     ///   - errorMessage: The message from the error which occured during parsing.
-    case unparseableDatafileJSON(data: Data?, errorMessage: String)
+    case unparseableJSON(data: Data?, errorMessage: String)
+    
+    /// Thrown when attempting to construct an invalid URL.
+    /// - Parameter string: The invalid URL string.
+    case invalidURL(string: String)
     
     case missingDatafileOptions
     case downloadingDatafile(String)
 }
 
 extension FeaturevisorError: LocalizedError {
+    
+    private var errorPrefix: String {
+        return "Featurevisor SDK"
+    }
+    
     public var errorDescription: String? {
         switch self {
             case .missingDatafileOptions:
-                return
-                    "Featurevisor SDK instance cannot be created without both `datafile` and `datafileUrl` options"
+            return "\(errorPrefix) instance cannot be created without both `datafile` and `datafileUrl` options"
             case .downloadingDatafile(let datafileUrl):
-                return "Featurevisor SDK was not able to download the data file at: \(datafileUrl)"
-            case .unparseableDatafileJSON(_, let errorMessage):
-                return errorMessage
+            return "\(errorPrefix) was not able to download the data file at: \(datafileUrl)"
+            case .invalidURL(let urlString):
+            return "\(errorPrefix) was not able to parse following url '\(urlString)'"
+            case .unparseableJSON(_, let errorMessage):
+            return "\(errorPrefix) was not able to parse JSON response '\(errorMessage)'"
         }
     }
 }

@@ -51,34 +51,6 @@ public struct Evaluation {
     public let variableSchema: VariableSchema?
 }
 
-func fetchDatafileContent(
-    from url: String,
-    completion: @escaping (Result<DatafileContent, Error>) -> Void
-) {
-    guard let datafileUrl = URL(string: url) else {
-        return
-    }
-
-    var request = URLRequest(url: datafileUrl)
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    
-    let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-        if let error = error {
-            completion(.failure(error))
-        }
-        else if let data = data {
-            let decoder = JSONDecoder()
-            do {
-                let content = try decoder.decode(DatafileContent.self, from: data)
-                completion(.success(content))
-            } catch {
-                completion(.failure(FeaturevisorError.unparseableDatafileJSON(data: data, errorMessage: error.localizedDescription)))
-            }
-        }
-    }
-    task.resume()
-}
-
 public struct InstanceOptions {
     public var bucketKeySeparator: String?
     public var configureBucketKey: ConfigureBucketKey?
@@ -96,6 +68,7 @@ public struct InstanceOptions {
     public var onUpdate: Listener?
     public var refreshInterval: Int?  // seconds
     public var stickyFeatures: StickyFeatures?
+    public var sessionConfiguration: URLSessionConfiguration
 
     // I hate the duplication here but I haven't found a better way.
     // We have to explicitely declare "public" the init if we want to use it
@@ -115,7 +88,8 @@ public struct InstanceOptions {
         onRefresh: Listener? = nil,
         onUpdate: Listener? = nil,
         refreshInterval: Int? = nil,
-        stickyFeatures: StickyFeatures? = nil
+        stickyFeatures: StickyFeatures? = nil,
+        sessionConfiguration: URLSessionConfiguration = .default
     ) {
         self.bucketKeySeparator = bucketKeySeparator
         self.configureBucketKey = configureBucketKey
@@ -132,6 +106,7 @@ public struct InstanceOptions {
         self.onUpdate = onUpdate
         self.refreshInterval = refreshInterval
         self.stickyFeatures = stickyFeatures
+        self.sessionConfiguration = sessionConfiguration
     }
 }
 
@@ -162,6 +137,7 @@ public class FeaturevisorInstance {
     private var datafileReader: DatafileReader
     private var emitter: Emitter
     private var statuses: Statuses
+    internal var urlSession: URLSession
     // private var intervalId: Timer?
 
     // exposed from emitter
@@ -186,6 +162,7 @@ public class FeaturevisorInstance {
         stickyFeatures = options.stickyFeatures
 
         // internal
+        urlSession = URLSession(configuration: options.sessionConfiguration)
         emitter = Emitter()
         statuses = Statuses(ready: false, refreshInProgress: false)
 
