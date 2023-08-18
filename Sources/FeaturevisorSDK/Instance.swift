@@ -392,14 +392,15 @@ public class FeaturevisorInstance {
 
       func getVariable(
           feature: Feature,
-          variableKey: String,
+          variableKey: VariableKey,
           context: Context = [:]
       ) ->  VariableValue? {
           return getVariable(featureKey: feature.key, variableKey: variableKey, context: context)
       }
+    
       func getVariable(
           featureKey: FeatureKey,
-          variableKey: String,
+          variableKey: VariableKey,
           context: Context = [:]
       ) ->  VariableValue? {
           do {
@@ -413,73 +414,61 @@ public class FeaturevisorInstance {
           }
       }
 
-    //  func getVariableBoolean(
-    //    feature: Feature,
-    //    variableKey: String,
-    //    context: Context
-    //  ) -> Bool? {
-    //      return getVariableBoolean(featureKey: feature.key, variableKey: variableKey, context: context)
-    //  }
-    //  func getVariableBoolean(
-    //    featureKey: FeatureKey,
-    //    variableKey: String,
-    //    context: Context
-    //  ) -> Bool? {
-    //      let variableValue = self.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
-    //      // TODO: implement in Swift
-    //    //return getValueByType(variableValue, "boolean") as boolean | undefined;
-    //  }
+      func getVariableBoolean(
+        feature: Feature,
+        variableKey: VariableKey,
+        context: Context) -> Bool? {
+            return getVariableBoolean(featureKey: feature.key, variableKey: variableKey, context: context)
+      }
+    
+      func getVariableBoolean(
+        featureKey: FeatureKey,
+        variableKey: VariableKey,
+        context: Context) -> Bool? {
+            return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? Bool
+      }
 
-    //  func getVariableString(
-    //    feature: Feature,
-    //    variableKey: String,
-    //    context: Context
-    //  ) ->  String? {
-    //      return getVariableString(featureKey: feature.key, variableKey: variableKey, context: context)
-    //  }
-    //  func getVariableString(
-    //    featureKey: FeatureKey,
-    //    variableKey: String,
-    //    context: Context
-    //  ) ->  String? {
-    //      let variableValue = self.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
-    //      // TODO: implement
-    ////      return getValueByType(variableValue, "string") as string | undefined;
-    //  }
+      func getVariableString(
+        feature: Feature,
+        variableKey: VariableKey,
+        context: Context) ->  String? {
+          return getVariableString(featureKey: feature.key, variableKey: variableKey, context: context)
+      }
+    
+      func getVariableString(
+        featureKey: FeatureKey,
+        variableKey: VariableKey,
+        context: Context) ->  String? {
+          return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? String
+      }
 
-    //  func getVariableInteger(
-    //    feature: Feature,
-    //    variableKey: String,
-    //    context: Context
-    //  ) ->  Int? {
-    //      return getVariableInteger(featureKey: feature.key, variableKey: variableKey, context: context)
-    //  }
-    //  func getVariableInteger(
-    //    featureKey: FeatureKey,
-    //    variableKey: String,
-    //    context: Context
-    //  ) ->  Int? {
-    //      let variableValue = self.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
-    //      // TODO: implement
-    //    // return getValueByType(variableValue, "integer") as number | undefined;
-    //  }
+      func getVariableInteger(
+        feature: Feature,
+        variableKey: VariableKey,
+        context: Context) ->  Int? {
+          return getVariableInteger(featureKey: feature.key, variableKey: variableKey, context: context)
+      }
+    
+      func getVariableInteger(
+        featureKey: FeatureKey,
+        variableKey: VariableKey,
+        context: Context) ->  Int? {
+          return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? Int
+      }
 
-    //  func getVariableDouble(
-    //    feature: Feature,
-    //    variableKey: String,
-    //    context: Context
-    //  ) -> Double? {
-    //      return getVariableDouble(featureKey: feature.key, variableKey: variableKey, context: context)
-    //  }
-    //  func getVariableDouble(
-    //    featureKey: FeatureKey,
-    //    variableKey: String,
-    //    context: Context
-    //  ) -> Double? {
-    //      let variableValue = self.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
-    //      // TODO: implement
-    //    // return getValueByType(variableValue, "double") as number | undefined;
-    //  }
+      func getVariableDouble(
+        feature: Feature,
+        variableKey: VariableKey,
+        context: Context) -> Double? {
+          return getVariableDouble(featureKey: feature.key, variableKey: variableKey, context: context)
+      }
+    
+      func getVariableDouble(
+        featureKey: FeatureKey,
+        variableKey: VariableKey,
+        context: Context) -> Double? {
+          return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? Double
+      }
 
     //  func getVariableArray(
     //    feature: Feature,
