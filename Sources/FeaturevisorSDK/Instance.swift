@@ -284,7 +284,7 @@ public class FeaturevisorInstance {
 
     private func getBucketValue(feature: Feature, context: Context) -> BucketValue {
         let bucketKey = getBucketKey(feature: feature, context: context)
-        let value = getBucketedNumber(bucketKey: bucketKey)
+        let value = Bucket.resolveNumber(forKey: bucketKey)
 
         if let configureBucketValue = self.configureBucketValue {
             return configureBucketValue(feature, context, value)
