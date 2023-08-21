@@ -60,7 +60,7 @@ let emptyDatafile = DatafileContent(
 )
 
 public class FeaturevisorInstance {
-    
+
     // from options
     private var bucketKeySeparator: String
     private var configureBucketKey: ConfigureBucketKey?
@@ -87,7 +87,7 @@ public class FeaturevisorInstance {
     public var removeListener: ((EventName, Listener) -> Void)?
     public var removeAllListeners: ((EventName?) -> Void)?
 
-    public init(options: InstanceOptions) throws {
+    internal init(options: InstanceOptions) throws {
         // from options
         bucketKeySeparator = options.bucketKeySeparator
         configureBucketKey = options.configureBucketKey
@@ -375,7 +375,7 @@ public class FeaturevisorInstance {
               variableSchema: nil
           )
       }
-    
+
       func getVariable(
           featureKey: FeatureKey,
           variableKey: VariableKey,
@@ -390,14 +390,14 @@ public class FeaturevisorInstance {
               return nil
           }
       }
-    
+
       func getVariableBoolean(
         featureKey: FeatureKey,
         variableKey: VariableKey,
         context: Context) -> Bool? {
             return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? Bool
       }
-    
+
       func getVariableString(
         featureKey: FeatureKey,
         variableKey: VariableKey,
@@ -458,4 +458,20 @@ public class FeaturevisorInstance {
     //      return getValueByType(variableValue, "json") as T | undefined;
     //    }
     //  }
+}
+
+public func createInstance(options: InstanceOptions) -> FeaturevisorInstance? {
+    do {
+        let instance = try FeaturevisorInstance(options: options)
+        return instance
+        // TODO: What to do in case initialisation fails?
+        //  } catch FeaturevisorError.missingDatafileOptions{
+        //  } catch FeaturevisorError.invalidURL {
+        //  } catch FeaturevisorError.downloadingDatafile(let datafileUrl) {
+    }
+    catch let error {
+        print(error.localizedDescription)
+    }
+
+    return nil
 }

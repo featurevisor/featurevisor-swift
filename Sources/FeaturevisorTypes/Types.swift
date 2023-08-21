@@ -160,13 +160,9 @@ public struct Segment: Decodable {
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
         archived = try? container.decode(Bool.self, forKey: .archived)
         key = try container.decode(SegmentKey.self, forKey: .key)
-        
-        let conditionsString = try container.decode(String.self, forKey: .conditions)
-        let jsonDecoder = JSONDecoder()
-        conditions = try jsonDecoder.decode(Condition.self, from: conditionsString.data(using: .utf8)!)
+        conditions = try container.decodeStringified(Condition.self, forKey: .conditions)
     }
     
     public enum CodingKeys: String, CodingKey {
@@ -292,6 +288,19 @@ public struct VariableOverride: Decodable {
     // one of the below must be present in YAML
     public let conditions: Condition?
     public let segments: GroupSegment?
+        
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        value = try container.decode(VariableValue.self, forKey: .value)
+        conditions = try container.decodeStringifiedIfPresent(Condition.self, forKey: .conditions)
+        segments = try container.decodeGroupSegmentIfPresent(forKey: .segments)
+    }
+    
+    enum CodingKeys: CodingKey {
+        case value
+        case conditions
+        case segments
+    }
 }
 
 public struct Variable: Decodable {
@@ -325,6 +334,23 @@ public struct Force: Decodable {
     public let enabled: Bool?
     public let variation: VariationValue
     public let variables: VariableValues
+        
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        enabled = try? container.decodeIfPresent(Bool.self, forKey: .enabled)
+        variation = try container.decode(VariationValue.self, forKey: .variation)
+        variables = try container.decode(VariableValues.self, forKey: .variables)
+        conditions = try container.decodeStringifiedIfPresent(Condition.self, forKey: .conditions)
+        segments = try container.decodeGroupSegmentIfPresent(forKey: .segments)
+    }
+    
+    enum CodingKeys: CodingKey {
+        case conditions
+        case segments
+        case enabled
+        case variation
+        case variables
+    }
 }
 
 public struct Slot {
@@ -376,6 +402,28 @@ public struct Traffic: Decodable {
     public let variables: VariableValues? // @TODO Tuple typealias is not managed by Decodable
 
     public let allocation: [Allocation]
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        key = try container.decode(RuleKey.self, forKey: .key)
+        percentage = try container.decode(Percentage.self, forKey: .percentage)
+        enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled)
+        variation = try? container.decodeIfPresent(VariationValue.self, forKey: .variation)
+        variables = try? container.decodeIfPresent(VariableValues.self, forKey: .variables)
+        allocation = (try? container.decode([Allocation].self, forKey: .allocation)) ?? []
+        segments = try container.decodeGroupSegment(forKey: .segments)
+    }
+    
+    public enum CodingKeys: CodingKey {
+        case key
+        case segments
+        case percentage
+        case enabled
+        case variation
+        case variables
+        case allocation
+    }
 }
 
 public typealias PlainBucketBy = String
