@@ -261,6 +261,25 @@ public enum VariableValue: Decodable {
             throw DecodingError.dataCorrupted(context)
         }
     }
+    
+    public var value: Any {
+        switch self {
+        case .boolean(let bool):
+            return bool
+        case .string(let string):
+            return string
+        case .integer(let integer):
+            return integer
+        case .double(let double):
+            return double
+        case .array(let array):
+            return array
+        case .object(let object):
+            return object
+        case .json(let json):
+            return json
+        }
+    }
 }
 
 public struct VariableOverride: Decodable {

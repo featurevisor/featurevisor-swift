@@ -5,10 +5,10 @@ import XCTest
 class FeaturevisorInstanceTests: XCTestCase {
 
     func testInitializationSuccessDatafileContentFetching() {
-        
+
         // GIVEN
         let expectation: XCTestExpectation = expectation(description: "Expectation")
-        
+
         MockURLProtocol.requestHandler = { request in
             let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"0.0.666\",\"attributes\":[],\"segments\":[],\"features\":[]}"
             let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!

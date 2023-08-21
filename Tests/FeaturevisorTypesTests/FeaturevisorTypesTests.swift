@@ -36,13 +36,13 @@ final class FeaturevisorTypesTests: XCTestCase {
         XCTAssertEqual(feature1.variations.count, 3)
         XCTAssertEqual(feature1.traffic.count, 2)
         XCTAssertEqual(feature1.force.count, 1)
-        
+
         let variation1_1 = feature1.variations[0]
         XCTAssertEqual(variation1_1.value, "control")
         XCTAssertNil(variation1_1.description)
         XCTAssertEqual(variation1_1.weight, 33.34)
         XCTAssertEqual(variation1_1.variables!.count, 1)
-        
+
         let variable1_1 = variation1_1.variables![0]
         XCTAssertEqual(variable1_1.key, "hero")
         XCTAssertEqual(variable1_1.value, .object([
@@ -50,7 +50,7 @@ final class FeaturevisorTypesTests: XCTestCase {
             "subtitle": .string("Hero Subtitle for B"),
             "alignment": .string("center for B")]))
         XCTAssertEqual(variable1_1.overrides!.count, 1)
-        
+
         let override1_1 = variable1_1.overrides![0]
         XCTAssertEqual(override1_1.value, .object([
             "title": .string("Hero Title for B in DE or CH"),
@@ -108,7 +108,7 @@ final class FeaturevisorTypesTests: XCTestCase {
         XCTAssertEqual(variablesSchema1_1.key, "color")
         XCTAssertEqual(variablesSchema1_1.type, .string)
         XCTAssertEqual(variablesSchema1_1.defaultValue, .string("red"))
-        
+
         let variablesSchema1_2 = feature1.variablesSchema[1]
         XCTAssertEqual(variablesSchema1_2.key, "hero")
         XCTAssertEqual(variablesSchema1_2.type, .object)
@@ -116,7 +116,7 @@ final class FeaturevisorTypesTests: XCTestCase {
                                       "title": .string("Hero Title"),
                                       "subtitle": .string("Hero Subtitle"),
                                       "alignment": .string("center")]))
-        
+
         let force1_1 = feature1.force[0]
         XCTAssertTrue(force1_1.enabled!)
         XCTAssertEqual(force1_1.conditions, .and(AndCondition(and: [
@@ -126,7 +126,7 @@ final class FeaturevisorTypesTests: XCTestCase {
         XCTAssertNil(force1_1.segments)
         XCTAssertEqual(force1_1.variables, ["bar": .string("yoooooo")])
         XCTAssertEqual(force1_1.variation, "treatment")
-                       
+
         let feature2 = result.features[1]
         XCTAssertEqual(feature2.key, "f_foo")
         XCTAssertNil(feature2.deprecated)
@@ -170,102 +170,5 @@ final class FeaturevisorTypesTests: XCTestCase {
         XCTAssertNil(attribute3.archived)
         XCTAssertTrue(attribute3.capture!)
         XCTAssertEqual(attribute3.type, "string")
-    }
-}
-
-extension Condition: Equatable {
-    public static func == (lhs: Condition, rhs: Condition) -> Bool {
-        switch (lhs, rhs) {
-        case (.plain(let lhsPlain), .plain(let rhsPlain)):
-            return lhsPlain.value == rhsPlain.value
-            && lhsPlain.attribute == rhsPlain.attribute
-            && lhsPlain.operator == rhsPlain.operator
-        case (.multiple(let lhsMultiple), .multiple(let rhsMultiple)):
-            return lhsMultiple == rhsMultiple
-        case (.and(let lhsAnd), .and(let rhsAnd)):
-            return lhsAnd.and == rhsAnd.and
-        case (.or(let lhsOr), .or(let rhsOr)):
-            return lhsOr.or == rhsOr.or
-        case (.not(let lhsNot), .not(let rhsNot)):
-            return lhsNot.not == rhsNot.not
-        default:
-            return false
-        }
-    }
-}
-
-extension ConditionValue: Equatable {
-    public static func == (lhs: ConditionValue, rhs: ConditionValue) -> Bool {
-        switch (lhs, rhs) {
-        case (.string(let lhsString), .string(let rhsString)):
-            return lhsString == rhsString
-        case (.integer(let lhsInteger), .integer(let rhsInteger)):
-                return lhsInteger == rhsInteger
-        case (.double(let lhsDouble), .double(let rhsDouble)):
-            return lhsDouble == rhsDouble
-        case (.boolean(let lhsBoolean), .boolean(let rhsBoolea)):
-                return lhsBoolean == rhsBoolea
-        case (.array(let lhsArray), .array(let rhsArray)):
-            return lhsArray == rhsArray
-        default:
-            return false
-        }
-    }
-}
-
-extension BucketBy: Equatable {
-    public static func == (lhs: BucketBy, rhs: BucketBy) -> Bool {
-        switch(lhs, rhs) {
-        case (.single(let lhsSingle), .single(let rhsSingle)):
-            return lhsSingle == rhsSingle
-        case (.and(let lhsAnd), .and(let rhsAnd)):
-            return lhsAnd == rhsAnd
-        case (.or(let lhsOr), .or(let rhsOr)):
-            return lhsOr.or == rhsOr.or
-        default:
-            return false
-        }
-    }
-}
-
-extension GroupSegment: Equatable {
-    public static func == (lhs: GroupSegment, rhs: GroupSegment) -> Bool {
-        switch(lhs, rhs) {
-        case (.plain(let lhsPlain), .plain(let rhsPlain)):
-            return lhsPlain == rhsPlain
-        case (.multiple(let lhsMultiple), .multiple(let rhsMultiple)):
-            return lhsMultiple == rhsMultiple
-        case (.and(let lhsAnd), .and(let rhsAnd)):
-            return lhsAnd.and == rhsAnd.and
-        case (.or(let lhsOr), .or(let rhsOr)):
-            return lhsOr.or == rhsOr.or
-        case (.not(let lhsNot), .not(let rhsNot)):
-            return lhsNot.not == rhsNot.not
-        default:
-            return false
-        }
-    }
-}
-    
-extension VariableValue: Equatable {
-    public static func == (lhs: VariableValue, rhs: VariableValue) -> Bool {
-        switch(lhs, rhs) {
-        case (.boolean(let lhsBoolean), .boolean(let rhsBoolean)):
-            return lhsBoolean == rhsBoolean
-        case (.string(let lhsString), .string(let rhsString)):
-            return lhsString == rhsString
-        case (.integer(let lhsInteger), .integer(let rhsInteger)):
-            return lhsInteger == rhsInteger
-        case (.double(let lhsDouble), .double(let rhsDouble)):
-            return lhsDouble == rhsDouble
-        case (.array(let lhsArray), .array(let rhsArray)):
-            return lhsArray == rhsArray
-        case (.object(let lhsObject), .object(let rhsObject)):
-            return lhsObject == rhsObject
-        case (.json(let lhsJson), .json(let rhsJson)):
-            return lhsJson == rhsJson
-        default:
-            return false
-        }
     }
 }
