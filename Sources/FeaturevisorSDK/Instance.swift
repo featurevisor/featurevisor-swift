@@ -87,7 +87,7 @@ public class FeaturevisorInstance {
     public var removeListener: ((EventName, Listener) -> Void)?
     public var removeAllListeners: ((EventName?) -> Void)?
 
-    private init(options: InstanceOptions) throws {
+    internal init(options: InstanceOptions) throws {
         // from options
         bucketKeySeparator = options.bucketKeySeparator
         configureBucketKey = options.configureBucketKey
@@ -520,20 +520,20 @@ public class FeaturevisorInstance {
     //      return getValueByType(variableValue, "json") as T | undefined;
     //    }
     //  }
-    
-    static public func createInstance(options: InstanceOptions) -> FeaturevisorInstance? {
-        do {
-            let instance = try FeaturevisorInstance(options: options)
-            return instance
-            // TODO: What to do in case initialisation fails?
-            //  } catch FeaturevisorError.missingDatafileOptions{
-            //  } catch FeaturevisorError.invalidURL {
-            //  } catch FeaturevisorError.downloadingDatafile(let datafileUrl) {
-        }
-        catch let error {
-            print(error.localizedDescription)
-        }
+}
 
-        return nil
+public func createInstance(options: InstanceOptions) -> FeaturevisorInstance? {
+    do {
+        let instance = try FeaturevisorInstance(options: options)
+        return instance
+        // TODO: What to do in case initialisation fails?
+        //  } catch FeaturevisorError.missingDatafileOptions{
+        //  } catch FeaturevisorError.invalidURL {
+        //  } catch FeaturevisorError.downloadingDatafile(let datafileUrl) {
     }
+    catch let error {
+        print(error.localizedDescription)
+    }
+
+    return nil
 }

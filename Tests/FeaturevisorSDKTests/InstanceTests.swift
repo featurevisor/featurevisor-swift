@@ -23,7 +23,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         }
 
         // WHEN
-        let instance = FeaturevisorInstance.createInstance(options: featurevisorOptions)
+        let instance = createInstance(options: featurevisorOptions)
         wait(for: [expectation], timeout: 0.1)
 
         // THEN
