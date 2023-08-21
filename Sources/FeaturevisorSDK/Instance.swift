@@ -285,9 +285,6 @@ public class FeaturevisorInstance {
         }
     }
 
-    func evaluateVariation(feature: Feature, context: Context = [:]) -> Evaluation {
-        return evaluateVariation(featureKey: feature.key, context: context)
-    }
     func evaluateVariation(featureKey: FeatureKey, context: Context = [:]) -> Evaluation {
         // TODO: write real implementation
         return Evaluation(
@@ -308,9 +305,6 @@ public class FeaturevisorInstance {
         )
     }
 
-    public func getVariation(feature: Feature, context: Context = [:]) -> VariationValue? {
-        return getVariation(featureKey: feature.key, context: context)
-    }
     public func getVariation(featureKey: FeatureKey, context: Context) -> VariationValue? {
         let evaluation = self.evaluateVariation(featureKey: featureKey, context: context)
 
@@ -360,17 +354,9 @@ public class FeaturevisorInstance {
     // MARK: - Variable
 
       func evaluateVariable(
-        feature: Feature,
-        variableKey: VariableKey,
-        context: Context
-      ) ->  Evaluation {
-          return evaluateVariable(featureKey: feature.key, variableKey: variableKey, context: context)
-      }
-      func evaluateVariable(
         featureKey: FeatureKey,
         variableKey: VariableKey,
-        context: Context = [:]
-      ) ->  Evaluation {
+        context: Context = [:]) ->  Evaluation {
           //TODO: write real implementation
           return Evaluation(
               featureKey: featureKey,
@@ -389,22 +375,13 @@ public class FeaturevisorInstance {
               variableSchema: nil
           )
       }
-
-      func getVariable(
-          feature: Feature,
-          variableKey: VariableKey,
-          context: Context = [:]
-      ) ->  VariableValue? {
-          return getVariable(featureKey: feature.key, variableKey: variableKey, context: context)
-      }
     
       func getVariable(
           featureKey: FeatureKey,
           variableKey: VariableKey,
-          context: Context = [:]
-      ) ->  VariableValue? {
+          context: Context = [:]) ->  VariableValue? {
           do {
-              let evaluation = self.evaluateVariable(featureKey: featureKey, variableKey: variableKey, context: context)
+              let evaluation = evaluateVariable(featureKey: featureKey, variableKey: variableKey, context: context)
 
               // TODO: missing part here
               return nil
@@ -413,26 +390,12 @@ public class FeaturevisorInstance {
               return nil
           }
       }
-
-      func getVariableBoolean(
-        feature: Feature,
-        variableKey: VariableKey,
-        context: Context) -> Bool? {
-            return getVariableBoolean(featureKey: feature.key, variableKey: variableKey, context: context)
-      }
     
       func getVariableBoolean(
         featureKey: FeatureKey,
         variableKey: VariableKey,
         context: Context) -> Bool? {
             return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? Bool
-      }
-
-      func getVariableString(
-        feature: Feature,
-        variableKey: VariableKey,
-        context: Context) ->  String? {
-          return getVariableString(featureKey: feature.key, variableKey: variableKey, context: context)
       }
     
       func getVariableString(
@@ -443,26 +406,12 @@ public class FeaturevisorInstance {
       }
 
       func getVariableInteger(
-        feature: Feature,
-        variableKey: VariableKey,
-        context: Context) ->  Int? {
-          return getVariableInteger(featureKey: feature.key, variableKey: variableKey, context: context)
-      }
-    
-      func getVariableInteger(
         featureKey: FeatureKey,
         variableKey: VariableKey,
         context: Context) ->  Int? {
           return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? Int
       }
 
-      func getVariableDouble(
-        feature: Feature,
-        variableKey: VariableKey,
-        context: Context) -> Double? {
-          return getVariableDouble(featureKey: feature.key, variableKey: variableKey, context: context)
-      }
-    
       func getVariableDouble(
         featureKey: FeatureKey,
         variableKey: VariableKey,
