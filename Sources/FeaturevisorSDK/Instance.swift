@@ -51,65 +51,6 @@ public struct Evaluation {
     public let variableSchema: VariableSchema?
 }
 
-public struct InstanceOptions {
-    public var bucketKeySeparator: String?
-    public var configureBucketKey: ConfigureBucketKey?
-    public var configureBucketValue: ConfigureBucketValue?
-    public var datafile: DatafileContent?
-    public var datafileUrl: String?
-    //public var handleDatafileFetch: DatafileFetchHandler?
-    public var initialFeatures: InitialFeatures?
-    public var interceptContext: InterceptContext?
-    public var logger: Logger?
-    // TODO: Make listener more specific like https://github.com/fahad19/featurevisor/blob/main/packages/sdk/src/instance.ts#L32C13-L32C31
-    public var onActivation: Listener?
-    public var onReady: Listener?
-    public var onRefresh: Listener?
-    public var onUpdate: Listener?
-    public var refreshInterval: Int?  // seconds
-    public var stickyFeatures: StickyFeatures?
-    public var sessionConfiguration: URLSessionConfiguration
-
-    // I hate the duplication here but I haven't found a better way.
-    // We have to explicitely declare "public" the init if we want to use it
-    // in another module.
-    public init(
-        bucketKeySeparator: String? = nil,
-        configureBucketKey: ConfigureBucketKey? = nil,
-        configureBucketValue: ConfigureBucketValue? = nil,
-        datafile: DatafileContent? = nil,
-        datafileUrl: String? = nil,
-        // handleDatafileFetch: DatafileFetchHandler? = nil,
-        initialFeatures: InitialFeatures? = nil,
-        interceptContext: InterceptContext? = nil,
-        logger: Logger? = nil,
-        onActivation: Listener? = nil,
-        onReady: Listener? = nil,
-        onRefresh: Listener? = nil,
-        onUpdate: Listener? = nil,
-        refreshInterval: Int? = nil,
-        stickyFeatures: StickyFeatures? = nil,
-        sessionConfiguration: URLSessionConfiguration = .default
-    ) {
-        self.bucketKeySeparator = bucketKeySeparator
-        self.configureBucketKey = configureBucketKey
-        self.configureBucketValue = configureBucketValue
-        self.datafile = datafile
-        self.datafileUrl = datafileUrl
-        // self.handleDatafileFetch = handleDatafileFetch
-        self.initialFeatures = initialFeatures
-        self.interceptContext = interceptContext
-        self.logger = logger
-        self.onActivation = onActivation
-        self.onReady = onReady
-        self.onRefresh = onRefresh
-        self.onUpdate = onUpdate
-        self.refreshInterval = refreshInterval
-        self.stickyFeatures = stickyFeatures
-        self.sessionConfiguration = sessionConfiguration
-    }
-}
-
 let emptyDatafile = DatafileContent(
     schemaVersion: "1",
     revision: "unknown",
@@ -119,8 +60,7 @@ let emptyDatafile = DatafileContent(
 )
 
 public class FeaturevisorInstance {
-    static let DEFAULT_BUCKET_KEY_SEPARATOR = "."
-
+    
     // from options
     private var bucketKeySeparator: String
     private var configureBucketKey: ConfigureBucketKey?
@@ -147,10 +87,9 @@ public class FeaturevisorInstance {
     public var removeListener: ((EventName, Listener) -> Void)?
     public var removeAllListeners: ((EventName?) -> Void)?
 
-    public init(options: InstanceOptions) throws {
+    internal init(options: InstanceOptions) throws {
         // from options
-        bucketKeySeparator =
-            options.bucketKeySeparator ?? FeaturevisorInstance.DEFAULT_BUCKET_KEY_SEPARATOR
+        bucketKeySeparator = options.bucketKeySeparator
         configureBucketKey = options.configureBucketKey
         configureBucketValue = options.configureBucketValue
         datafileUrl = options.datafileUrl
@@ -195,29 +134,27 @@ public class FeaturevisorInstance {
             datafileReader = DatafileReader(datafileContent: options.datafile ?? emptyDatafile)
 
             // TODO: missing option `handleDatafileFetch`
-            fetchDatafileContent(from: datafileUrl) { result in
+            try fetchDatafileContent(from: datafileUrl) { [weak self] result in
                 switch result {
                     case .success(let datafileContent):
-                        self.datafileReader = DatafileReader(datafileContent: datafileContent)
+                        self?.datafileReader = DatafileReader(datafileContent: datafileContent)
 
-                        self.statuses.ready = true
-                        self.emitter.emit(EventName.ready)
+                        self?.statuses.ready = true
+                        self?.emitter.emit(EventName.ready)
 
-                        if self.refreshInterval != nil {
-                            self.startRefreshing()
+                        if self?.refreshInterval != nil {
+                            self?.startRefreshing()
                         }
                     case .failure(let error):
-                        self.logger.error("Failed to fetch datafile: \(error)")
+                        self?.logger.error("Failed to fetch datafile: \(error)")
                 }
             }
-        }
-        else if let datafile = options.datafile {
+        } else if let datafile = options.datafile {
             datafileReader = DatafileReader(datafileContent: datafile)
             statuses.ready = true
 
             emitter.emit(EventName.ready)
-        }
-        else {
+        } else {
             throw FeaturevisorError.missingDatafileOptions
         }
     }
@@ -591,6 +528,7 @@ public func createInstance(options: InstanceOptions) -> FeaturevisorInstance? {
         return instance
         // TODO: What to do in case initialisation fails?
         //  } catch FeaturevisorError.missingDatafileOptions{
+        //  } catch FeaturevisorError.invalidURL {
         //  } catch FeaturevisorError.downloadingDatafile(let datafileUrl) {
     }
     catch let error {
