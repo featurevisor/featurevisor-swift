@@ -539,44 +539,219 @@ public class FeaturevisorInstance {
 
     // MARK: - Variable
 
-      func evaluateVariable(
+    func evaluateVariable(
+            featureKey: FeatureKey,
+            variableKey: VariableKey,
+            context: Context = [:]) -> Evaluation {
+        let evaluation: Evaluation;
+
+        let flag = evaluateFlag(featureKey: featureKey, context: context)
+
+        if flag.enabled == false {
+            evaluation = Evaluation(featureKey: featureKey, reason: .disabled)
+
+//              logger.debug("feature is disabled", evaluation);
+
+            return evaluation;
+        }
+
+        // sticky
+        if let variableValue = stickyFeatures?[featureKey]?.variables?[variableKey] {
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .sticky,
+                    variableKey: variableKey,
+                    variableValue: variableValue)
+
+//            logger.debug("using sticky variable", evaluation);
+
+            return evaluation;
+        }
+
+        // initial
+        if !statuses.ready, let initialFeature = initialFeatures?[featureKey] {
+
+            if let variableValue = initialFeature.variables?[variableKey] {
+                evaluation = Evaluation(
+                        featureKey: featureKey,
+                        reason: .initial,
+                        variableKey: variableKey,
+                        variableValue: variableValue)
+
+//                  logger.debug("using initial variable", evaluation);
+
+                return evaluation;
+            }
+        }
+
+        guard let feature = getFeature(byKey: featureKey) else {
+            // not found
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .notFound,
+                    variableKey: variableKey)
+
+//                  logger.warn("feature not found in datafile", evaluation);
+
+            return evaluation
+        }
+
+        let variableSchema = feature.variablesSchema.first(where: { variableSchema in
+            variableSchema.key == variableKey
+        })
+
+        guard let variableSchema else {
+            // variable schema not found
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .notFound,
+                    variableKey: variableKey)
+
+//                  logger.warn("variable schema not found", evaluation);
+
+            return evaluation;
+        }
+
+        let finalContext: Context
+        if let interceptContext = interceptContext {
+            finalContext = interceptContext(context)
+        } else {
+            finalContext = context
+        }
+
+        // forced
+        let force = findForceFromFeature(feature, context: context, datafileReader: datafileReader)
+
+        if let force, let variableValue = force.variables[variableKey] {
+            evaluation = Evaluation(
+                    featureKey: feature.key,
+                    reason: .forced,
+                    variableKey: variableKey,
+                    variableValue: variableValue,
+                    variableSchema: variableSchema)
+
+            // logger.debug("forced variable", evaluation);
+
+            return evaluation;
+        }
+
+        // bucketing
+        let bucketValue = getBucketValue(feature: feature, context: finalContext)
+
+        let matchedTrafficAndAllocation = getMatchedTrafficAndAllocation(
+                traffic: feature.traffic,
+                context: finalContext,
+                bucketValue: bucketValue,
+                datafileReader: datafileReader,
+                logger: logger)
+
+        if let matchedTraffic = matchedTrafficAndAllocation.matchedTraffic {
+            // override from rule
+            if let variableValue = matchedTraffic.variables?[variableKey] {
+                evaluation = Evaluation(
+                        featureKey: feature.key,
+                        reason: .rule,
+                        bucketValue: bucketValue,
+                        ruleKey: matchedTraffic.key,
+                        variableKey: variableKey,
+                        variableValue: variableValue,
+                        variableSchema: variableSchema)
+
+//                      logger.debug("override from rule", evaluation);
+
+                return evaluation
+            }
+
+            // regular allocation
+            if let matchedAllocation = matchedTrafficAndAllocation.matchedAllocation {
+
+                let variation = feature.variations.first(where: { variation in
+                    return variation.value == matchedAllocation.variation
+                })
+
+                if let variationVariables = variation?.variables {
+                    let variableFromVariation = variationVariables.first(where: { variable in
+                        return variable.key == variableKey
+                    })
+
+                    if let overrides = variableFromVariation?.overrides {
+                        let override = overrides.first(where: { override in
+                            if let condition = override.conditions {
+                                return allConditionsAreMatched(
+                                        condition: condition,
+                                        context: finalContext)
+                            }
+
+                            if let segments = override.segments {
+                                return allGroupSegmentsAreMatched(
+                                        groupSegments: segments,
+                                        context: finalContext,
+                                        datafileReader: datafileReader)
+                            }
+
+                            return false
+                        })
+
+                        if let override {
+                            evaluation = Evaluation(
+                                    featureKey: feature.key,
+                                    reason: .override,
+                                    bucketValue: bucketValue,
+                                    ruleKey: matchedTraffic.key,
+                                    variableKey: variableKey,
+                                    variableValue: override.value,
+                                    variableSchema: variableSchema)
+
+//                            logger.debug("variable override", evaluation);
+
+                            return evaluation
+                        }
+                    }
+
+                    if let variableFromVariationValue = variableFromVariation?.value {
+                        evaluation = Evaluation(
+                                featureKey: feature.key,
+                                reason: .allocated,
+                                bucketValue: bucketValue,
+                                ruleKey: matchedTraffic.key,
+                                variableKey: variableKey,
+                                variableValue: variableFromVariationValue,
+                                variableSchema: variableSchema)
+
+//                        logger.debug("allocated variable", evaluation)
+
+                        return evaluation
+                    }
+                }
+            }
+        }
+
+        // fall back to default
+        evaluation = Evaluation(
+                featureKey: feature.key,
+                reason: .defaulted,
+                bucketValue: bucketValue,
+                variableKey: variableKey,
+                variableValue: variableSchema.defaultValue,
+                variableSchema: variableSchema)
+
+//        logger.debug("using default value", evaluation);
+
+        return evaluation;
+    }
+
+    func getVariable(
         featureKey: FeatureKey,
         variableKey: VariableKey,
-        context: Context = [:]) ->  Evaluation {
-          //TODO: write real implementation
-          return Evaluation(
-              featureKey: featureKey,
-              reason: EvaluationReason.allocated,
-              bucketValue: nil,
-              ruleKey: nil,
-              error: nil,
-              enabled: nil,
-              traffic: nil,
-              sticky: nil,
-              initial: nil,
-              variation: nil,
-              variationValue: "twitter",
-              variableKey: variableKey,
-              variableValue: nil,
-              variableSchema: nil
-          )
-      }
+        context: Context = [:]) ->  VariableValue? {
+            let evaluation = evaluateVariable(featureKey: featureKey, variableKey: variableKey, context: context)
 
-      func getVariable(
-          featureKey: FeatureKey,
-          variableKey: VariableKey,
-          context: Context = [:]) ->  VariableValue? {
-          do {
-              let evaluation = evaluateVariable(featureKey: featureKey, variableKey: variableKey, context: context)
+            guard let variableValue = evaluation.variableValue else {
+                return nil
+            }
 
-              // TODO: missing part here
-              return nil
-          } catch {
-              self.logger.error("getVariable", ["featureKey": featureKey, "variableKey": variableKey, "error": error])
-              return nil
-          }
-      }
-
+            return variableValue
+    }
       func getVariableBoolean(
         featureKey: FeatureKey,
         variableKey: VariableKey,
