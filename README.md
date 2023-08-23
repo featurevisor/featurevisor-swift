@@ -1,3 +1,46 @@
+[![Featurevisor](./assets/banner-bordered.png)](https://featurevisor.com)
+
+<div align="center">
+  <h3><strong>Feature management for developers</strong></h3>
+</div>
+
+<div align="center">
+  <small>Manage your feature flags and experiments declaratively from the comfort of your Git workflow.</small>
+</div>
+
+<br />
+
+<div align="center">
+  <!-- License -->
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/npm/l/@featurevisor/sdk.svg?style=flat-square"
+      alt="License" />
+  </a>
+</div>
+
+<div align="center">
+  <h3>
+    <a href="https://featurevisor.com">
+      Website
+    </a>
+    <span> | </span>
+    <a href="https://featurevisor.com/docs">
+      Documentation
+    </a>
+    <span> | </span>
+    <a href="https://github.com/featurevisor/featurevisor-swift/issues">
+      Issues
+    </a>
+    <span> | </span>
+    <a href="https://featurevisor.com/docs/contributing">
+      Contributing
+    </a>
+    <span> | </span>
+  </h3>
+</div>
+
+---
+
 # featurevisor-swift
 
 This repository is a work in progress to port the [Featurevisor](https://featurevisor.com) JavaScript SDK to Swift.
