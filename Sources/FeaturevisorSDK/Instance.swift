@@ -16,6 +16,7 @@ public enum EvaluationReason: String {
     case notFound = "not_found"
     case noVariations = "no_variations"
     case disabled
+    case required
     case outOfRange = "out_of_range"
     case forced
     case initial
@@ -49,6 +50,37 @@ public struct Evaluation {
     public let variableKey: VariableKey?
     public let variableValue: VariableValue?
     public let variableSchema: VariableSchema?
+
+    public init(
+            featureKey: FeatureKey,
+            reason: EvaluationReason,
+            bucketValue: BucketValue? = nil,
+            ruleKey: RuleKey? = nil,
+            error: Error? = nil,
+            enabled: Bool? = nil,
+            traffic: Traffic? = nil,
+            sticky: OverrideFeature? = nil,
+            initial: OverrideFeature? = nil,
+            variation: Variation? = nil,
+            variationValue: VariationValue? = nil,
+            variableKey: VariableKey? = nil,
+            variableValue: VariableValue? = nil,
+            variableSchema: VariableSchema? = nil) {
+        self.featureKey = featureKey
+        self.reason = reason
+        self.bucketValue = bucketValue
+        self.ruleKey = ruleKey
+        self.error = error
+        self.enabled = enabled
+        self.traffic = traffic
+        self.sticky = sticky
+        self.initial = initial
+        self.variation = variation
+        self.variationValue = variationValue
+        self.variableKey = variableKey
+        self.variableValue = variableValue
+        self.variableSchema = variableSchema
+    }
 }
 
 let emptyDatafile = DatafileContent(
@@ -60,7 +92,6 @@ let emptyDatafile = DatafileContent(
 )
 
 public class FeaturevisorInstance {
-
     // from options
     private var bucketKeySeparator: String
     private var configureBucketKey: ConfigureBucketKey?
@@ -169,7 +200,7 @@ public class FeaturevisorInstance {
 
     // MARK: - Bucketing
 
-    private func getFeature(featureKey: String) -> Feature? {
+    private func getFeature(byKey featureKey: String) -> Feature? {
         return self.datafileReader.getFeature(featureKey)
     }
 
@@ -251,38 +282,193 @@ public class FeaturevisorInstance {
     }
 
     // MARK: - Flag
-    func evaluateFlag(feature: Feature, context: Context = [:]) -> Evaluation {
-        return evaluateFlag(featureKey: feature.key, context: context)
-    }
     func evaluateFlag(featureKey: FeatureKey, context: Context = [:]) -> Evaluation {
-        //TODO: write real implementation
-        return Evaluation(
-            featureKey: featureKey,
-            reason: EvaluationReason.allocated,
-            bucketValue: nil,
-            ruleKey: nil,
-            error: nil,
-            enabled: nil,
-            traffic: nil,
-            sticky: nil,
-            initial: nil,
-            variation: nil,
-            variationValue: "twitter",
-            variableKey: nil,
-            variableValue: nil,
-            variableSchema: nil
-        )
+        let evaluation: Evaluation
+
+        // sticky
+        if let stickyFeature = stickyFeatures?[featureKey] {
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .sticky,
+                    enabled: stickyFeature.enabled,
+                    sticky: stickyFeature)
+
+                  logger.debug("using sticky enabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            return evaluation
+        }
+
+        // initial
+        if statuses.ready, let initialFeature = initialFeatures?[featureKey] {
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .initial,
+                    enabled: initialFeature.enabled,
+                    initial: initialFeature)
+
+            logger.debug("using initial enabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+            return evaluation;
+        }
+
+        let feature = getFeature(byKey: featureKey);
+
+        // not found
+        guard let feature else {
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .notFound)
+
+            logger.warn("feature not found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+            return evaluation;
+        }
+
+        // deprecated
+        if feature.deprecated == true {
+            logger.warn("feature is deprecated", ["featureKey": feature.key])
+        }
+
+        let finalContext: Context
+        if let interceptContext = interceptContext {
+            finalContext = interceptContext(context)
+        } else {
+            finalContext = context
+        }
+
+        // forced
+        let force = findForceFromFeature(feature, context: context, datafileReader: datafileReader);
+
+        if let force, force.enabled != nil {
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .forced,
+                    enabled: force.enabled)
+
+            logger.debug("forced enabled found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+            return evaluation;
+        }
+
+        // required
+        if !feature.required.isEmpty {
+            let requiredFeaturesAreEnabled = feature.required.allSatisfy({ item in
+                let requiredKey: FeatureKey
+                let requiredVariation: VariationValue?
+
+                switch item {
+                case .featureKey(let featureKey):
+                    requiredKey = featureKey
+                    requiredVariation = nil
+                case .withVariation(let variation):
+                    requiredKey = variation.key
+                    requiredVariation = variation.variation
+                }
+
+                let requiredIsEnabled = isEnabled(featureKey: requiredKey, context: finalContext)
+
+                if (!requiredIsEnabled) {
+                    return false
+                }
+
+                if let requiredVariation, let requiredVariationValue = getVariation(featureKey: feature.key, context: finalContext) {
+                    return requiredVariationValue == requiredVariation
+                }
+
+                return true;
+            })
+
+            if (!requiredFeaturesAreEnabled) {
+                evaluation = Evaluation(
+                        featureKey: feature.key,
+                        reason: .required,
+                        enabled: requiredFeaturesAreEnabled)
+
+                return evaluation;
+            }
+        }
+
+        // bucketing
+        let bucketValue = getBucketValue(feature: feature, context: finalContext);
+
+        let matchedTraffic = getMatchedTraffic(
+                traffic: feature.traffic,
+                context: finalContext,
+                datafileReader: datafileReader)
+
+        if let matchedTraffic {
+
+            if !feature.ranges.isEmpty {
+
+                let matchedRange = feature.ranges.first(where: { range in
+                    return bucketValue >= range.start && bucketValue < range.end
+                });
+
+                // matched
+                if (matchedRange != nil) {
+                    evaluation = Evaluation(
+                            featureKey: feature.key,
+                            reason: .allocated,
+                            bucketValue: bucketValue,
+                            enabled: matchedTraffic.enabled ?? true)
+
+                    return evaluation;
+                }
+
+                // no match
+                evaluation = Evaluation(
+                        featureKey: feature.key,
+                        reason: .outOfRange,
+                        bucketValue: bucketValue,
+                        enabled: false)
+
+                logger.debug("not matched", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+                return evaluation;
+            }
+
+            // override from rule
+            if let matchedTrafficEnabled = matchedTraffic.enabled {
+                evaluation = Evaluation(
+                        featureKey: feature.key,
+                        reason: .override,
+                        bucketValue: bucketValue,
+                        ruleKey: matchedTraffic.key,
+                        enabled: matchedTrafficEnabled,
+                        traffic: matchedTraffic)
+
+                logger.debug("override from rule", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+                return evaluation;
+            }
+
+            // treated as enabled because of matched traffic
+            if bucketValue < matchedTraffic.percentage {
+                // @TODO: verify if range check should be inclusive or not
+                evaluation = Evaluation(
+                        featureKey: feature.key,
+                        reason: .rule,
+                        bucketValue: bucketValue,
+                        ruleKey: matchedTraffic.key,
+                        enabled: true,
+                        traffic: matchedTraffic)
+
+                return evaluation
+            }
+        }
+
+        // nothing matched
+        evaluation = Evaluation(
+            featureKey: feature.key,
+            reason: .error,
+            bucketValue: bucketValue,
+            enabled: false)
+
+        return evaluation;
     }
 
     public func isEnabled(featureKey: FeatureKey, context: Context = [:]) -> Bool {
-        do {
-            let evaluation = try evaluateFlag(featureKey: featureKey, context: context)
-            return evaluation.enabled == true
-        }
-        catch {
-            self.logger.error("isEnabled", ["featureKey": featureKey, "error": error])
-            return false
-        }
+        let evaluation = evaluateFlag(featureKey: featureKey, context: context)
+        return evaluation.enabled == true
     }
 
     func evaluateVariation(featureKey: FeatureKey, context: Context = [:]) -> Evaluation {

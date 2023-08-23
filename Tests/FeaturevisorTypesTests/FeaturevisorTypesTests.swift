@@ -164,7 +164,7 @@ final class FeaturevisorTypesTests: XCTestCase {
         XCTAssertNil(attribute2.archived)
         XCTAssertTrue(attribute2.capture!)
         XCTAssertEqual(attribute2.type, "string")
-        
+
         let attribute3 = result.attributes[2]
         XCTAssertEqual(attribute3.key, "userId")
         XCTAssertNil(attribute3.archived)
