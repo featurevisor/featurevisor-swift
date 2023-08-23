@@ -264,7 +264,7 @@ public class FeaturevisorInstance {
     // MARK: - Statuses
 
     func isReady() -> Bool {
-        return self.statuses.ready
+        return statuses.ready
     }
 
     // MARK: - Refresh
@@ -294,6 +294,7 @@ public class FeaturevisorInstance {
                     sticky: stickyFeature)
 
                   logger.debug("using sticky enabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
             return evaluation
         }
 
@@ -307,7 +308,7 @@ public class FeaturevisorInstance {
 
             logger.debug("using initial enabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
-            return evaluation;
+            return evaluation
         }
 
         let feature = getFeature(byKey: featureKey);
@@ -320,7 +321,7 @@ public class FeaturevisorInstance {
 
             logger.warn("feature not found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
-            return evaluation;
+            return evaluation
         }
 
         // deprecated
@@ -328,12 +329,7 @@ public class FeaturevisorInstance {
             logger.warn("feature is deprecated", ["featureKey": feature.key])
         }
 
-        let finalContext: Context
-        if let interceptContext = interceptContext {
-            finalContext = interceptContext(context)
-        } else {
-            finalContext = context
-        }
+        let finalContext = interceptContext != nil ? interceptContext!(context) : context
 
         // forced
         let force = findForceFromFeature(feature, context: context, datafileReader: datafileReader);
@@ -346,7 +342,7 @@ public class FeaturevisorInstance {
 
             logger.debug("forced enabled found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
-            return evaluation;
+            return evaluation
         }
 
         // required
@@ -374,7 +370,7 @@ public class FeaturevisorInstance {
                     return requiredVariationValue == requiredVariation
                 }
 
-                return true;
+                return true
             })
 
             if (!requiredFeaturesAreEnabled) {
@@ -383,7 +379,7 @@ public class FeaturevisorInstance {
                         reason: .required,
                         enabled: requiredFeaturesAreEnabled)
 
-                return evaluation;
+                return evaluation
             }
         }
 
@@ -411,7 +407,7 @@ public class FeaturevisorInstance {
                             bucketValue: bucketValue,
                             enabled: matchedTraffic.enabled ?? true)
 
-                    return evaluation;
+                    return evaluation
                 }
 
                 // no match
@@ -423,7 +419,7 @@ public class FeaturevisorInstance {
 
                 logger.debug("not matched", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
-                return evaluation;
+                return evaluation
             }
 
             // override from rule
@@ -438,7 +434,7 @@ public class FeaturevisorInstance {
 
                 logger.debug("override from rule", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
-                return evaluation;
+                return evaluation
             }
 
             // treated as enabled because of matched traffic
@@ -463,7 +459,7 @@ public class FeaturevisorInstance {
             bucketValue: bucketValue,
             enabled: false)
 
-        return evaluation;
+        return evaluation
     }
 
     public func isEnabled(featureKey: FeatureKey, context: Context = [:]) -> Bool {
@@ -492,7 +488,7 @@ public class FeaturevisorInstance {
     }
 
     public func getVariation(featureKey: FeatureKey, context: Context) -> VariationValue? {
-        let evaluation = self.evaluateVariation(featureKey: featureKey, context: context)
+        let evaluation = evaluateVariation(featureKey: featureKey, context: context)
 
         if let variationValue = evaluation.variationValue {
             return variationValue
@@ -512,7 +508,7 @@ public class FeaturevisorInstance {
             let evaluation = evaluateVariation(featureKey: featureKey, context: context)
             let variationValue = evaluation.variation?.value ?? evaluation.variationValue
 
-            if variationValue == nil {
+            guard let variationValue else {
                 return nil
             }
 
@@ -522,13 +518,13 @@ public class FeaturevisorInstance {
 
             let attributesForCapturing = datafileReader.getAllAttributes().filter { $0.capture == true }
 
-            for attribute in attributesForCapturing {
+            attributesForCapturing.forEach({ attribute in
                 if finalContext[attribute.key] != nil {
                     captureContext[attribute.key] = context[attribute.key]
                 }
-            }
+            })
 
-            emitter.emit(EventName.activation, featureKey, variationValue!, finalContext, captureContext, evaluation)
+            emitter.emit(EventName.activation, featureKey, variationValue, finalContext, captureContext, evaluation)
 
             return variationValue
         } catch {
@@ -613,12 +609,7 @@ public class FeaturevisorInstance {
             return evaluation
         }
 
-        let finalContext: Context
-        if let interceptContext = interceptContext {
-            finalContext = interceptContext(context)
-        } else {
-            finalContext = context
-        }
+        let finalContext = interceptContext != nil ? interceptContext!(context) : context
 
         // forced
         let force = findForceFromFeature(feature, context: context, datafileReader: datafileReader)
@@ -781,13 +772,6 @@ public class FeaturevisorInstance {
           return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? Double
       }
 
-    //  func getVariableArray(
-    //    feature: Feature,
-    //    variableKey: String,
-    //    context: Context
-    //  ) -> [String]? {
-    //      return getVariableArray(featureKey: feature.key, variableKey: variableKey, context: context)
-    //  }
     //  func getVariableArray(
     //    featureKey: FeatureKey,
     //    variableKey: String,
