@@ -543,16 +543,17 @@ public class FeaturevisorInstance {
             featureKey: FeatureKey,
             variableKey: VariableKey,
             context: Context = [:]) -> Evaluation {
-        let evaluation: Evaluation;
+
+        let evaluation: Evaluation
 
         let flag = evaluateFlag(featureKey: featureKey, context: context)
 
         if flag.enabled == false {
             evaluation = Evaluation(featureKey: featureKey, reason: .disabled)
 
-//              logger.debug("feature is disabled", evaluation);
+            logger.debug("feature is disabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
-            return evaluation;
+            return evaluation
         }
 
         // sticky
@@ -563,9 +564,9 @@ public class FeaturevisorInstance {
                     variableKey: variableKey,
                     variableValue: variableValue)
 
-//            logger.debug("using sticky variable", evaluation);
+            logger.debug("using sticky variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
-            return evaluation;
+            return evaluation
         }
 
         // initial
@@ -578,9 +579,9 @@ public class FeaturevisorInstance {
                         variableKey: variableKey,
                         variableValue: variableValue)
 
-//                  logger.debug("using initial variable", evaluation);
+                logger.debug("using initial variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
-                return evaluation;
+                return evaluation
             }
         }
 
@@ -591,7 +592,7 @@ public class FeaturevisorInstance {
                     reason: .notFound,
                     variableKey: variableKey)
 
-//                  logger.warn("feature not found in datafile", evaluation);
+            logger.warn("feature not found in datafile", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -607,9 +608,9 @@ public class FeaturevisorInstance {
                     reason: .notFound,
                     variableKey: variableKey)
 
-//                  logger.warn("variable schema not found", evaluation);
+            logger.warn("variable schema not found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
-            return evaluation;
+            return evaluation
         }
 
         let finalContext: Context
@@ -630,9 +631,9 @@ public class FeaturevisorInstance {
                     variableValue: variableValue,
                     variableSchema: variableSchema)
 
-            // logger.debug("forced variable", evaluation);
+            logger.debug("forced variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
-            return evaluation;
+            return evaluation
         }
 
         // bucketing
@@ -657,7 +658,7 @@ public class FeaturevisorInstance {
                         variableValue: variableValue,
                         variableSchema: variableSchema)
 
-//                      logger.debug("override from rule", evaluation);
+                logger.debug("override from rule", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
                 return evaluation
             }
@@ -702,7 +703,7 @@ public class FeaturevisorInstance {
                                     variableValue: override.value,
                                     variableSchema: variableSchema)
 
-//                            logger.debug("variable override", evaluation);
+                            logger.debug("variable override", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
                             return evaluation
                         }
@@ -718,7 +719,7 @@ public class FeaturevisorInstance {
                                 variableValue: variableFromVariationValue,
                                 variableSchema: variableSchema)
 
-//                        logger.debug("allocated variable", evaluation)
+                        logger.debug("allocated variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
                         return evaluation
                     }
@@ -735,7 +736,7 @@ public class FeaturevisorInstance {
                 variableValue: variableSchema.defaultValue,
                 variableSchema: variableSchema)
 
-//        logger.debug("using default value", evaluation);
+        logger.debug("using default value", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
 
         return evaluation;
     }
