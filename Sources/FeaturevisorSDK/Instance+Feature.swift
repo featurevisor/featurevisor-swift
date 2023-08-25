@@ -35,6 +35,49 @@ extension FeaturevisorInstance {
             return true;
         });
     }
+
+    func getMatchedAllocation(
+            traffic: Traffic,
+            bucketValue: Int) -> Allocation? {
+
+        return traffic.allocation.first(where: { allocation in
+            let start = allocation.range.start
+            let end = allocation.range.end
+
+            return start <= bucketValue && end >= bucketValue
+        })
+    }
+
+    typealias MatchedTrafficAndAllocation = (matchedTraffic: Traffic?, matchedAllocation: Allocation?)
+
+    func getMatchedTrafficAndAllocation(
+            traffic: [Traffic],
+            context: Context,
+            bucketValue: Int,
+            datafileReader: DatafileReader,
+            logger: Logger) -> MatchedTrafficAndAllocation {
+
+        var matchedAllocation: Allocation?
+
+        let matchedTraffic = traffic.first(where: { traffic in
+            if !allGroupSegmentsAreMatched(
+                    groupSegments: traffic.segments,
+                    context: context,
+                    datafileReader: datafileReader) {
+                return false
+            }
+
+            matchedAllocation = getMatchedAllocation(traffic: traffic, bucketValue: bucketValue)
+
+            return matchedAllocation != nil
+        })
+
+        return (
+                matchedTraffic: matchedTraffic,
+                matchedAllocation: matchedAllocation
+        )
+
+    }
 }
 
 
