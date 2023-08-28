@@ -68,13 +68,13 @@ final class VariableValueTests: XCTestCase {
     func testValueAsArray() {
         
         // GIVEN
-        let variable: VariableValue = .array([.string("item1"), .string("item2")])
+        let variable: VariableValue = .array(["item1", "item2"])
         
         // WHEN
-        let value = variable.value as! [VariableValue]
+        let value = variable.value as! [String]
         
         // THEN
-        XCTAssertEqual(value, [.string("item1"), .string("item2")])
+        XCTAssertEqual(value, ["item1", "item2"])
     }
     
     func testValueAsObject() {

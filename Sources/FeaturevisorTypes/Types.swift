@@ -235,7 +235,7 @@ public enum VariableValue: Decodable {
     case string(String)
     case integer(Int)
     case double(Double)
-    case array([VariableValue])
+    case array([String])
     case object(VariableObjectValue)
     case json(String)  // @TODO: check later if this is correct
     // @TODO: handle null and undefined later
@@ -252,7 +252,7 @@ public enum VariableValue: Decodable {
             self = .double(double)
         } else if let boolean = try? container.decode(Bool.self) {
             self = .boolean(boolean)
-        } else if let array = try? container.decode([VariableValue].self) {
+        } else if let array = try? container.decode([String].self) {
             self = .array(array)
         } else if let object = try? container.decode(VariableObjectValue.self) {
             self = .object(object)
