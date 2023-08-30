@@ -385,6 +385,11 @@ public struct Range: Decodable {
         self.start = range[0]
         self.end = range[1]
     }
+
+    internal init(start: Percentage, end: Percentage) {
+        self.start = start
+        self.end = end
+    }
 }
 
 public struct Allocation: Decodable {
@@ -413,6 +418,23 @@ public struct Traffic: Decodable {
         variables = try? container.decodeIfPresent(VariableValues.self, forKey: .variables)
         allocation = (try? container.decode([Allocation].self, forKey: .allocation)) ?? []
         segments = try container.decodeGroupSegment(forKey: .segments)
+    }
+
+    internal init(
+            key: RuleKey,
+            segments: GroupSegment,
+            percentage: Percentage,
+            allocation: [Allocation],
+            enabled: Bool? = nil,
+            variation: VariationValue? = nil,
+            variables: VariableValues? = nil) {
+        self.key = key
+        self.segments = segments
+        self.percentage = percentage
+        self.allocation = allocation
+        self.enabled = enabled
+        self.variation = variation
+        self.variables = variables
     }
     
     public enum CodingKeys: CodingKey {
@@ -475,10 +497,10 @@ public enum Required: Decodable {
 
 public struct Feature: Decodable {
     public let key: FeatureKey
+    public let bucketBy: BucketBy
     public let deprecated: Bool?
     public let variablesSchema: [VariableSchema]
     public let variations: [Variation]
-    public let bucketBy: BucketBy
     public let required: [Required]
     public let traffic: [Traffic]
     public let force: [Force]
@@ -488,14 +510,36 @@ public struct Feature: Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         key = try container.decode(FeatureKey.self, forKey: .key)
+        bucketBy = try container.decode(BucketBy.self, forKey: .bucketBy)
         deprecated = try? container.decode(Bool.self, forKey: .deprecated)
         variablesSchema = (try? container.decode([VariableSchema].self, forKey: .variablesSchema)) ?? []
         variations = (try? container.decode([Variation].self, forKey: .variations)) ?? []
-        bucketBy = try container.decode(BucketBy.self, forKey: .bucketBy)
         required = (try? container.decode([Required].self, forKey: .required)) ?? []
         traffic = (try? container.decode([Traffic].self, forKey: .traffic)) ?? []
         force = (try? container.decode([Force].self, forKey: .force)) ?? []
         ranges = (try? container.decode([Range].self, forKey: .ranges)) ?? []
+    }
+
+
+    internal init(
+            key: FeatureKey,
+            bucketBy: BucketBy,
+            deprecated: Bool? = nil,
+            variablesSchema: [VariableSchema] = [],
+            variations: [Variation] = [],
+            required: [Required] = [],
+            traffic: [Traffic] = [],
+            force: [Force] = [],
+            ranges: [Range] = []) {
+        self.key = key
+        self.bucketBy = bucketBy
+        self.deprecated = deprecated
+        self.variablesSchema = variablesSchema
+        self.variations = variations
+        self.required = required
+        self.traffic = traffic
+        self.force = force
+        self.ranges = ranges
     }
     
     enum CodingKeys: String, CodingKey {
