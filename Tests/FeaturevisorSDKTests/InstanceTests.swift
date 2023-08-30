@@ -384,4 +384,172 @@ class FeaturevisorInstanceTests: XCTestCase {
         // enabling required should enable the feature too
         XCTAssertTrue(sdk.isEnabled(featureKey: "myKey"))
     }
+
+    // should be disabled because required has different variation
+    func testShouldHonourRequiredFeaturesWithVariationDisabled() {
+
+        // GIVEN
+        var options: InstanceOptions = .default
+        options.datafile = DatafileContent(
+                schemaVersion: "1",
+                revision: "1.0",
+                attributes: [],
+                segments: [],
+                features: [
+                    Feature(
+                            key: "requiredKey",
+                            bucketBy: .single("userId"),
+                            variations: [
+                                Variation(description: nil, value: "control", weight: nil, variables: nil),
+                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
+                            ],
+                            traffic: [
+                                Traffic(
+                                        key: "1",
+                                        segments: .plain("*"),
+                                        percentage: 100000,
+                                        allocation: [
+                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 0)),
+                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 100000))
+                                        ])
+                            ]),
+                    Feature(
+                            key: "myKey",
+                            bucketBy: .single("userId"),
+                            variations: [],
+                            required: [.withVariation(.init(key: "requiredKey", variation: "control"))], // different variation
+                            traffic: [
+                                Traffic(
+                                        key: "1",
+                                        segments: .plain("*"),
+                                        percentage: 100000,
+                                        allocation: [])]
+                    )]
+        )
+
+        // WHEN
+        let sdk = createInstance(options: options)!
+
+        // THEN
+        XCTAssertFalse(sdk.isEnabled(featureKey: "myKey"))
+    }
+
+    // child should be enabled because required has desired variation
+    func testShouldHonourRequiredFeaturesWithVariationEnabled() {
+
+        // GIVEN
+        var options: InstanceOptions = .default
+        options.datafile = DatafileContent(
+                schemaVersion: "1",
+                revision: "1.0",
+                attributes: [],
+                segments: [],
+                features: [
+                    Feature(
+                            key: "requiredKey",
+                            bucketBy: .single("userId"),
+                            variations: [
+                                Variation(description: nil, value: "control", weight: nil, variables: nil),
+                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
+                            ],
+                            traffic: [
+                                Traffic(
+                                        key: "1",
+                                        segments: .plain("*"),
+                                        percentage: 100000,
+                                        allocation: [
+                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 0)),
+                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 100000))
+                                        ])
+                            ]),
+                    Feature(
+                            key: "myKey",
+                            bucketBy: .single("userId"),
+                            variations: [],
+                            required: [.withVariation(.init(key: "requiredKey", variation: "treatment"))], // desired variation
+                            traffic: [
+                                Traffic(
+                                        key: "1",
+                                        segments: .plain("*"),
+                                        percentage: 100000,
+                                        allocation: [])]
+                    )]
+        )
+
+        // WHEN
+        let sdk = createInstance(options: options)!
+
+        // THEN
+        XCTAssertTrue(sdk.isEnabled(featureKey: "myKey"))
+    }
+
+    func testShouldEmitWarningsForDeprecatedFeature() {
+
+        // GIVEN
+        var deprecatedCount = 0
+        var options: InstanceOptions = .default
+        options.datafile = DatafileContent(
+                schemaVersion: "1",
+                revision: "1.0",
+                attributes: [],
+                segments: [],
+                features: [
+                    Feature(
+                            key: "test",
+                            bucketBy: .single("userId"),
+                            variations: [
+                                Variation(description: nil, value: "control", weight: nil, variables: nil),
+                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
+                            ],
+                            traffic: [
+                                Traffic(
+                                        key: "1",
+                                        segments: .plain("*"),
+                                        percentage: 100000,
+                                        allocation: [
+                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 100000)),
+                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 0))
+                                        ])
+                            ]),
+                    Feature(
+                            key: "deprecatedTest",
+                            bucketBy: .single("userId"),
+                            deprecated: true,
+                            variations: [
+                                Variation(description: nil, value: "control", weight: nil, variables: nil),
+                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
+                            ],
+                            required: [],
+                            traffic: [
+                                Traffic(
+                                        key: "1",
+                                        segments: .plain("*"),
+                                        percentage: 100000,
+                                        allocation: [
+                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 100000)),
+                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 0))
+                                        ])
+                            ])
+                ])
+
+        options.logger = createLogger { level, message, details in
+            guard case .warn = level else {
+                return
+            }
+
+            if message.contains("is deprecated") {
+                deprecatedCount += 1
+            }
+        }
+
+        // WHEN
+        let sdk = createInstance(options: options)!
+        let testVariation = sdk.getVariation(featureKey: "test", context: ["userId": .string("123")])
+        let deprecatedTestVariation = sdk.getVariation(featureKey: "deprecatedTest", context: ["userId": .string("123")])
+
+        // THEN
+        XCTAssertEqual(testVariation, "control")
+        XCTAssertEqual(deprecatedTestVariation, "control")
+        XCTAssertEqual(deprecatedCount, 1)
+    }
 }

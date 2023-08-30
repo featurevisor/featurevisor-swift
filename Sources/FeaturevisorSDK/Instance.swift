@@ -366,7 +366,7 @@ public class FeaturevisorInstance {
                     return false
                 }
 
-                if let requiredVariation, let requiredVariationValue = getVariation(featureKey: feature.key, context: finalContext) {
+                if let requiredVariation, let requiredVariationValue = getVariation(featureKey: requiredKey, context: finalContext) {
                     return requiredVariationValue == requiredVariation
                 }
 
