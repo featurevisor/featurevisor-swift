@@ -772,15 +772,12 @@ public class FeaturevisorInstance {
           return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? Double
       }
 
-    //  func getVariableArray(
-    //    featureKey: FeatureKey,
-    //    variableKey: String,
-    //    context: Context
-    //  ) -> [String]? {
-    //      let variableValue = self.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
-    //      // TODO: implement
-    //    // return getValueByType(variableValue, "array") as string[] | undefined;
-    //  }
+      func getVariableArray(
+        featureKey: FeatureKey,
+        variableKey: String,
+        context: Context) -> [String]? {
+          return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? [String]
+      }
 
     // TODO: implement in Swift
     //    getVariableObject<T>(
