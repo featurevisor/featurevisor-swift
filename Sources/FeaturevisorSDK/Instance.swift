@@ -468,23 +468,149 @@ public class FeaturevisorInstance {
     }
 
     func evaluateVariation(featureKey: FeatureKey, context: Context = [:]) -> Evaluation {
-        // TODO: write real implementation
-        return Evaluation(
-            featureKey: "headerBanner",
-            reason: EvaluationReason.allocated,
-            bucketValue: nil,
-            ruleKey: nil,
-            error: nil,
-            enabled: nil,
-            traffic: nil,
-            sticky: nil,
-            initial: nil,
-            variation: nil,
-            variationValue: "twitter",
-            variableKey: nil,
-            variableValue: nil,
-            variableSchema: nil
-        )
+        let evaluation: Evaluation
+
+        let flag = evaluateFlag(featureKey: featureKey, context: context)
+
+        if flag.enabled == false {
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .disabled)
+
+            logger.debug("feature is disabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+            return evaluation
+        }
+
+        // sticky
+        if let variationValue = stickyFeatures?[featureKey]?.variation {
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .sticky,
+                    variationValue: variationValue)
+
+            logger.debug("using sticky variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+            return evaluation
+        }
+
+        // initial
+        if !statuses.ready, let variationValue = initialFeatures?[featureKey]?.variation {
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .initial,
+                    variationValue: variationValue)
+
+            logger.debug("using initial variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+            return evaluation
+        }
+
+        guard let feature = getFeature(byKey: featureKey) else {
+            // not found
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .notFound)
+
+            logger.warn("feature not found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+            return evaluation
+        }
+
+        guard !feature.variations.isEmpty else {
+            // no variations
+            evaluation = Evaluation(
+                    featureKey: featureKey,
+                    reason: .noVariations)
+
+        logger.warn("no variations", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+            return evaluation
+        }
+
+        let finalContext = interceptContext != nil ? interceptContext!(context) : context
+
+        // forced
+        if let force = findForceFromFeature(feature, context: context, datafileReader: datafileReader) {
+            let variation = feature.variations.first(where: { variation in
+                return variation.value == force.variation
+            })
+
+            if let variation {
+                evaluation = Evaluation(
+                        featureKey: feature.key,
+                        reason: .forced,
+                        variation: variation)
+
+                logger.debug("forced variation found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+                return evaluation
+            }
+        }
+
+        // bucketing
+        let bucketValue = getBucketValue(feature: feature, context: finalContext)
+
+        let matchedTrafficAndAllocation = getMatchedTrafficAndAllocation(
+                traffic: feature.traffic,
+                context: finalContext,
+                bucketValue: bucketValue,
+                datafileReader: datafileReader,
+                logger: logger)
+
+        if let matchedTraffic = matchedTrafficAndAllocation.matchedTraffic {
+
+            // override from rule
+            if let matchedTrafficVariationValue = matchedTraffic.variation {
+
+                let variation = feature.variations.first(where: { variation in
+                    return variation.value == matchedTrafficVariationValue
+                })
+
+                if let variation {
+                    evaluation = Evaluation(
+                            featureKey: feature.key,
+                            reason: .rule,
+                            bucketValue: bucketValue,
+                            ruleKey: matchedTraffic.key,
+                            variation: variation)
+
+                logger.debug("override from rule", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+                    return evaluation
+                }
+            }
+
+            // regular allocation
+            if let matchedAllocation = matchedTrafficAndAllocation.matchedAllocation {
+
+                let variation = feature.variations.first(where: { variation in
+                    variation.value == matchedAllocation.variation
+                })
+
+                if let variation {
+                    evaluation = Evaluation(
+                            featureKey: feature.key,
+                            reason: .allocated,
+                            bucketValue: bucketValue,
+                            variation: variation)
+
+                        logger.debug("allocated variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+                    return evaluation
+                }
+            }
+        }
+
+        // nothing matched
+        evaluation = Evaluation(
+                featureKey: feature.key,
+                reason: .error,
+                bucketValue: bucketValue)
+
+        logger.debug("no matched variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+
+        return evaluation
     }
 
     public func getVariation(featureKey: FeatureKey, context: Context) -> VariationValue? {
