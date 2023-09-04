@@ -552,4 +552,43 @@ class FeaturevisorInstanceTests: XCTestCase {
         XCTAssertEqual(deprecatedTestVariation, "control")
         XCTAssertEqual(deprecatedCount, 1)
     }
+
+    func testShouldRefreshDatafile() {
+
+        // GIVEN
+        var revision = 1
+        var refreshed = false
+        var updatedViaOption = false
+
+        let expectation: XCTestExpectation = expectation(description: "Expectation")
+
+        MockURLProtocol.requestHandler = { request in
+            let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            revision += 1
+            return (response, jsonString.data(using: .utf8))
+        }
+
+        var options: InstanceOptions = .default
+        options.sessionConfiguration.protocolClasses = [MockURLProtocol.self]
+        options.datafileUrl = "https://featurevisor-awesome-url.com/tags.json"
+        options.onRefresh = ({ _ in
+            refreshed = true
+        })
+        options.onUpdate = ({ _ in
+            updatedViaOption = true
+            expectation.fulfill()
+        })
+
+        // WHEN
+        let sdk = createInstance(options: options)!
+        sdk.refresh()
+        wait(for: [expectation], timeout: 0.1)
+
+        // THEN
+        XCTAssertEqual(sdk.getRevision(), "2")
+        XCTAssertTrue(refreshed)
+        XCTAssertTrue(updatedViaOption)
+    }
 }
+
