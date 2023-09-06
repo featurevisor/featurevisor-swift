@@ -270,7 +270,47 @@ public class FeaturevisorInstance {
     // MARK: - Refresh
 
     func refresh() {
-        // TODO: write implementation
+        logger.debug("refreshing datafile")
+
+        if statuses.refreshInProgress {
+            logger.warn("refresh in progress, skipping");
+            return
+        }
+
+        guard let datafileUrl else {
+            logger.error("cannot refresh since `datafileUrl` is not provided")
+            return
+        }
+
+        statuses.refreshInProgress = true
+
+        try? fetchDatafileContent(from: datafileUrl) { [weak self] result in
+            guard let self else {
+                return
+            }
+
+            switch result {
+            case .success(let datafileContent):
+                let currentRevision = self.getRevision()
+                let newRevision = datafileContent.revision
+                let isNotSameRevision = currentRevision != newRevision
+
+                self.datafileReader = DatafileReader(datafileContent: datafileContent)
+                logger.info("refreshed datafile")
+
+                self.emitter.emit(.refresh)
+
+                if isNotSameRevision {
+                    self.emitter.emit(.update)
+                }
+
+                self.statuses.refreshInProgress = false
+
+            case .failure(let error):
+                self.logger.error("failed to refresh datafile", ["error": error])
+                self.statuses.refreshInProgress = false
+            }
+        }
     }
 
     func startRefreshing() {
