@@ -109,7 +109,7 @@ public class FeaturevisorInstance {
     private var emitter: Emitter
     private var statuses: Statuses
     internal var urlSession: URLSession
-    private var intervalId: Timer?
+    private var timer: Timer?
 
     // exposed from emitter
     public var on: ((EventName, @escaping Listener) -> Void)?
@@ -320,7 +320,7 @@ public class FeaturevisorInstance {
             return
         }
 
-        guard intervalId == nil else {
+        guard timer == nil else {
             logger.warn("refreshing has already started")
             return
         }
@@ -330,12 +330,12 @@ public class FeaturevisorInstance {
             return
         }
 
-        DispatchQueue.global().async {
-            self.intervalId = Timer.scheduledTimer(withTimeInterval: TimeInterval(refreshInterval), repeats: true) { _ in
-                self.refresh()
+        DispatchQueue.global().async { [weak self] in
+            self?.timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(refreshInterval), repeats: true) { _ in
+                self?.refresh()
             }
 
-            RunLoop.current.add(self.intervalId!, forMode: .common)
+            RunLoop.current.add((self?.timer)!, forMode: .common)
             RunLoop.current.run()
         }
     }
@@ -344,13 +344,13 @@ public class FeaturevisorInstance {
 
         DispatchQueue.global().async {
 
-            guard let intervalId = self.intervalId else {
+            guard let intervalId = self.timer else {
                 self.logger.warn("refreshing has not started yet")
                 return
             }
 
             intervalId.invalidate()
-            self.intervalId = nil
+            self.timer = nil
         }
 
         logger.warn("refreshing has stopped")
