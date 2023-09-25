@@ -590,5 +590,84 @@ class FeaturevisorInstanceTests: XCTestCase {
         XCTAssertTrue(refreshed)
         XCTAssertTrue(updatedViaOption)
     }
+    
+    func testShouldStartRefreshing() {
+
+        // GIVEN
+        var revision = 1
+        var refreshedCount = 0
+        let refreshInterval = 1
+        let expectedRefreshCount = 3
+        let maxWaitTime = TimeInterval(expectedRefreshCount) * TimeInterval(refreshInterval) + 1
+
+        let expectation: XCTestExpectation = expectation(description: "Expectation")
+        var expectationFulfilled = false
+
+        MockURLProtocol.requestHandler = { request in
+            let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            revision += 1
+            return (response, jsonString.data(using: .utf8))
+        }
+
+        var options: InstanceOptions = .default
+        options.sessionConfiguration.protocolClasses = [MockURLProtocol.self]
+        options.refreshInterval = refreshInterval
+        options.datafileUrl = "https://featurevisor-awesome-url.com/tags.json"
+        options.onRefresh = ({ _ in
+            refreshedCount += 1
+            if refreshedCount >= expectedRefreshCount && !expectationFulfilled {
+                expectationFulfilled = true
+                expectation.fulfill()
+            }
+        })
+
+        // WHEN
+        let sdk = createInstance(options: options)!
+
+        wait(for: [expectation], timeout: maxWaitTime)
+
+        // THEN
+        XCTAssertEqual(refreshedCount, expectedRefreshCount)
+    }
+
+    func testShouldStopRefreshing() {
+
+        // GIVEN
+        var isRefreshingStopped = false
+        var revision = 1
+        let refreshInterval = 1
+
+        MockURLProtocol.requestHandler = { request in
+            let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            revision += 1
+            return (response, jsonString.data(using: .utf8))
+        }
+
+        var options: InstanceOptions = .default
+        options.sessionConfiguration.protocolClasses = [MockURLProtocol.self]
+        options.refreshInterval = refreshInterval
+        options.datafileUrl = "https://featurevisor-awesome-url.com/tags.json"
+        options.logger = createLogger { level, message, details in
+            guard case .warn = level else {
+                return
+            }
+
+            if message.contains("refreshing has stopped") {
+                isRefreshingStopped = true
+            }
+        }
+
+        // WHEN
+        let sdk = createInstance(options: options)!
+
+        // THEN
+        XCTAssertEqual(isRefreshingStopped, false)
+
+        sdk.stopRefreshing()
+
+        XCTAssertEqual(isRefreshingStopped, true)
+    }
 }
 
