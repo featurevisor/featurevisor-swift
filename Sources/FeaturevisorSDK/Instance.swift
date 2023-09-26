@@ -945,16 +945,22 @@ public class FeaturevisorInstance {
           return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? [String]
       }
 
-    // TODO: implement in Swift
-    //    getVariableObject<T>(
-    //      featureKey: FeatureKey | Feature,
-    //      variableKey: string,
-    //      context: Context = {},
-    //    ): T | undefined {
-    //      const variableValue = this.getVariable(featureKey, variableKey, context);
-    //
-    //      return getValueByType(variableValue, "object") as T | undefined;
-    //    }
+      func getVariableObject<T>(
+        featureKey: FeatureKey,
+        variableKey: String,
+        context: Context) -> T? where T : Decodable {
+
+          let object = getVariable(
+                  featureKey: featureKey,
+                  variableKey: variableKey,
+                  context: context)?.value as? VariableObjectValue
+
+          guard let data = try? JSONEncoder().encode(object) else {
+              return nil
+          }
+
+          return try? JSONDecoder().decode(T.self, from: data)
+      }
 
     // TODO: implement in Swift
     //    getVariableJSON<T>(
