@@ -620,7 +620,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         while refreshedCount < expectedRefreshCount {
             Thread.sleep(forTimeInterval: 0.1)
         }
-        
+
         // THEN
         XCTAssertEqual(refreshedCount, expectedRefreshCount)
     }
