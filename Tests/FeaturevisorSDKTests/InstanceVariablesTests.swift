@@ -4,17 +4,11 @@ import XCTest
 @testable import FeaturevisorSDK
 @testable import FeaturevisorTypes
 
-extension FeaturevisorInstanceTests {
+final class InstanceVariablesTests: XCTestCase {
 
     func testGetVariableObjectReturnsValidObject() {
 
         // GIVEN
-        class CustomObject: Decodable {
-            let title: String
-            let subtitle: String
-            let score: Int
-        }
-
         let variable = Variable(
                 key: "hero",
                 value: .object([
@@ -83,5 +77,79 @@ extension FeaturevisorInstanceTests {
         XCTAssertEqual(object.title, "Hero Title for B")
         XCTAssertEqual(object.subtitle, "Hero Subtitle for B")
         XCTAssertEqual(object.score, 10)
+    }
+
+    func testGetVariableJSONReturnsValidObject() {
+
+        // GIVEN
+        let variable = Variable(
+                key: "hero",
+                value: .json("{\"title\": \"Hero Title for B\", \"subtitle\": \"Hero Subtitle for B\", \"score\": 10}"),
+                overrides: nil)
+
+        let variation = Variation(
+                description: nil,
+                value: "control",
+                weight: 33.34,
+                variables: [variable])
+
+        let allocation = Allocation(
+                variation: "control",
+                range: Range(start: 0, end: 33340))
+
+        let traffic = Traffic(
+                key: "1",
+                segments: .plain("*"),
+                percentage: 100000,
+                allocation: [allocation])
+
+        let variableSchema = VariableSchema(
+                key: "hero",
+                type: .object,
+                defaultValue: .json("{\"title\": \"Hero Title for B\", \"subtitle\": \"Hero Subtitle for B\", \"score\": 10}"))
+
+        let feature = Feature(
+                key: "e_bar",
+                bucketBy: .single("userId"),
+                variablesSchema: [variableSchema],
+                variations: [variation],
+                traffic: [traffic])
+
+        let segment = Segment(
+                key: "*",
+                conditions: .plain(PlainCondition(attribute: "chapter", operator: .equals, value: .string("account"))),
+                archived: nil)
+
+        let datafileContent = DatafileContent(
+                schemaVersion: "1.0",
+                revision: "0.0.1",
+                attributes: [],
+                segments: [segment],
+                features: [feature])
+
+        var options = InstanceOptions.default
+        options.datafile = datafileContent
+
+        let sdk = createInstance(options: options)!
+
+        // WHEN
+        let object: CustomObject = sdk.getVariableJSON(
+                featureKey: "e_bar",
+                variableKey: "hero",
+                context: [:])!
+
+        // THEN
+        XCTAssertEqual(object.title, "Hero Title for B")
+        XCTAssertEqual(object.subtitle, "Hero Subtitle for B")
+        XCTAssertEqual(object.score, 10)
+    }
+}
+
+private extension InstanceVariablesTests {
+
+    class CustomObject: Decodable {
+        let title: String
+        let subtitle: String
+        let score: Int
     }
 }

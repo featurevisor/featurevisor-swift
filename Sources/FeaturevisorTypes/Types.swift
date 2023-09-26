@@ -246,15 +246,21 @@ public enum VariableValue: Codable {
     case double(Double)
     case array([String])
     case object(VariableObjectValue)
-    case json(String)  // @TODO: check later if this is correct
+    case json(String)
     // @TODO: handle null and undefined later
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         
         if let string = try? container.decode(String.self) {
-            // @TODO: Deal with json case too
-            self = .string(string)
+            
+            guard let data = string.data(using: .utf8),
+                  let _ = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) else {
+                self = .string(string)
+                return
+            }
+            
+            self = .json(string)
         } else if let integer = try? container.decode(Int.self) {
             self = .integer(integer)
         } else if let double = try? container.decode(Double.self) {
