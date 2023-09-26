@@ -335,8 +335,10 @@ public class FeaturevisorInstance {
                 self?.refresh()
             }
 
-            RunLoop.current.add((self?.timer)!, forMode: .common)
-            RunLoop.current.run()
+            if let timer = self?.timer {
+                RunLoop.current.add(timer, forMode: .common)
+                RunLoop.current.run()
+            }
         }
     }
 
