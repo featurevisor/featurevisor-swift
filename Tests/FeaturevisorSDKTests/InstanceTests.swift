@@ -596,12 +596,8 @@ class FeaturevisorInstanceTests: XCTestCase {
         // GIVEN
         var revision = 1
         var refreshedCount = 0
-        let refreshInterval = 1
+        let refreshInterval = 1.0
         let expectedRefreshCount = 3
-        let maxWaitTime = TimeInterval(expectedRefreshCount) * TimeInterval(refreshInterval) + 1
-
-        let expectation: XCTestExpectation = expectation(description: "Expectation")
-        var expectationFulfilled = false
 
         MockURLProtocol.requestHandler = { request in
             let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
@@ -616,17 +612,15 @@ class FeaturevisorInstanceTests: XCTestCase {
         options.datafileUrl = "https://featurevisor-awesome-url.com/tags.json"
         options.onRefresh = ({ _ in
             refreshedCount += 1
-            if refreshedCount >= expectedRefreshCount && !expectationFulfilled {
-                expectationFulfilled = true
-                expectation.fulfill()
-            }
         })
 
         // WHEN
         let sdk = createInstance(options: options)!
 
-        wait(for: [expectation], timeout: maxWaitTime)
-
+        while refreshedCount < expectedRefreshCount {
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        
         // THEN
         XCTAssertEqual(refreshedCount, expectedRefreshCount)
     }
@@ -636,7 +630,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         // GIVEN
         var isRefreshingStopped = false
         var revision = 1
-        let refreshInterval = 1
+        let refreshInterval = 1.0
 
         MockURLProtocol.requestHandler = { request in
             let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
@@ -662,11 +656,11 @@ class FeaturevisorInstanceTests: XCTestCase {
         // WHEN
         let sdk = createInstance(options: options)!
 
-        // THEN
         XCTAssertEqual(isRefreshingStopped, false)
 
         sdk.stopRefreshing()
 
+        // THEN
         XCTAssertEqual(isRefreshingStopped, true)
     }
 }

@@ -101,7 +101,7 @@ public class FeaturevisorInstance {
     private var initialFeatures: InitialFeatures?
     private var interceptContext: InterceptContext?
     private var logger: Logger
-    private var refreshInterval: Int?  // seconds
+    private var refreshInterval: TimeInterval?  // seconds
     private var stickyFeatures: StickyFeatures?
 
     // internally created
@@ -342,15 +342,15 @@ public class FeaturevisorInstance {
 
     func stopRefreshing() {
 
-        DispatchQueue.global().async {
+        DispatchQueue.global().async { [weak self] in
 
-            guard let intervalId = self.timer else {
-                self.logger.warn("refreshing has not started yet")
+            guard let intervalId = self?.timer else {
+                self?.logger.warn("refreshing has not started yet")
                 return
             }
 
             intervalId.invalidate()
-            self.timer = nil
+            self?.timer = nil
         }
 
         logger.warn("refreshing has stopped")
