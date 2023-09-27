@@ -117,7 +117,7 @@ public class FeaturevisorInstance {
     public var removeListener: ((EventName, Listener) -> Void)?
     public var removeAllListeners: ((EventName?) -> Void)?
 
-    internal init(options: InstanceOptions) throws {
+    internal init(options: InstanceOptions) {
         // from options
         bucketKeySeparator = options.bucketKeySeparator
         configureBucketKey = options.configureBucketKey
@@ -163,28 +163,24 @@ public class FeaturevisorInstance {
         if let datafileUrl = options.datafileUrl {
             datafileReader = DatafileReader(datafileContent: options.datafile ?? emptyDatafile)
 
-            try fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) { [weak self] result in
+            fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) { [weak self] result in
                 switch result {
-                    case .success(let datafileContent):
-                        self?.datafileReader = DatafileReader(datafileContent: datafileContent)
+                case .success(let datafileContent):
+                    self?.datafileReader = DatafileReader(datafileContent: datafileContent)
 
-                        self?.statuses.ready = true
-                        self?.emitter.emit(EventName.ready)
+                    self?.statuses.ready = true
+                    self?.emitter.emit(EventName.ready)
 
-                        if self?.refreshInterval != nil {
-                            self?.startRefreshing()
-                        }
-                    case .failure(let error):
-                        self?.logger.error("Failed to fetch datafile: \(error)")
+                    if self?.refreshInterval != nil {
+                        self?.startRefreshing()
+                    }
+                case .failure(let error):
+                    self?.logger.error("Failed to fetch datafile: \(error)")
                 }
             }
-        } else if let datafile = options.datafile {
-            datafileReader = DatafileReader(datafileContent: datafile)
-            statuses.ready = true
-
-            emitter.emit(EventName.ready)
         } else {
-            throw FeaturevisorError.missingDatafileOptions
+            datafileReader = DatafileReader(datafileContent: options.datafile ?? emptyDatafile)
+            emitter.emit(EventName.ready)
         }
     }
 
@@ -1036,18 +1032,6 @@ public class FeaturevisorInstance {
     }
 }
 
-public func createInstance(options: InstanceOptions) -> FeaturevisorInstance? {
-    do {
-        let instance = try FeaturevisorInstance(options: options)
-        return instance
-        // TODO: What to do in case initialisation fails?
-        //  } catch FeaturevisorError.missingDatafileOptions{
-        //  } catch FeaturevisorError.invalidURL {
-        //  } catch FeaturevisorError.downloadingDatafile(let datafileUrl) {
-    }
-    catch let error {
-        print(error.localizedDescription)
-    }
-
-    return nil
+public func createInstance(options: InstanceOptions) -> FeaturevisorInstance {
+    return FeaturevisorInstance(options: options)
 }

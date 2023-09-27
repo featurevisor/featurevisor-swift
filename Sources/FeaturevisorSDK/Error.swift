@@ -12,7 +12,6 @@ public enum FeaturevisorError: Error, Equatable {
     /// - Parameter string: The invalid URL string.
     case invalidURL(string: String)
     
-    case missingDatafileOptions
     case downloadingDatafile(String)
 }
 
@@ -24,8 +23,6 @@ extension FeaturevisorError: LocalizedError {
     
     public var errorDescription: String? {
         switch self {
-            case .missingDatafileOptions:
-            return "\(errorPrefix) instance cannot be created without both `datafile` and `datafileUrl` options"
             case .downloadingDatafile(let datafileUrl):
             return "\(errorPrefix) was not able to download the data file at: \(datafileUrl)"
             case .invalidURL(let urlString):

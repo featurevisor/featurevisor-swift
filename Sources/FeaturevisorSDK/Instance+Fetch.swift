@@ -6,10 +6,10 @@ internal extension FeaturevisorInstance {
     func fetchDatafileContent(
             from url: String,
             handleDatafileFetch: DatafileFetchHandler? = nil,
-            completion: @escaping (Result<DatafileContent, Error>) -> Void) throws {
+            completion: @escaping (Result<DatafileContent, Error>) -> Void) {
 
         guard let handleDatafileFetch else {
-            try fetchDatafileContent(from: url, completion: completion)
+            fetchDatafileContent(from: url, completion: completion)
             return
         }
         
@@ -21,10 +21,11 @@ private extension FeaturevisorInstance {
 
     func fetchDatafileContent(
             from url: String,
-            completion: @escaping (Result<DatafileContent, Error>) -> Void) throws {
+            completion: @escaping (Result<DatafileContent, Error>) -> Void) {
 
         guard let datafileUrl = URL(string: url) else {
-            throw FeaturevisorError.invalidURL(string: url)
+            completion(.failure(FeaturevisorError.invalidURL(string: url)))
+            return
         }
 
         var request = URLRequest(url: datafileUrl)
