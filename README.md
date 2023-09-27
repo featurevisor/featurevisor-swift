@@ -92,62 +92,62 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 (Table below requires review to get accurate status)
 
 | Section             | Task                                                | Status |
-|---------------------|-----------------------------------------------------|--------|
-| Files               | `@featurevisor/types` ➡️ `FeaturevisorTypes`        | ✅      |
-|                     | SDK's `bucket.ts` ➡️ `bucket.swift`                 | ✅      |
-|                     | SDK's `conditions.ts` ➡️ `conditions.swift`         | ✅      |
-|                     | SDK's `datafileReader.ts` ➡️ `DatafileReader.swift` | ✅      |
-|                     | SDK's `emitter.ts` ➡️ `Emitter.swift`               | ✅      |
-|                     | SDK's `feature.ts` ➡️ `Emitter.swift`               |        |
-|                     | SDK's `instance.ts` ➡️ `Instance.swift`             |        |
-|                     | SDK's `logger.ts` ➡️ `Logger.swift`                 | ✅      |
-|                     | SDK's `segments.ts` ➡️ `segments.swift`             | ✅      |
-|                     |                                                     |        |
-| Constructor options | `bucketKeySeparator`                                | ✅     |
-|                     | `configureBucketKey`                                | ✅     |
-|                     | `configureBucketValue`                              | ✅     |
-|                     | `datafile`                                          | ✅     |
-|                     | `datafileUrl`                                       | ✅     |
-|                     | `handleDatafileFetch`                               |        |
-|                     | `initialFeatures`                                   | ✅     |
-|                     | `interceptContext`                                  | ✅     |
-|                     | `logger`                                            | ✅     |
-|                     | `onActivation`                                      |        |
-|                     | `onReady`                                           | ✅     |
-|                     | `onRefresh`                                         | ✅     |
-|                     | `onUpdate`                                          | ✅     |
-|                     | `refreshInternal`                                   | ✅     |
-|                     | `stickyFeatures`                                    | ✅     |
-|                     |                                                     |        |
-| Instance methods    | `constructor` missing fetch datafile content        | ⚠️      |
-|                     | `setDatafile` removed to workaround init issues     | ✅     |
-|                     | `setStickyFeatures`                                 | ✅     |
-|                     | `getRevision`                                       | ✅     |
-|                     | `getFeature`                                        | ✅     |
-|                     | `getBucketKey`                                      | ✅     |
-|                     | `getBucketValue`                                    | ✅     |
-|                     | `isReady`                                           | ✅     |
-|                     | `refresh`                                           |        |
-|                     | `startRefreshing`                                   |        |
-|                     | `stopRefreshing`                                    |        |
-|                     | `evaluateFlag`                                      |        |
-|                     | `isEnabled`                                         | ✅     |
-|                     | `evaluateVariation`                                 |        |
-|                     | `getVariation`                                      | ✅     |
-|                     | `activate`                                          | ✅     |
-|                     | `evaluateVariable`                                  |        |
-|                     | `getVariable`                                       |        |
-|                     | `getVariableBoolean`                                |        |
-|                     | `getVariableString`                                 |        |
-|                     | `getVariableInteger`                                |        |
-|                     | `getVariableDouble`                                 |        |
-|                     | `getVariableArray`                                  |        |
-|                     | `getVariableObject`                                 |        |
-|                     | `getVariableJSON`                                   |        |
-|                     |                                                     |        |
-| Functions           | `createInstance` missing proper error handling      | ⚠️      |
-|                     | `fetchDatafileContent` decoadable issue             | ⚠️      |
-|                     | `getValueByType`                                    |        |
+|---------------------|-----------------------------------------------------|----|
+| Files               | `@featurevisor/types` ➡️ `FeaturevisorTypes`        | ✅  |
+|                     | SDK's `bucket.ts` ➡️ `bucket.swift`                 | ✅  |
+|                     | SDK's `conditions.ts` ➡️ `conditions.swift`         | ✅  |
+|                     | SDK's `datafileReader.ts` ➡️ `DatafileReader.swift` | ✅  |
+|                     | SDK's `emitter.ts` ➡️ `Emitter.swift`               | ✅  |
+|                     | SDK's `feature.ts` ➡️ `Emitter.swift`               |    |
+|                     | SDK's `instance.ts` ➡️ `Instance.swift`             |    |
+|                     | SDK's `logger.ts` ➡️ `Logger.swift`                 | ✅  |
+|                     | SDK's `segments.ts` ➡️ `segments.swift`             | ✅  |
+|                     |                                                     |    |
+| Constructor options | `bucketKeySeparator`                                | ✅  |
+|                     | `configureBucketKey`                                | ✅  |
+|                     | `configureBucketValue`                              | ✅  |
+|                     | `datafile`                                          | ✅  |
+|                     | `datafileUrl`                                       | ✅  |
+|                     | `handleDatafileFetch`                               |    |
+|                     | `initialFeatures`                                   | ✅  |
+|                     | `interceptContext`                                  | ✅  |
+|                     | `logger`                                            | ✅  |
+|                     | `onActivation`                                      | ✅  |
+|                     | `onReady`                                           | ✅  |
+|                     | `onRefresh`                                         | ✅  |
+|                     | `onUpdate`                                          | ✅  |
+|                     | `refreshInternal`                                   | ✅  |
+|                     | `stickyFeatures`                                    | ✅  |
+|                     |                                                     |    |
+| Instance methods    | `constructor`                                       | ✅  |
+|                     | `setDatafile` removed to workaround init issues     | ✅  |
+|                     | `setStickyFeatures`                                 | ✅  |
+|                     | `getRevision`                                       | ✅  |
+|                     | `getFeature`                                        | ✅  |
+|                     | `getBucketKey`                                      | ✅  |
+|                     | `getBucketValue`                                    | ✅  |
+|                     | `isReady`                                           | ✅  |
+|                     | `refresh`                                           | ✅  |
+|                     | `startRefreshing`                                   | ✅  |
+|                     | `stopRefreshing`                                    | ✅  |
+|                     | `evaluateFlag`                                      | ✅  |
+|                     | `isEnabled`                                         | ✅  |
+|                     | `evaluateVariation`                                 | ✅  |
+|                     | `getVariation`                                      | ✅  |
+|                     | `activate`                                          | ✅  |
+|                     | `evaluateVariable`                                  | ✅  |
+|                     | `getVariable`                                       | ✅  |
+|                     | `getVariableBoolean`                                | ✅  |
+|                     | `getVariableString`                                 | ✅  |
+|                     | `getVariableInteger`                                | ✅  |
+|                     | `getVariableDouble`                                 | ✅  |
+|                     | `getVariableArray`                                  | ✅  |
+|                     | `getVariableObject`                                 | ✅  |
+|                     | `getVariableJSON`                                   | ✅  |
+|                     |                                                     |    |
+| Functions           | `createInstance` missing proper error handling      | ⚠️ |
+|                     | `fetchDatafileContent`                              | ✅ |
+|                     | `getValueByType`                                    |    |
 
 ### Test runner
 
