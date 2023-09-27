@@ -663,9 +663,9 @@ class FeaturevisorInstanceTests: XCTestCase {
         // THEN
         XCTAssertEqual(isRefreshingStopped, true)
     }
-    
+
     func testSetDatafileByValidJSON() {
-        
+
         // GIVEN
         var options = InstanceOptions.default
         options.datafile = DatafileContent(
@@ -675,16 +675,16 @@ class FeaturevisorInstanceTests: XCTestCase {
             segments: [],
             features: [])
         let sdk = createInstance(options: options)!
-        
+
         // WHEN
         sdk.setDatafile("{\"schemaVersion\":\"1\",\"revision\":\"0.0.66\",\"attributes\":[],\"segments\":[],\"features\":[]}")
-        
+
         // THEN
         XCTAssertEqual(sdk.getRevision(), "0.0.66")
     }
-    
+
     func testSetDatafileByDatafileContent() {
-        
+
         // GIVEN
         let datafileContent = DatafileContent(
             schemaVersion: "1",
@@ -692,7 +692,7 @@ class FeaturevisorInstanceTests: XCTestCase {
             attributes: [],
             segments: [],
             features: [])
-        
+
         var options = InstanceOptions.default
         options.datafile = DatafileContent(
             schemaVersion: "",
@@ -701,10 +701,10 @@ class FeaturevisorInstanceTests: XCTestCase {
             segments: [],
             features: [])
         let sdk = createInstance(options: options)!
-        
+
         // WHEN
         sdk.setDatafile(datafileContent)
-        
+
         // THEN
         XCTAssertEqual(sdk.getRevision(), "0.0.66")
     }
