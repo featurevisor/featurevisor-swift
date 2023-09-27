@@ -1021,28 +1021,41 @@ public class FeaturevisorInstance {
           return getVariable(featureKey: featureKey, variableKey: variableKey, context: context)?.value as? [String]
       }
 
-    // TODO: implement in Swift
-    //    getVariableObject<T>(
-    //      featureKey: FeatureKey | Feature,
-    //      variableKey: string,
-    //      context: Context = {},
-    //    ): T | undefined {
-    //      const variableValue = this.getVariable(featureKey, variableKey, context);
-    //
-    //      return getValueByType(variableValue, "object") as T | undefined;
-    //    }
+    func getVariableObject<T: Decodable>(
+        featureKey: FeatureKey,
+        variableKey: String,
+        context: Context) -> T? {
 
-    // TODO: implement in Swift
-    //    getVariableJSON<T>(
-    //      featureKey: FeatureKey | Feature,
-    //      variableKey: string,
-    //      context: Context = {},
-    //    ): T | undefined {
-    //      const variableValue = this.getVariable(featureKey, variableKey, context);
-    //
-    //      return getValueByType(variableValue, "json") as T | undefined;
-    //    }
-    //  }
+          let object = getVariable(
+                  featureKey: featureKey,
+                  variableKey: variableKey,
+                  context: context)?.value as? VariableObjectValue
+
+          guard let data = try? JSONEncoder().encode(object) else {
+              return nil
+          }
+
+          return try? JSONDecoder().decode(T.self, from: data)
+      }
+
+    func getVariableJSON<T: Decodable>(
+            featureKey: FeatureKey,
+            variableKey: String,
+            context: Context) -> T? {
+
+        guard let json = getVariable(
+                featureKey: featureKey,
+                variableKey: variableKey,
+                context: context)?.value as? String else {
+            return nil
+        }
+
+        guard let data = json.data(using: .utf8) else {
+            return nil
+        }
+
+        return try? JSONDecoder().decode(T.self, from: data)
+    }
 }
 
 public func createInstance(options: InstanceOptions) -> FeaturevisorInstance? {

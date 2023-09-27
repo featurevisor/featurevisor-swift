@@ -164,6 +164,15 @@ public struct Segment: Decodable {
         conditions = try container.decodeStringified(Condition.self, forKey: .conditions)
     }
     
+    public init(
+        key: SegmentKey,
+        conditions: Condition,
+        archived: Bool?) {
+            self.key = key
+            self.conditions = conditions
+            self.archived = archived
+        }
+    
     public enum CodingKeys: String, CodingKey {
         case archived
         case key
@@ -236,15 +245,21 @@ public enum VariableValue: Codable {
     case double(Double)
     case array([String])
     case object(VariableObjectValue)
-    case json(String)  // @TODO: check later if this is correct
+    case json(String)
     // @TODO: handle null and undefined later
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         
         if let string = try? container.decode(String.self) {
-            // @TODO: Deal with json case too
-            self = .string(string)
+            
+            guard let data = string.data(using: .utf8),
+                  let _ = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) else {
+                self = .string(string)
+                return
+            }
+            
+            self = .json(string)
         } else if let integer = try? container.decode(Int.self) {
             self = .integer(integer)
         } else if let double = try? container.decode(Double.self) {
@@ -260,7 +275,28 @@ public enum VariableValue: Codable {
             throw DecodingError.dataCorrupted(context)
         }
     }
-    
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+
+        switch self {
+        case .string(let string):
+            try container.encode(string)
+        case .integer(let integer):
+            try container.encode(integer)
+        case .double(let double):
+            try container.encode(double)
+        case .boolean(let bool):
+            try container.encode(bool)
+        case .array(let array):
+            try container.encode(array)
+        case .object(let object):
+            try container.encode(object)
+        case .json(let json):
+            try container.encode(json)
+        }
+    }
+
     public var value: Any {
         switch self {
         case .boolean(let bool):
