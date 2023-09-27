@@ -165,6 +165,15 @@ public struct Segment: Decodable {
         conditions = try container.decodeStringified(Condition.self, forKey: .conditions)
     }
     
+    public init(
+        key: SegmentKey,
+        conditions: Condition,
+        archived: Bool?) {
+            self.key = key
+            self.conditions = conditions
+            self.archived = archived
+        }
+    
     public enum CodingKeys: String, CodingKey {
         case archived
         case key
@@ -230,7 +239,7 @@ public enum VariableType: String, Decodable {
 
 public typealias VariableObjectValue = [String: VariableValue]
 
-public enum VariableValue: Decodable {
+public enum VariableValue: Codable {
     case boolean(Bool)
     case string(String)
     case integer(Int)
@@ -261,7 +270,28 @@ public enum VariableValue: Decodable {
             throw DecodingError.dataCorrupted(context)
         }
     }
-    
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+
+        switch self {
+        case .string(let string):
+            try container.encode(string)
+        case .integer(let integer):
+            try container.encode(integer)
+        case .double(let double):
+            try container.encode(double)
+        case .boolean(let bool):
+            try container.encode(bool)
+        case .array(let array):
+            try container.encode(array)
+        case .object(let object):
+            try container.encode(object)
+        case .json(let json):
+            try container.encode(json)
+        }
+    }
+
     public var value: Any {
         switch self {
         case .boolean(let bool):
