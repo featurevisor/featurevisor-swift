@@ -663,5 +663,80 @@ class FeaturevisorInstanceTests: XCTestCase {
         // THEN
         XCTAssertEqual(isRefreshingStopped, true)
     }
-}
+    
+    func testSetDatafileByValidJSON() {
+        
+        // GIVEN
+        var options = InstanceOptions.default
+        options.datafile = DatafileContent(
+            schemaVersion: "",
+            revision: "",
+            attributes: [],
+            segments: [],
+            features: [])
+        let sdk = createInstance(options: options)!
+        
+        // WHEN
+        sdk.setDatafile("{\"schemaVersion\":\"1\",\"revision\":\"0.0.66\",\"attributes\":[],\"segments\":[],\"features\":[]}")
+        
+        // THEN
+        XCTAssertEqual(sdk.getRevision(), "0.0.66")
+    }
+    
+    func testSetDatafileByDatafileContent() {
+        
+        // GIVEN
+        let datafileContent = DatafileContent(
+            schemaVersion: "1",
+            revision: "0.0.66",
+            attributes: [],
+            segments: [],
+            features: [])
+        
+        var options = InstanceOptions.default
+        options.datafile = DatafileContent(
+            schemaVersion: "",
+            revision: "",
+            attributes: [],
+            segments: [],
+            features: [])
+        let sdk = createInstance(options: options)!
+        
+        // WHEN
+        sdk.setDatafile(datafileContent)
+        
+        // THEN
+        XCTAssertEqual(sdk.getRevision(), "0.0.66")
+    }
 
+    func testSetDatafileByInvalidJSONReturnsError() {
+
+        // GIVEN
+        var errorCount = 0
+        var options = InstanceOptions.default
+        options.logger = createLogger { level, message, details in
+            guard case .error = level else {
+                return
+            }
+
+            if message.contains("could not parse datafile") {
+                errorCount += 1
+            }
+        }
+        options.datafile = DatafileContent(
+                schemaVersion: "",
+                revision: "",
+                attributes: [],
+                segments: [],
+                features: [])
+
+        let sdk = createInstance(options: options)!
+
+        // WHEN
+        sdk.setDatafile("{\"schemaVersion\":1,\"revision\":\"0.0.66\", attributes:[],\"segments\":[],\"features\":[]}")
+
+        // THEN
+        XCTAssertEqual(errorCount, 1)
+        XCTAssertEqual(sdk.getRevision(), "")
+    }
+}
