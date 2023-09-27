@@ -4,8 +4,7 @@ import Foundation
 public typealias ConfigureBucketKey = (Feature, Context, BucketKey) -> BucketKey
 public typealias ConfigureBucketValue = (Feature, Context, BucketValue) -> BucketValue
 public typealias InterceptContext = (Context) -> Context
-// TODO: handle async here
-public typealias DatafileFetchHandler = (String) -> DatafileContent
+public typealias DatafileFetchHandler = (_ datafileUrl: String) -> Result<DatafileContent, Error>
 
 public struct Statuses {
     public var ready: Bool
@@ -97,7 +96,7 @@ public class FeaturevisorInstance {
     private var configureBucketKey: ConfigureBucketKey?
     private var configureBucketValue: ConfigureBucketValue?
     private var datafileUrl: String?
-    //private var handleDatafileFetch: DatafileFetchHandler?
+    private var handleDatafileFetch: DatafileFetchHandler?
     private var initialFeatures: InitialFeatures?
     private var interceptContext: InterceptContext?
     private var logger: Logger
@@ -124,7 +123,7 @@ public class FeaturevisorInstance {
         configureBucketKey = options.configureBucketKey
         configureBucketValue = options.configureBucketValue
         datafileUrl = options.datafileUrl
-        //handleDatafileFetch = options.handleDatafileFetch
+        handleDatafileFetch = options.handleDatafileFetch
         initialFeatures = options.initialFeatures
         interceptContext = options.interceptContext
         logger = options.logger ?? createLogger()
@@ -164,8 +163,7 @@ public class FeaturevisorInstance {
         if let datafileUrl = options.datafileUrl {
             datafileReader = DatafileReader(datafileContent: options.datafile ?? emptyDatafile)
 
-            // TODO: missing option `handleDatafileFetch`
-            try fetchDatafileContent(from: datafileUrl) { [weak self] result in
+            try fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) { [weak self] result in
                 switch result {
                     case .success(let datafileContent):
                         self?.datafileReader = DatafileReader(datafileContent: datafileContent)
@@ -303,7 +301,7 @@ public class FeaturevisorInstance {
 
         statuses.refreshInProgress = true
 
-        try? fetchDatafileContent(from: datafileUrl) { [weak self] result in
+        try? fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) { [weak self] result in
             guard let self else {
                 return
             }

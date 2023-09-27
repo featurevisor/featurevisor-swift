@@ -663,9 +663,9 @@ class FeaturevisorInstanceTests: XCTestCase {
         // THEN
         XCTAssertEqual(isRefreshingStopped, true)
     }
-    
+
     func testSetDatafileByValidJSON() {
-        
+
         // GIVEN
         var options = InstanceOptions.default
         options.datafile = DatafileContent(
@@ -675,16 +675,16 @@ class FeaturevisorInstanceTests: XCTestCase {
             segments: [],
             features: [])
         let sdk = createInstance(options: options)!
-        
+
         // WHEN
         sdk.setDatafile("{\"schemaVersion\":\"1\",\"revision\":\"0.0.66\",\"attributes\":[],\"segments\":[],\"features\":[]}")
-        
+
         // THEN
         XCTAssertEqual(sdk.getRevision(), "0.0.66")
     }
-    
+
     func testSetDatafileByDatafileContent() {
-        
+
         // GIVEN
         let datafileContent = DatafileContent(
             schemaVersion: "1",
@@ -692,7 +692,7 @@ class FeaturevisorInstanceTests: XCTestCase {
             attributes: [],
             segments: [],
             features: [])
-        
+
         var options = InstanceOptions.default
         options.datafile = DatafileContent(
             schemaVersion: "",
@@ -701,10 +701,10 @@ class FeaturevisorInstanceTests: XCTestCase {
             segments: [],
             features: [])
         let sdk = createInstance(options: options)!
-        
+
         // WHEN
         sdk.setDatafile(datafileContent)
-        
+
         // THEN
         XCTAssertEqual(sdk.getRevision(), "0.0.66")
     }
@@ -738,5 +738,66 @@ class FeaturevisorInstanceTests: XCTestCase {
         // THEN
         XCTAssertEqual(errorCount, 1)
         XCTAssertEqual(sdk.getRevision(), "")
+    }
+
+    func testHandleDatafileFetchReturnsValidResponse() {
+
+        // GIVEN
+        var options = InstanceOptions.default
+        options.datafileUrl = "https://dazn.featurevisor.datafilecontent.com"
+        options.handleDatafileFetch = { _ in
+            let datafileContent = DatafileContent(
+                    schemaVersion: "2",
+                    revision: "6.6.6",
+                    attributes: [],
+                    segments: [],
+                    features: [])
+
+            return .success(datafileContent)
+        }
+        options.datafile = DatafileContent(
+                schemaVersion: "1",
+                revision: "0.0.1",
+                attributes: [],
+                segments: [],
+                features: [])
+
+        // WHEN
+        let sdk = createInstance(options: options)!
+
+        // THEN
+        XCTAssertEqual(sdk.getRevision(), "6.6.6")
+    }
+
+    func testHandleDatafileFetchReturnErrorResponse() {
+
+        // GIVEN
+        var wasDatafileContentFetchErrorThrown = false
+        var options = InstanceOptions.default
+        options.datafileUrl = "https://dazn.featurevisor.datafilecontent.com"
+        options.handleDatafileFetch = { _ in
+            return .failure(FeaturevisorError.unparseableJSON(data: nil, errorMessage: "Error :("))
+        }
+        options.logger = createLogger { level, message, details in
+            guard case .error = level else {
+                return
+            }
+
+            if message.contains("Failed to fetch datafile") {
+                wasDatafileContentFetchErrorThrown = true
+            }
+        }
+        options.datafile = DatafileContent(
+                schemaVersion: "1",
+                revision: "0.0.1",
+                attributes: [],
+                segments: [],
+                features: [])
+
+        // WHEN
+        _ = createInstance(options: options)!
+
+        // THEN
+        XCTAssertTrue(wasDatafileContentFetchErrorThrown)
     }
 }
