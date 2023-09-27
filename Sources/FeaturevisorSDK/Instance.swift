@@ -101,7 +101,7 @@ public class FeaturevisorInstance {
     private var initialFeatures: InitialFeatures?
     private var interceptContext: InterceptContext?
     private var logger: Logger
-    private var refreshInterval: Int?  // seconds
+    private var refreshInterval: TimeInterval?  // seconds
     private var stickyFeatures: StickyFeatures?
 
     // internally created
@@ -109,7 +109,7 @@ public class FeaturevisorInstance {
     private var emitter: Emitter
     private var statuses: Statuses
     internal var urlSession: URLSession
-    // private var intervalId: Timer?
+    private var timer: Timer?
 
     // exposed from emitter
     public var on: ((EventName, @escaping Listener) -> Void)?
@@ -314,11 +314,48 @@ public class FeaturevisorInstance {
     }
 
     func startRefreshing() {
-        // TODO: write implementation
+
+        guard let datafileUrl else {
+            logger.error("cannot start refreshing since `datafileUrl` is not provided")
+            return
+        }
+
+        guard timer == nil else {
+            logger.warn("refreshing has already started")
+            return
+        }
+
+        guard let refreshInterval else {
+            logger.warn("no `refreshInterval` option provided")
+            return
+        }
+
+        DispatchQueue.global().async { [weak self] in
+            self?.timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(refreshInterval), repeats: true) { _ in
+                self?.refresh()
+            }
+
+            if let timer = self?.timer {
+                RunLoop.current.add(timer, forMode: .common)
+                RunLoop.current.run()
+            }
+        }
     }
 
     func stopRefreshing() {
-        // TODO: write implementation
+
+        DispatchQueue.global().async { [weak self] in
+
+            guard let intervalId = self?.timer else {
+                self?.logger.warn("refreshing has not started yet")
+                return
+            }
+
+            intervalId.invalidate()
+            self?.timer = nil
+        }
+
+        logger.warn("refreshing has stopped")
     }
 
     // MARK: - Flag
