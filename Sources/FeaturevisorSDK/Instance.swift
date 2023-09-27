@@ -28,7 +28,25 @@ public enum EvaluationReason: String {
     case error
 }
 
-public struct Evaluation {
+public struct Evaluation: Encodable {
+
+    private enum CodingKeys: String, CodingKey {
+        case featureKey
+        case reason
+        case bucketValue
+        case ruleKey
+        case error
+        case enabled
+        case traffic
+        case sticky
+        case initial
+        case variation
+        case variationValue
+        case variableKey
+        case variableValue
+        case variableSchema
+    }
+
     // required
     public let featureKey: FeatureKey
     public let reason: EvaluationReason
@@ -80,6 +98,27 @@ public struct Evaluation {
         self.variableKey = variableKey
         self.variableValue = variableValue
         self.variableSchema = variableSchema
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(featureKey, forKey: .featureKey)
+        try container.encode(reason.rawValue, forKey: .reason)
+        try container.encode(bucketValue, forKey: .bucketValue)
+        try container.encode(ruleKey, forKey: .ruleKey)
+        if let error = error {
+                    try container.encode(error.localizedDescription, forKey: .error)
+                }
+        try container.encode(enabled, forKey: .enabled)
+        try container.encode(traffic, forKey: .traffic)
+        try container.encode(sticky, forKey: .sticky)
+        try container.encode(initial, forKey: .initial)
+        try container.encode(variation, forKey: .variation)
+        try container.encode(variationValue, forKey: .variationValue)
+        try container.encode(variableKey, forKey: .variableKey)
+        try container.encode(variableValue, forKey: .variableValue)
+        try container.encode(variableSchema, forKey: .variableSchema)
     }
 }
 
@@ -370,7 +409,7 @@ public class FeaturevisorInstance {
                     enabled: stickyFeature.enabled,
                     sticky: stickyFeature)
 
-                  logger.debug("using sticky enabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                  logger.debug("using sticky enabled", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -383,7 +422,7 @@ public class FeaturevisorInstance {
                     enabled: initialFeature.enabled,
                     initial: initialFeature)
 
-            logger.debug("using initial enabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("using initial enabled", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -396,7 +435,7 @@ public class FeaturevisorInstance {
                     featureKey: featureKey,
                     reason: .notFound)
 
-            logger.warn("feature not found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.warn("feature not found", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -417,7 +456,7 @@ public class FeaturevisorInstance {
                     reason: .forced,
                     enabled: force.enabled)
 
-            logger.debug("forced enabled found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("forced enabled found", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -494,7 +533,7 @@ public class FeaturevisorInstance {
                         bucketValue: bucketValue,
                         enabled: false)
 
-                logger.debug("not matched", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                logger.debug("not matched", ["featureKey": evaluation])
 
                 return evaluation
             }
@@ -509,7 +548,7 @@ public class FeaturevisorInstance {
                         enabled: matchedTrafficEnabled,
                         traffic: matchedTraffic)
 
-                logger.debug("override from rule", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                logger.debug("override from rule", ["featureKey": evaluation])
 
                 return evaluation
             }
@@ -554,7 +593,7 @@ public class FeaturevisorInstance {
                     featureKey: featureKey,
                     reason: .disabled)
 
-            logger.debug("feature is disabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("feature is disabled", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -566,7 +605,7 @@ public class FeaturevisorInstance {
                     reason: .sticky,
                     variationValue: variationValue)
 
-            logger.debug("using sticky variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("using sticky variation", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -578,7 +617,7 @@ public class FeaturevisorInstance {
                     reason: .initial,
                     variationValue: variationValue)
 
-            logger.debug("using initial variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("using initial variation", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -589,7 +628,7 @@ public class FeaturevisorInstance {
                     featureKey: featureKey,
                     reason: .notFound)
 
-            logger.warn("feature not found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.warn("feature not found", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -600,7 +639,7 @@ public class FeaturevisorInstance {
                     featureKey: featureKey,
                     reason: .noVariations)
 
-        logger.warn("no variations", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+        logger.warn("no variations", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -619,7 +658,7 @@ public class FeaturevisorInstance {
                         reason: .forced,
                         variation: variation)
 
-                logger.debug("forced variation found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                logger.debug("forced variation found", ["featureKey": evaluation])
 
                 return evaluation
             }
@@ -652,7 +691,7 @@ public class FeaturevisorInstance {
                             ruleKey: matchedTraffic.key,
                             variation: variation)
 
-                logger.debug("override from rule", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                logger.debug("override from rule", ["featureKey": evaluation])
 
                     return evaluation
                 }
@@ -672,7 +711,7 @@ public class FeaturevisorInstance {
                             bucketValue: bucketValue,
                             variation: variation)
 
-                        logger.debug("allocated variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                        logger.debug("allocated variation", ["featureKey": evaluation])
 
                     return evaluation
                 }
@@ -685,7 +724,7 @@ public class FeaturevisorInstance {
                 reason: .error,
                 bucketValue: bucketValue)
 
-        logger.debug("no matched variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+        logger.debug("no matched variation", ["featureKey": evaluation])
 
         return evaluation
     }
@@ -750,7 +789,7 @@ public class FeaturevisorInstance {
         if flag.enabled == false {
             evaluation = Evaluation(featureKey: featureKey, reason: .disabled)
 
-            logger.debug("feature is disabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("feature is disabled", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -763,7 +802,7 @@ public class FeaturevisorInstance {
                     variableKey: variableKey,
                     variableValue: variableValue)
 
-            logger.debug("using sticky variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("using sticky variable", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -778,7 +817,7 @@ public class FeaturevisorInstance {
                         variableKey: variableKey,
                         variableValue: variableValue)
 
-                logger.debug("using initial variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                logger.debug("using initial variable", ["featureKey": evaluation])
 
                 return evaluation
             }
@@ -791,7 +830,7 @@ public class FeaturevisorInstance {
                     reason: .notFound,
                     variableKey: variableKey)
 
-            logger.warn("feature not found in datafile", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.warn("feature not found in datafile", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -807,7 +846,7 @@ public class FeaturevisorInstance {
                     reason: .notFound,
                     variableKey: variableKey)
 
-            logger.warn("variable schema not found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.warn("variable schema not found", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -825,7 +864,7 @@ public class FeaturevisorInstance {
                     variableValue: variableValue,
                     variableSchema: variableSchema)
 
-            logger.debug("forced variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("forced variable", ["featureKey": evaluation])
 
             return evaluation
         }
@@ -852,7 +891,7 @@ public class FeaturevisorInstance {
                         variableValue: variableValue,
                         variableSchema: variableSchema)
 
-                logger.debug("override from rule", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                logger.debug("override from rule", ["featureKey": evaluation])
 
                 return evaluation
             }
@@ -897,7 +936,7 @@ public class FeaturevisorInstance {
                                     variableValue: override.value,
                                     variableSchema: variableSchema)
 
-                            logger.debug("variable override", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                            logger.debug("variable override", ["featureKey": evaluation])
 
                             return evaluation
                         }
@@ -913,7 +952,7 @@ public class FeaturevisorInstance {
                                 variableValue: variableFromVariationValue,
                                 variableSchema: variableSchema)
 
-                        logger.debug("allocated variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                        logger.debug("allocated variable", ["featureKey": evaluation])
 
                         return evaluation
                     }
@@ -930,7 +969,7 @@ public class FeaturevisorInstance {
                 variableValue: variableSchema.defaultValue,
                 variableSchema: variableSchema)
 
-        logger.debug("using default value", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+        logger.debug("using default value", ["featureKey": evaluation])
 
         return evaluation;
     }

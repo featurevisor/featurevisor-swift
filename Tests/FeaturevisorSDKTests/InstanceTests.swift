@@ -4,6 +4,21 @@ import XCTest
 @testable import FeaturevisorTypes
 
 class FeaturevisorInstanceTests: XCTestCase {
+    
+    func testEncodeDoesNotThrow() throws {
+        let evaluation = Evaluation(
+                    featureKey: "feature123",
+                    reason: .allocated,
+                    bucketValue: 42,
+                    ruleKey: "rule456",
+                    enabled: true,
+                    variableKey: "color"
+                )
+                
+        let encoder = JSONEncoder()
+        
+        XCTAssertNoThrow(try encoder.encode(evaluation))
+    }
 
     func testInitializationSuccessDatafileContentFetching() {
 

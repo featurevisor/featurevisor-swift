@@ -43,7 +43,7 @@ public struct Attribute: Decodable {
     }
 }
 
-public enum Operator: String, Decodable {
+public enum Operator: String, Codable {
     case equals = "equals"
     case notEquals = "notEquals"
 
@@ -76,7 +76,7 @@ public enum Operator: String, Decodable {
     case notIn = "notIn"
 }
 
-public enum ConditionValue: Decodable {
+public enum ConditionValue: Codable {
     case string(String)
     case integer(Int)
     case double(Double)
@@ -105,35 +105,34 @@ public enum ConditionValue: Decodable {
     }
 }
 
-public struct PlainCondition: Decodable {
+public struct PlainCondition: Codable {
     public let attribute: AttributeKey
     public let `operator`: Operator
     public let value: ConditionValue
 }
 
-public struct AndCondition: Decodable {
+public struct AndCondition: Codable {
     public let and: [Condition]
 }
 
-public struct OrCondition: Decodable {
+public struct OrCondition: Codable {
     public let or: [Condition]
 }
 
-public struct NotCondition: Decodable {
+public struct NotCondition: Codable {
     public let not: [Condition]
 }
 
-public enum Condition: Decodable {
+public enum Condition: Codable {
     case plain(PlainCondition)
     case multiple([Condition])
-
     case and(AndCondition)
     case or(OrCondition)
     case not(NotCondition)
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-      
+
         if let plainCondition = try? container.decode(PlainCondition.self) {
             self = .plain(plainCondition)
         } else if let multipleCondition = try? container.decode([Condition].self) {
@@ -174,19 +173,19 @@ public struct Segment: Decodable {
 
 public typealias PlainGroupSegment = SegmentKey
 
-public struct AndGroupSegment: Decodable {
+public struct AndGroupSegment: Codable {
     public let and: [GroupSegment]
 }
 
-public struct OrGroupSegment: Decodable {
+public struct OrGroupSegment: Codable {
     public let or: [GroupSegment]
 }
 
-public struct NotGroupSegment: Decodable {
+public struct NotGroupSegment: Codable {
     public let not: [GroupSegment]
 }
 
-public enum GroupSegment: Decodable {
+public enum GroupSegment: Codable {
     case plain(PlainGroupSegment)
     case multiple([GroupSegment])
 
@@ -218,7 +217,7 @@ public typealias VariationValue = String
 
 public typealias VariableKey = String
 
-public enum VariableType: String, Decodable {
+public enum VariableType: String, Codable {
     case boolean = "boolean"
     case string = "string"
     case integer = "integer"
@@ -230,7 +229,7 @@ public enum VariableType: String, Decodable {
 
 public typealias VariableObjectValue = [String: VariableValue]
 
-public enum VariableValue: Decodable {
+public enum VariableValue: Codable {
     case boolean(Bool)
     case string(String)
     case integer(Int)
@@ -282,7 +281,7 @@ public enum VariableValue: Decodable {
     }
 }
 
-public struct VariableOverride: Decodable {
+public struct VariableOverride: Codable {
     public let value: VariableValue
 
     // one of the below must be present in YAML
@@ -303,20 +302,20 @@ public struct VariableOverride: Decodable {
     }
 }
 
-public struct Variable: Decodable {
+public struct Variable: Codable {
     public let key: VariableKey
     public let value: VariableValue
     public let overrides: [VariableOverride]?
 }
 
-public struct Variation: Decodable {
+public struct Variation: Codable {
     public let description: String?  // ony available in YAML
     public let value: VariationValue
     public let weight: Weight?  // 0 to 100 (available from parsed YAML, but not in datafile)
     public let variables: [Variable]?
 }
 
-public struct VariableSchema: Decodable {
+public struct VariableSchema: Codable {
     public let key: VariableKey
     public let type: VariableType
     public let defaultValue: VariableValue
@@ -375,7 +374,7 @@ public typealias BucketValue = Int
 // 0 to 100,000
 public typealias Percentage = Int
 
-public struct Range: Decodable {
+public struct Range: Codable {
     public let start: Percentage
     public let end: Percentage
     
@@ -392,12 +391,12 @@ public struct Range: Decodable {
     }
 }
 
-public struct Allocation: Decodable {
+public struct Allocation: Codable {
     public let variation: VariationValue
     public let range: Range
 }
 
-public struct Traffic: Decodable {
+public struct Traffic: Codable {
     public let key: RuleKey
     public let segments: GroupSegment
     public let percentage: Percentage
@@ -595,7 +594,7 @@ public struct DatafileContent: Decodable {
     }
 }
 
-public struct OverrideFeature {
+public struct OverrideFeature: Codable {
     public let enabled: Bool
     public let variation: VariationValue?
     public let variables: VariableValues?
