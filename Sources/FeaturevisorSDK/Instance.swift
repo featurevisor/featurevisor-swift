@@ -190,6 +190,25 @@ public class FeaturevisorInstance {
         }
     }
 
+    func setDatafile(_ datafileJSON: String) {
+
+        guard let data = datafileJSON.data(using: .utf8) else {
+            logger.error("could not get datafile as data representation")
+            return
+        }
+
+        do {
+            let datafileContent = try JSONDecoder().decode(DatafileContent.self, from: data)
+            datafileReader = DatafileReader(datafileContent: datafileContent)
+        } catch {
+            logger.error("could not parse datafile", ["error": error])
+        }
+    }
+
+    func setDatafile(_ datafileContent: DatafileContent) {
+        datafileReader = DatafileReader(datafileContent: datafileContent)
+    }
+
     func setStickyFeatures(stickyFeatures: StickyFeatures?) {
         self.stickyFeatures = stickyFeatures
     }
