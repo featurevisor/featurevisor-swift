@@ -739,4 +739,65 @@ class FeaturevisorInstanceTests: XCTestCase {
         XCTAssertEqual(errorCount, 1)
         XCTAssertEqual(sdk.getRevision(), "")
     }
+
+    func testHandleDatafileFetchReturnsValidResponse() {
+
+        // GIVEN
+        var options = InstanceOptions.default
+        options.datafileUrl = "https://dazn.featurevisor.datafilecontent.com"
+        options.handleDatafileFetch = { _ in
+            let datafileContent = DatafileContent(
+                    schemaVersion: "2",
+                    revision: "6.6.6",
+                    attributes: [],
+                    segments: [],
+                    features: [])
+
+            return .success(datafileContent)
+        }
+        options.datafile = DatafileContent(
+                schemaVersion: "1",
+                revision: "0.0.1",
+                attributes: [],
+                segments: [],
+                features: [])
+
+        // WHEN
+        let sdk = createInstance(options: options)!
+
+        // THEN
+        XCTAssertEqual(sdk.getRevision(), "6.6.6")
+    }
+
+    func testHandleDatafileFetchReturnErrorResponse() {
+
+        // GIVEN
+        var wasDatafileContentFetchErrorThrown = false
+        var options = InstanceOptions.default
+        options.datafileUrl = "https://dazn.featurevisor.datafilecontent.com"
+        options.handleDatafileFetch = { _ in
+            return .failure(FeaturevisorError.unparseableJSON(data: nil, errorMessage: "Error :("))
+        }
+        options.logger = createLogger { level, message, details in
+            guard case .error = level else {
+                return
+            }
+
+            if message.contains("Failed to fetch datafile") {
+                wasDatafileContentFetchErrorThrown = true
+            }
+        }
+        options.datafile = DatafileContent(
+                schemaVersion: "1",
+                revision: "0.0.1",
+                attributes: [],
+                segments: [],
+                features: [])
+
+        // WHEN
+        _ = createInstance(options: options)!
+
+        // THEN
+        XCTAssertTrue(wasDatafileContentFetchErrorThrown)
+    }
 }

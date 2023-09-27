@@ -2,23 +2,36 @@ import FeaturevisorTypes
 import Foundation
 
 internal extension FeaturevisorInstance {
-    
+
     func fetchDatafileContent(
-        from url: String,
-        completion: @escaping (Result<DatafileContent, Error>) -> Void) throws {
-        
-        guard let datafileUrl = URL(string: url) else {
-            throw FeaturevisorError.invalidURL(string: url)
+            from url: String,
+            handleDatafileFetch: DatafileFetchHandler? = nil,
+            completion: @escaping (Result<DatafileContent, Error>) -> Void) throws {
+
+        guard let handleDatafileFetch else {
+            try fetchDatafileContent(from: url, completion: completion)
+            return
         }
         
-        var request = URLRequest(url: datafileUrl)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        fetch(using: request, completion: completion)
+        completion(handleDatafileFetch(url))
     }
 }
 
 private extension FeaturevisorInstance {
+
+    func fetchDatafileContent(
+            from url: String,
+            completion: @escaping (Result<DatafileContent, Error>) -> Void) throws {
+
+        guard let datafileUrl = URL(string: url) else {
+            throw FeaturevisorError.invalidURL(string: url)
+        }
+
+        var request = URLRequest(url: datafileUrl)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        fetch(using: request, completion: completion)
+    }
     
     func fetch<T>(using request: URLRequest, completion: @escaping (Result<T, Error>) -> Void) where T: Decodable {
         
