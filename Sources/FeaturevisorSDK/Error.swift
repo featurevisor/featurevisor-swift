@@ -11,9 +11,11 @@ public enum FeaturevisorError: Error, Equatable {
     /// Thrown when attempting to construct an invalid URL.
     /// - Parameter string: The invalid URL string.
     case invalidURL(string: String)
-    
+
+    /// Thrown when attempting to init Featurevisor instance without passing datafile and datafileUrl.
+    /// At least one of them is required to init the SDK correctly
+    /// - Parameter string: The invalid URL string.
     case missingDatafileOptions
-    case downloadingDatafile(String)
 }
 
 extension FeaturevisorError: LocalizedError {
@@ -26,8 +28,6 @@ extension FeaturevisorError: LocalizedError {
         switch self {
             case .missingDatafileOptions:
             return "\(errorPrefix) instance cannot be created without both `datafile` and `datafileUrl` options"
-            case .downloadingDatafile(let datafileUrl):
-            return "\(errorPrefix) was not able to download the data file at: \(datafileUrl)"
             case .invalidURL(let urlString):
             return "\(errorPrefix) was not able to parse following url '\(urlString)'"
             case .unparseableJSON(_, let errorMessage):

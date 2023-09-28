@@ -65,7 +65,7 @@ final class InstanceVariablesTests: XCTestCase {
         var options = InstanceOptions.default
         options.datafile = datafileContent
 
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // WHEN
         let object: CustomObject = sdk.getVariableObject(
@@ -130,7 +130,7 @@ final class InstanceVariablesTests: XCTestCase {
         var options = InstanceOptions.default
         options.datafile = datafileContent
 
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // WHEN
         let object: CustomObject = sdk.getVariableJSON(
