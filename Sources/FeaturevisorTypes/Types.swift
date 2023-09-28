@@ -448,7 +448,7 @@ public struct Traffic: Codable {
 
         key = try container.decode(RuleKey.self, forKey: .key)
         percentage = try container.decode(Percentage.self, forKey: .percentage)
-        enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled)
+        enabled = try? container.decodeIfPresent(Bool.self, forKey: .enabled)
         variation = try? container.decodeIfPresent(VariationValue.self, forKey: .variation)
         variables = try? container.decodeIfPresent(VariableValues.self, forKey: .variables)
         allocation = (try? container.decode([Allocation].self, forKey: .allocation)) ?? []

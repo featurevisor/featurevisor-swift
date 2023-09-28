@@ -29,15 +29,6 @@ class FeaturevisorInstanceTests: XCTestCase {
             variableSchema: variableSchema
         )
 
-        let encoder = JSONEncoder()
-        let jsonData = try encoder.encode(evaluation)
-
-        guard let decodedDictionary = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] else {
-            XCTFail("Failed to decode JSON to a dictionary.")
-            return
-        }
-
-        //WHEN
         let mockedTraffic: [String: Any] = [
             "allocation": [Any](),
             "key": "key",
@@ -74,6 +65,7 @@ class FeaturevisorInstanceTests: XCTestCase {
             "bucketValue": 42,
             "ruleKey": "rule456",
             "enabled": true,
+            "error": NSNull(),
             "traffic": mockedTraffic,
             "sticky": mockedOverrideFeature,
             "initial": mockedOverrideFeature,
@@ -83,6 +75,15 @@ class FeaturevisorInstanceTests: XCTestCase {
             "variableValue": "",
             "variableSchema": mockedVariableSchema
         ]
+
+        let encoder = JSONEncoder()
+        let jsonData = try encoder.encode(evaluation)
+
+        //WHEN
+        guard let decodedDictionary = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] else {
+            XCTFail("Failed to decode JSON to a dictionary.")
+            return
+        }
 
         //THEN
         XCTAssertEqual(decodedDictionary as NSDictionary, expectedDictionary as NSDictionary)

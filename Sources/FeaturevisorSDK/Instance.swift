@@ -107,9 +107,7 @@ public struct Evaluation: Codable {
         try container.encode(reason.rawValue, forKey: .reason)
         try container.encode(bucketValue, forKey: .bucketValue)
         try container.encode(ruleKey, forKey: .ruleKey)
-        if let error = error {
-            try container.encode(error.localizedDescription, forKey: .error)
-        }
+        try? container.encode(error?.localizedDescription, forKey: .error)
         try container.encode(enabled, forKey: .enabled)
         try container.encode(traffic, forKey: .traffic)
         try container.encode(sticky, forKey: .sticky)
@@ -127,17 +125,22 @@ public struct Evaluation: Codable {
         featureKey = try container.decode(FeatureKey.self, forKey: .featureKey)
         reason = try EvaluationReason(rawValue: container.decode(String.self, forKey: .reason)) ?? .error
         bucketValue = try container.decodeIfPresent(BucketValue.self, forKey: .bucketValue)
-        ruleKey = try container.decodeIfPresent(RuleKey.self, forKey: .ruleKey)
-        error = try container.decodeIfPresent(String.self, forKey: .error) as? any Error
-        enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled)
-        traffic = try container.decodeIfPresent(Traffic.self, forKey: .traffic)
-        sticky = try container.decodeIfPresent(OverrideFeature.self, forKey: .sticky)
-        initial = try container.decodeIfPresent(OverrideFeature.self, forKey: .initial)
-        variation = try container.decodeIfPresent(Variation.self, forKey: .variation)
-        variationValue = try container.decodeIfPresent(VariationValue.self, forKey: .variationValue)
-        variableKey = try container.decodeIfPresent(VariableKey.self, forKey: .variableKey)
-        variableValue = try container.decodeIfPresent(VariableValue.self, forKey: .variableValue)
-        variableSchema = try container.decodeIfPresent(VariableSchema.self, forKey: .variableSchema)
+        ruleKey = try? container.decodeIfPresent(RuleKey.self, forKey: .ruleKey)
+        error = try? container.decodeIfPresent(String.self, forKey: .error) as? any Error
+        enabled = try? container.decodeIfPresent(Bool.self, forKey: .enabled)
+        traffic = try? container.decodeIfPresent(Traffic.self, forKey: .traffic)
+        sticky = try? container.decodeIfPresent(OverrideFeature.self, forKey: .sticky)
+        initial = try? container.decodeIfPresent(OverrideFeature.self, forKey: .initial)
+        variation = try? container.decodeIfPresent(Variation.self, forKey: .variation)
+        variationValue = try? container.decodeIfPresent(VariationValue.self, forKey: .variationValue)
+        variableKey = try? container.decodeIfPresent(VariableKey.self, forKey: .variableKey)
+        variableValue = try? container.decodeIfPresent(VariableValue.self, forKey: .variableValue)
+        variableSchema = try? container.decodeIfPresent(VariableSchema.self, forKey: .variableSchema)
+    }
+
+    func toDictionary() -> [String: Any] {
+        guard let data = try? JSONEncoder().encode(self) else { return [:] }
+        return (try? JSONSerialization.jsonObject(with: data, options: .allowFragments)).flatMap { $0 as? [String: Any]} ?? [:]
     }
 }
 
@@ -428,9 +431,7 @@ public class FeaturevisorInstance {
                     enabled: stickyFeature.enabled,
                     sticky: stickyFeature)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.debug("using sticky enabled", evaluationDictionary)
+            logger.debug("using sticky enabled", evaluation.toDictionary())
 
             return evaluation
         }
@@ -443,9 +444,7 @@ public class FeaturevisorInstance {
                     enabled: initialFeature.enabled,
                     initial: initialFeature)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.debug("using initial enabled", evaluationDictionary)
+            logger.debug("using initial enabled", evaluation.toDictionary())
 
             return evaluation
         }
@@ -458,9 +457,7 @@ public class FeaturevisorInstance {
                     featureKey: featureKey,
                     reason: .notFound)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.warn("feature not found", evaluationDictionary)
+            logger.warn("feature not found", evaluation.toDictionary())
 
             return evaluation
         }
@@ -481,9 +478,7 @@ public class FeaturevisorInstance {
                     reason: .forced,
                     enabled: force.enabled)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.debug("forced enabled found", evaluationDictionary)
+            logger.debug("forced enabled found", evaluation.toDictionary())
 
             return evaluation
         }
@@ -560,9 +555,7 @@ public class FeaturevisorInstance {
                         bucketValue: bucketValue,
                         enabled: false)
 
-                let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-                logger.debug("not matched", evaluationDictionary)
+                logger.debug("not matched", evaluation.toDictionary())
 
                 return evaluation
             }
@@ -577,9 +570,7 @@ public class FeaturevisorInstance {
                         enabled: matchedTrafficEnabled,
                         traffic: matchedTraffic)
 
-                let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-                logger.debug("override from rule", evaluationDictionary)
+                logger.debug("override from rule", evaluation.toDictionary())
 
                 return evaluation
             }
@@ -624,9 +615,7 @@ public class FeaturevisorInstance {
                     featureKey: featureKey,
                     reason: .disabled)
             
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.debug("feature is disabled", evaluationDictionary)
+            logger.debug("feature is disabled", evaluation.toDictionary())
 
             return evaluation
         }
@@ -638,9 +627,7 @@ public class FeaturevisorInstance {
                     reason: .sticky,
                     variationValue: variationValue)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.debug("using sticky variation", evaluationDictionary)
+            logger.debug("using sticky variation", evaluation.toDictionary())
 
             return evaluation
         }
@@ -652,9 +639,7 @@ public class FeaturevisorInstance {
                     reason: .initial,
                     variationValue: variationValue)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.debug("using initial variation", evaluationDictionary)
+            logger.debug("using initial variation", evaluation.toDictionary())
 
             return evaluation
         }
@@ -665,9 +650,7 @@ public class FeaturevisorInstance {
                     featureKey: featureKey,
                     reason: .notFound)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.warn("feature not found", evaluationDictionary)
+            logger.warn("feature not found", evaluation.toDictionary())
 
             return evaluation
         }
@@ -678,9 +661,7 @@ public class FeaturevisorInstance {
                     featureKey: featureKey,
                     reason: .noVariations)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.warn("no variations", evaluationDictionary)
+            logger.warn("no variations", evaluation.toDictionary())
 
             return evaluation
         }
@@ -699,9 +680,7 @@ public class FeaturevisorInstance {
                         reason: .forced,
                         variation: variation)
 
-                let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-                logger.debug("forced variation found", evaluationDictionary)
+                logger.debug("forced variation found", evaluation.toDictionary())
 
                 return evaluation
             }
@@ -734,9 +713,7 @@ public class FeaturevisorInstance {
                             ruleKey: matchedTraffic.key,
                             variation: variation)
 
-                    let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-                    logger.debug("override from rule", evaluationDictionary)
+                    logger.debug("override from rule", evaluation.toDictionary())
 
                     return evaluation
                 }
@@ -756,9 +733,7 @@ public class FeaturevisorInstance {
                             bucketValue: bucketValue,
                             variation: variation)
 
-                    let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-                    logger.debug("allocated variation", evaluationDictionary)
+                    logger.debug("allocated variation", evaluation.toDictionary())
 
                     return evaluation
                 }
@@ -771,9 +746,7 @@ public class FeaturevisorInstance {
                 reason: .error,
                 bucketValue: bucketValue)
 
-        let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-        logger.debug("no matched variation", evaluationDictionary)
+        logger.debug("no matched variation", evaluation.toDictionary())
 
         return evaluation
     }
@@ -838,9 +811,7 @@ public class FeaturevisorInstance {
         if flag.enabled == false {
             evaluation = Evaluation(featureKey: featureKey, reason: .disabled)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-            
-            logger.debug("feature is disabled", evaluationDictionary)
+            logger.debug("feature is disabled", evaluation.toDictionary())
 
             return evaluation
         }
@@ -853,9 +824,7 @@ public class FeaturevisorInstance {
                     variableKey: variableKey,
                     variableValue: variableValue)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.debug("using sticky variable", evaluationDictionary)
+            logger.debug("using sticky variable", evaluation.toDictionary())
 
             return evaluation
         }
@@ -870,9 +839,7 @@ public class FeaturevisorInstance {
                         variableKey: variableKey,
                         variableValue: variableValue)
 
-                let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-                logger.debug("using initial variable", evaluationDictionary)
+                logger.debug("using initial variable", evaluation.toDictionary())
 
                 return evaluation
             }
@@ -885,9 +852,7 @@ public class FeaturevisorInstance {
                     reason: .notFound,
                     variableKey: variableKey)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.warn("feature not found in datafile", evaluationDictionary)
+            logger.warn("feature not found in datafile", evaluation.toDictionary())
 
             return evaluation
         }
@@ -903,9 +868,7 @@ public class FeaturevisorInstance {
                     reason: .notFound,
                     variableKey: variableKey)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.warn("variable schema not found", evaluationDictionary)
+            logger.warn("variable schema not found", evaluation.toDictionary())
 
             return evaluation
         }
@@ -923,9 +886,7 @@ public class FeaturevisorInstance {
                     variableValue: variableValue,
                     variableSchema: variableSchema)
 
-            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-            logger.debug("forced variable", evaluationDictionary)
+            logger.debug("forced variable", evaluation.toDictionary())
 
             return evaluation
         }
@@ -952,9 +913,7 @@ public class FeaturevisorInstance {
                         variableValue: variableValue,
                         variableSchema: variableSchema)
 
-                let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-                logger.debug("override from rule", evaluationDictionary)
+                logger.debug("override from rule", evaluation.toDictionary())
 
                 return evaluation
             }
@@ -999,9 +958,7 @@ public class FeaturevisorInstance {
                                     variableValue: override.value,
                                     variableSchema: variableSchema)
 
-                            let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-                            logger.debug("variable override", evaluationDictionary)
+                            logger.debug("variable override", evaluation.toDictionary())
 
                             return evaluation
                         }
@@ -1017,9 +974,7 @@ public class FeaturevisorInstance {
                                 variableValue: variableFromVariationValue,
                                 variableSchema: variableSchema)
 
-                        let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-                        logger.debug("allocated variable", evaluationDictionary)
+                        logger.debug("allocated variable", evaluation.toDictionary())
 
                         return evaluation
                     }
@@ -1036,9 +991,7 @@ public class FeaturevisorInstance {
                 variableValue: variableSchema.defaultValue,
                 variableSchema: variableSchema)
 
-        let evaluationDictionary = evaluation.toDictionary(evaluation)
-
-        logger.debug("using default value", evaluationDictionary)
+        logger.debug("using default value", evaluation.toDictionary())
 
         return evaluation;
     }
