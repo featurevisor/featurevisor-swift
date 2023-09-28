@@ -4,6 +4,44 @@ import XCTest
 @testable import FeaturevisorTypes
 
 class FeaturevisorInstanceTests: XCTestCase {
+    
+    func testEncodingEvaluationWithNilValuesReturnsValidDatafileContent() throws {
+
+        //GIVEN
+        let evaluation = Evaluation(
+            featureKey: "feature123",
+            reason: .allocated
+        )
+
+        let expectedDictionary: [String: Any] = [
+            "featureKey": "feature123",
+            "reason": "allocated",
+            "bucketValue": NSNull(),
+            "ruleKey": NSNull(),
+            "enabled": NSNull(),
+            "traffic": NSNull(),
+            "sticky": NSNull(),
+            "initial": NSNull(),
+            "variation": NSNull(),
+            "variationValue": NSNull(),
+            "variableKey": NSNull(),
+            "variableValue": NSNull(),
+            "variableSchema": NSNull()
+        ]
+
+        let encoder = JSONEncoder()
+        let jsonData = try encoder.encode(evaluation)
+
+        //WHEN
+        guard let decodedDictionary = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] else {
+            XCTFail("Failed to decode JSON to a dictionary.")
+            return
+        }
+
+        //THEN
+        XCTAssertEqual(decodedDictionary as NSDictionary, expectedDictionary as NSDictionary)
+
+    }
 
     func testEncodeEvaluationReturnsValidDatafileContent() throws {
 

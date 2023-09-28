@@ -34,7 +34,6 @@ public struct Evaluation: Codable {
         case reason
         case bucketValue
         case ruleKey
-        case error
         case enabled
         case traffic
         case sticky
@@ -53,7 +52,6 @@ public struct Evaluation: Codable {
     // common
     public let bucketValue: BucketValue?
     public let ruleKey: RuleKey?
-    public let error: Error?
     public let enabled: Bool?
     public let traffic: Traffic?
     public let sticky: OverrideFeature?
@@ -73,7 +71,6 @@ public struct Evaluation: Codable {
         reason: EvaluationReason,
         bucketValue: BucketValue? = nil,
         ruleKey: RuleKey? = nil,
-        error: Error? = nil,
         enabled: Bool? = nil,
         traffic: Traffic? = nil,
         sticky: OverrideFeature? = nil,
@@ -88,7 +85,6 @@ public struct Evaluation: Codable {
         self.reason = reason
         self.bucketValue = bucketValue
         self.ruleKey = ruleKey
-        self.error = error
         self.enabled = enabled
         self.traffic = traffic
         self.sticky = sticky
@@ -107,7 +103,6 @@ public struct Evaluation: Codable {
         try container.encode(reason.rawValue, forKey: .reason)
         try container.encode(bucketValue, forKey: .bucketValue)
         try container.encode(ruleKey, forKey: .ruleKey)
-        try? container.encodeIfPresent(error?.localizedDescription, forKey: .error)
         try container.encode(enabled, forKey: .enabled)
         try container.encode(traffic, forKey: .traffic)
         try container.encode(sticky, forKey: .sticky)
@@ -126,7 +121,6 @@ public struct Evaluation: Codable {
         reason = try EvaluationReason(rawValue: container.decode(String.self, forKey: .reason)) ?? .error
         bucketValue = try container.decodeIfPresent(BucketValue.self, forKey: .bucketValue)
         ruleKey = try? container.decodeIfPresent(RuleKey.self, forKey: .ruleKey)
-        error = try? container.decodeIfPresent(String.self, forKey: .error) as? any Error
         enabled = try? container.decodeIfPresent(Bool.self, forKey: .enabled)
         traffic = try? container.decodeIfPresent(Traffic.self, forKey: .traffic)
         sticky = try? container.decodeIfPresent(OverrideFeature.self, forKey: .sticky)
