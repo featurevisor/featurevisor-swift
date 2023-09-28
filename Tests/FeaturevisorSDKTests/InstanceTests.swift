@@ -4,10 +4,14 @@ import XCTest
 @testable import FeaturevisorTypes
 
 class FeaturevisorInstanceTests: XCTestCase {
-    
+
     func testEncodeEvaluationReturnsValidDatafileContent() throws {
 
+        //GIVEN
         let traffic = Traffic(key: "key", segments: .plain("segment"), percentage: 13, allocation: [])
+        let overrideFeature = OverrideFeature(enabled: false, variation: "variation", variables: [:])
+        let variation = Variation(description: "description", value: "value", weight: 3, variables: [])
+        let variableSchema = VariableSchema(key: "key", type: .object, defaultValue: .object(["": .boolean(false)]))
 
         let evaluation = Evaluation(
             featureKey: "feature123",
@@ -16,12 +20,13 @@ class FeaturevisorInstanceTests: XCTestCase {
             ruleKey: "rule456",
             enabled: true,
             traffic: traffic,
-            sticky: .none,
-            initial: .none,
-            variation: .none,
+            sticky: overrideFeature,
+            initial: overrideFeature,
+            variation: variation,
+            variationValue: "value",
             variableKey: "color",
             variableValue: .string(""),
-            variableSchema: .none
+            variableSchema: variableSchema
         )
 
         let encoder = JSONEncoder()
@@ -32,7 +37,8 @@ class FeaturevisorInstanceTests: XCTestCase {
             return
         }
 
-        let trafficAllocation: [String: Any] = [
+        //WHEN
+        let mockedTraffic: [String: Any] = [
             "allocation": [Any](),
             "key": "key",
             "percentage": 13,
@@ -42,23 +48,43 @@ class FeaturevisorInstanceTests: XCTestCase {
                 ]
             ]
         ]
-
+        
+        let mockedOverrideFeature: [String: Any] = [
+            "enabled": false,
+            "variables": [String: Any](),
+            "variation": "variation"
+        ]
+        
+        let mockedVariation: [String: Any] = [
+            "description": "description",
+            "value": "value",
+            "variables": [Any](),
+            "weight": 3
+        ]
+        
+        let mockedVariableSchema: [String: Any] = [
+            "key": "key",
+            "defaultValue": ["": 0],
+            "type": "object"
+        ]
+        
         let expectedDictionary: [String: Any] = [
             "featureKey": "feature123",
             "reason": "allocated",
             "bucketValue": 42,
             "ruleKey": "rule456",
             "enabled": true,
-            "traffic": trafficAllocation,
-            "sticky": NSNull(),
-            "initial": NSNull(),
-            "variation": NSNull(),
-            "variationValue": NSNull(),
+            "traffic": mockedTraffic,
+            "sticky": mockedOverrideFeature,
+            "initial": mockedOverrideFeature,
+            "variation": mockedVariation,
+            "variationValue": "value",
             "variableKey": "color",
             "variableValue": "",
-            "variableSchema": NSNull()
+            "variableSchema": mockedVariableSchema
         ]
 
+        //THEN
         XCTAssertEqual(decodedDictionary as NSDictionary, expectedDictionary as NSDictionary)
     }
 
