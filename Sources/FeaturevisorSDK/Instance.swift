@@ -1036,18 +1036,6 @@ public class FeaturevisorInstance {
     }
 }
 
-public func createInstance(options: InstanceOptions) -> FeaturevisorInstance? {
-    do {
-        let instance = try FeaturevisorInstance(options: options)
-        return instance
-        // TODO: What to do in case initialisation fails?
-        //  } catch FeaturevisorError.missingDatafileOptions{
-        //  } catch FeaturevisorError.invalidURL {
-        //  } catch FeaturevisorError.downloadingDatafile(let datafileUrl) {
-    }
-    catch let error {
-        print(error.localizedDescription)
-    }
-
-    return nil
+public func createInstance(options: InstanceOptions) throws -> FeaturevisorInstance {
+    return try FeaturevisorInstance(options: options)
 }

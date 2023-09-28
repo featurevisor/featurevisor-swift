@@ -4,6 +4,33 @@ import XCTest
 @testable import FeaturevisorTypes
 
 class FeaturevisorInstanceTests: XCTestCase {
+    
+    func testCreateInstanceThrowsInvalidURLError() {
+        
+        // GIVEN
+        var options = InstanceOptions.default
+        options.datafileUrl = "hf://wrong url.com"
+        
+        // WHEN
+        XCTAssertThrowsError(try createInstance(options: options)) { error in
+            
+            // THEN
+            XCTAssertEqual(error as! FeaturevisorError, FeaturevisorError.invalidURL(string: "hf://wrong url.com"))
+        }
+    }
+    
+    func testCreateInstanceThrowsMissingDatafileOptionsError() {
+        
+        // GIVEN
+        let options = InstanceOptions.default
+        
+        // WHEN
+        XCTAssertThrowsError(try createInstance(options: options)) { error in
+            
+            // THEN
+            XCTAssertEqual(error as! FeaturevisorError, FeaturevisorError.missingDatafileOptions)
+        }
+    }
 
     func testInitializationSuccessDatafileContentFetching() {
 
@@ -24,11 +51,11 @@ class FeaturevisorInstanceTests: XCTestCase {
         }
 
         // WHEN
-        let sdk = createInstance(options: featurevisorOptions)
+        let sdk = try! createInstance(options: featurevisorOptions)
         wait(for: [expectation], timeout: 0.1)
 
         // THEN
-        XCTAssertEqual(sdk!.getRevision(), "0.0.666")
+        XCTAssertEqual(sdk.getRevision(), "0.0.666")
     }
 
     func testShouldConfigurePlainBucketBy() {
@@ -70,7 +97,7 @@ class FeaturevisorInstanceTests: XCTestCase {
             return bucketKey
         })
 
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
 
         // WHEN
@@ -122,7 +149,7 @@ class FeaturevisorInstanceTests: XCTestCase {
             return bucketKey
         })
 
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
 
         // WHEN
@@ -171,7 +198,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         })
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         XCTAssertTrue(sdk.isEnabled(
@@ -228,7 +255,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         })
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
         let variation = sdk.getVariation(
                 featureKey: "test",
                 context: [
@@ -276,7 +303,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         })
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         let variation = sdk.getVariation(
@@ -335,7 +362,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         )
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         // should be disabled because required is disabled
@@ -378,7 +405,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         )
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         // enabling required should enable the feature too
@@ -428,7 +455,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         )
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         XCTAssertFalse(sdk.isEnabled(featureKey: "myKey"))
@@ -477,7 +504,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         )
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         XCTAssertTrue(sdk.isEnabled(featureKey: "myKey"))
@@ -543,7 +570,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         }
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
         let testVariation = sdk.getVariation(featureKey: "test", context: ["userId": .string("123")])
         let deprecatedTestVariation = sdk.getVariation(featureKey: "deprecatedTest", context: ["userId": .string("123")])
 
@@ -581,7 +608,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         })
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
         sdk.refresh()
         wait(for: [expectation], timeout: 0.1)
 
@@ -615,7 +642,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         })
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         while refreshedCount < expectedRefreshCount {
             Thread.sleep(forTimeInterval: 0.1)
@@ -654,7 +681,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         }
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         XCTAssertEqual(isRefreshingStopped, false)
 
@@ -674,7 +701,7 @@ class FeaturevisorInstanceTests: XCTestCase {
             attributes: [],
             segments: [],
             features: [])
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // WHEN
         sdk.setDatafile("{\"schemaVersion\":\"1\",\"revision\":\"0.0.66\",\"attributes\":[],\"segments\":[],\"features\":[]}")
@@ -700,7 +727,7 @@ class FeaturevisorInstanceTests: XCTestCase {
             attributes: [],
             segments: [],
             features: [])
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // WHEN
         sdk.setDatafile(datafileContent)
@@ -730,7 +757,7 @@ class FeaturevisorInstanceTests: XCTestCase {
                 segments: [],
                 features: [])
 
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // WHEN
         sdk.setDatafile("{\"schemaVersion\":1,\"revision\":\"0.0.66\", attributes:[],\"segments\":[],\"features\":[]}")
@@ -763,7 +790,7 @@ class FeaturevisorInstanceTests: XCTestCase {
                 features: [])
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         XCTAssertEqual(sdk.getRevision(), "6.6.6")
@@ -795,7 +822,7 @@ class FeaturevisorInstanceTests: XCTestCase {
                 features: [])
 
         // WHEN
-        _ = createInstance(options: options)!
+        _ = try! createInstance(options: options)
 
         // THEN
         XCTAssertTrue(wasDatafileContentFetchErrorThrown)
