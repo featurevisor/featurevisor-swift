@@ -107,7 +107,7 @@ public struct Evaluation: Codable {
         try container.encode(reason.rawValue, forKey: .reason)
         try container.encode(bucketValue, forKey: .bucketValue)
         try container.encode(ruleKey, forKey: .ruleKey)
-        try? container.encode(error?.localizedDescription, forKey: .error)
+        try? container.encodeIfPresent(error?.localizedDescription, forKey: .error)
         try container.encode(enabled, forKey: .enabled)
         try container.encode(traffic, forKey: .traffic)
         try container.encode(sticky, forKey: .sticky)

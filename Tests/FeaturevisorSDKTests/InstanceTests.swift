@@ -65,7 +65,6 @@ class FeaturevisorInstanceTests: XCTestCase {
             "bucketValue": 42,
             "ruleKey": "rule456",
             "enabled": true,
-            "error": NSNull(),
             "traffic": mockedTraffic,
             "sticky": mockedOverrideFeature,
             "initial": mockedOverrideFeature,
