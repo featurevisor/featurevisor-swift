@@ -108,7 +108,7 @@ We are breaking down the various parts that we need to migrate to Swift in the s
 |                     | `configureBucketValue`                              | ✅  |
 |                     | `datafile`                                          | ✅  |
 |                     | `datafileUrl`                                       | ✅  |
-|                     | `handleDatafileFetch`                               |    |
+|                     | `handleDatafileFetch`                               | ✅  |
 |                     | `initialFeatures`                                   | ✅  |
 |                     | `interceptContext`                                  | ✅  |
 |                     | `logger`                                            | ✅  |
