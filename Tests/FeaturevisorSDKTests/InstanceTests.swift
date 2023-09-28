@@ -5,19 +5,61 @@ import XCTest
 
 class FeaturevisorInstanceTests: XCTestCase {
     
-    func testEncodeDoesNotThrow() throws {
+    func testEncodeEvaluationReturnsValidDatafileContent() throws {
+
+        let traffic = Traffic(key: "key", segments: .plain("segment"), percentage: 13, allocation: [])
+
         let evaluation = Evaluation(
-                    featureKey: "feature123",
-                    reason: .allocated,
-                    bucketValue: 42,
-                    ruleKey: "rule456",
-                    enabled: true,
-                    variableKey: "color"
-                )
-                
+            featureKey: "feature123",
+            reason: .allocated,
+            bucketValue: 42,
+            ruleKey: "rule456",
+            enabled: true,
+            traffic: traffic,
+            sticky: .none,
+            initial: .none,
+            variation: .none,
+            variableKey: "color",
+            variableValue: .string(""),
+            variableSchema: .none
+        )
+
         let encoder = JSONEncoder()
-        
-        XCTAssertNoThrow(try encoder.encode(evaluation))
+        let jsonData = try encoder.encode(evaluation)
+
+        guard let decodedDictionary = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] else {
+            XCTFail("Failed to decode JSON to a dictionary.")
+            return
+        }
+
+        let trafficAllocation: [String: Any] = [
+            "allocation": [Any](),
+            "key": "key",
+            "percentage": 13,
+            "segments": [
+                "plain": [
+                    "_0": "segment"
+                ]
+            ]
+        ]
+
+        let expectedDictionary: [String: Any] = [
+            "featureKey": "feature123",
+            "reason": "allocated",
+            "bucketValue": 42,
+            "ruleKey": "rule456",
+            "enabled": true,
+            "traffic": trafficAllocation,
+            "sticky": NSNull(),
+            "initial": NSNull(),
+            "variation": NSNull(),
+            "variationValue": NSNull(),
+            "variableKey": "color",
+            "variableValue": "",
+            "variableSchema": NSNull()
+        ]
+
+        XCTAssertEqual(decodedDictionary as NSDictionary, expectedDictionary as NSDictionary)
     }
 
     func testInitializationSuccessDatafileContentFetching() {
