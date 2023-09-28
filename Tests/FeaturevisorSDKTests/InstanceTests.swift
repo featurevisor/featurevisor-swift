@@ -124,6 +124,32 @@ class FeaturevisorInstanceTests: XCTestCase {
 
         //THEN
         XCTAssertEqual(decodedDictionary as NSDictionary, expectedDictionary as NSDictionary)
+
+    func testCreateInstanceThrowsInvalidURLError() {
+        
+        // GIVEN
+        var options = InstanceOptions.default
+        options.datafileUrl = "hf://wrong url.com"
+        
+        // WHEN
+        XCTAssertThrowsError(try createInstance(options: options)) { error in
+            
+            // THEN
+            XCTAssertEqual(error as! FeaturevisorError, FeaturevisorError.invalidURL(string: "hf://wrong url.com"))
+        }
+    }
+    
+    func testCreateInstanceThrowsMissingDatafileOptionsError() {
+        
+        // GIVEN
+        let options = InstanceOptions.default
+        
+        // WHEN
+        XCTAssertThrowsError(try createInstance(options: options)) { error in
+            
+            // THEN
+            XCTAssertEqual(error as! FeaturevisorError, FeaturevisorError.missingDatafileOptions)
+        }
     }
 
     func testInitializationSuccessDatafileContentFetching() {
@@ -145,11 +171,11 @@ class FeaturevisorInstanceTests: XCTestCase {
         }
 
         // WHEN
-        let sdk = createInstance(options: featurevisorOptions)
+        let sdk = try! createInstance(options: featurevisorOptions)
         wait(for: [expectation], timeout: 0.1)
 
         // THEN
-        XCTAssertEqual(sdk!.getRevision(), "0.0.666")
+        XCTAssertEqual(sdk.getRevision(), "0.0.666")
     }
 
     func testShouldConfigurePlainBucketBy() {
@@ -191,7 +217,7 @@ class FeaturevisorInstanceTests: XCTestCase {
             return bucketKey
         })
 
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
 
         // WHEN
@@ -243,7 +269,7 @@ class FeaturevisorInstanceTests: XCTestCase {
             return bucketKey
         })
 
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
 
         // WHEN
@@ -292,7 +318,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         })
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         XCTAssertTrue(sdk.isEnabled(
@@ -349,7 +375,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         })
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
         let variation = sdk.getVariation(
                 featureKey: "test",
                 context: [
@@ -397,7 +423,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         })
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         let variation = sdk.getVariation(
@@ -456,7 +482,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         )
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         // should be disabled because required is disabled
@@ -499,7 +525,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         )
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         // enabling required should enable the feature too
@@ -549,7 +575,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         )
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         XCTAssertFalse(sdk.isEnabled(featureKey: "myKey"))
@@ -598,7 +624,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         )
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         // THEN
         XCTAssertTrue(sdk.isEnabled(featureKey: "myKey"))
@@ -664,7 +690,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         }
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
         let testVariation = sdk.getVariation(featureKey: "test", context: ["userId": .string("123")])
         let deprecatedTestVariation = sdk.getVariation(featureKey: "deprecatedTest", context: ["userId": .string("123")])
 
@@ -702,7 +728,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         })
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
         sdk.refresh()
         wait(for: [expectation], timeout: 0.1)
 
@@ -736,7 +762,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         })
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         while refreshedCount < expectedRefreshCount {
             Thread.sleep(forTimeInterval: 0.1)
@@ -775,7 +801,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         }
 
         // WHEN
-        let sdk = createInstance(options: options)!
+        let sdk = try! createInstance(options: options)
 
         XCTAssertEqual(isRefreshingStopped, false)
 
@@ -784,5 +810,141 @@ class FeaturevisorInstanceTests: XCTestCase {
         // THEN
         XCTAssertEqual(isRefreshingStopped, true)
     }
-}
 
+    func testSetDatafileByValidJSON() {
+
+        // GIVEN
+        var options = InstanceOptions.default
+        options.datafile = DatafileContent(
+            schemaVersion: "",
+            revision: "",
+            attributes: [],
+            segments: [],
+            features: [])
+        let sdk = try! createInstance(options: options)
+
+        // WHEN
+        sdk.setDatafile("{\"schemaVersion\":\"1\",\"revision\":\"0.0.66\",\"attributes\":[],\"segments\":[],\"features\":[]}")
+
+        // THEN
+        XCTAssertEqual(sdk.getRevision(), "0.0.66")
+    }
+
+    func testSetDatafileByDatafileContent() {
+
+        // GIVEN
+        let datafileContent = DatafileContent(
+            schemaVersion: "1",
+            revision: "0.0.66",
+            attributes: [],
+            segments: [],
+            features: [])
+
+        var options = InstanceOptions.default
+        options.datafile = DatafileContent(
+            schemaVersion: "",
+            revision: "",
+            attributes: [],
+            segments: [],
+            features: [])
+        let sdk = try! createInstance(options: options)
+
+        // WHEN
+        sdk.setDatafile(datafileContent)
+
+        // THEN
+        XCTAssertEqual(sdk.getRevision(), "0.0.66")
+    }
+
+    func testSetDatafileByInvalidJSONReturnsError() {
+
+        // GIVEN
+        var errorCount = 0
+        var options = InstanceOptions.default
+        options.logger = createLogger { level, message, details in
+            guard case .error = level else {
+                return
+            }
+
+            if message.contains("could not parse datafile") {
+                errorCount += 1
+            }
+        }
+        options.datafile = DatafileContent(
+                schemaVersion: "",
+                revision: "",
+                attributes: [],
+                segments: [],
+                features: [])
+
+        let sdk = try! createInstance(options: options)
+
+        // WHEN
+        sdk.setDatafile("{\"schemaVersion\":1,\"revision\":\"0.0.66\", attributes:[],\"segments\":[],\"features\":[]}")
+
+        // THEN
+        XCTAssertEqual(errorCount, 1)
+        XCTAssertEqual(sdk.getRevision(), "")
+    }
+
+    func testHandleDatafileFetchReturnsValidResponse() {
+
+        // GIVEN
+        var options = InstanceOptions.default
+        options.datafileUrl = "https://dazn.featurevisor.datafilecontent.com"
+        options.handleDatafileFetch = { _ in
+            let datafileContent = DatafileContent(
+                    schemaVersion: "2",
+                    revision: "6.6.6",
+                    attributes: [],
+                    segments: [],
+                    features: [])
+
+            return .success(datafileContent)
+        }
+        options.datafile = DatafileContent(
+                schemaVersion: "1",
+                revision: "0.0.1",
+                attributes: [],
+                segments: [],
+                features: [])
+
+        // WHEN
+        let sdk = try! createInstance(options: options)
+
+        // THEN
+        XCTAssertEqual(sdk.getRevision(), "6.6.6")
+    }
+
+    func testHandleDatafileFetchReturnErrorResponse() {
+
+        // GIVEN
+        var wasDatafileContentFetchErrorThrown = false
+        var options = InstanceOptions.default
+        options.datafileUrl = "https://dazn.featurevisor.datafilecontent.com"
+        options.handleDatafileFetch = { _ in
+            return .failure(FeaturevisorError.unparseableJSON(data: nil, errorMessage: "Error :("))
+        }
+        options.logger = createLogger { level, message, details in
+            guard case .error = level else {
+                return
+            }
+
+            if message.contains("Failed to fetch datafile") {
+                wasDatafileContentFetchErrorThrown = true
+            }
+        }
+        options.datafile = DatafileContent(
+                schemaVersion: "1",
+                revision: "0.0.1",
+                attributes: [],
+                segments: [],
+                features: [])
+
+        // WHEN
+        _ = try! createInstance(options: options)
+
+        // THEN
+        XCTAssertTrue(wasDatafileContentFetchErrorThrown)
+    }
+}

@@ -32,18 +32,10 @@ public class DatafileReader {
     }
 
     public func getSegment(_ segmentKey: SegmentKey) -> Segment? {
-        let segment = self.segments.first(where: { $0.key == segmentKey })
-
-        // @TODO: parse conditions if stringified
-
-        return segment
+        return segments.first(where: { $0.key == segmentKey })
     }
 
     public func getFeature(_ featureKey: FeatureKey) -> Feature? {
-        let feature = self.features.first(where: { $0.key == featureKey })
-
-        // @TODO: parse conditions if stringified
-
-        return feature
+        return features.first(where: { $0.key == featureKey })
     }
 }

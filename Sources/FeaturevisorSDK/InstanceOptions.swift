@@ -13,7 +13,7 @@ public struct InstanceOptions {
     public var configureBucketValue: ConfigureBucketValue?
     public var datafile: DatafileContent?
     public var datafileUrl: String?
-    //public var handleDatafileFetch: DatafileFetchHandler?
+    public var handleDatafileFetch: DatafileFetchHandler?
     public var initialFeatures: InitialFeatures?
     public var interceptContext: InterceptContext?
     public var logger: Logger?
