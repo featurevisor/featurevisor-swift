@@ -2,6 +2,25 @@ import FeaturevisorTypes
 import Foundation
 
 public extension FeaturevisorInstance {
+    
+    // MARK: - Segments
+
+    func segmentIsMatched(featureKey: FeatureKey, context: Context) -> VariationValue? {
+        let evaluation = evaluateVariation(featureKey: featureKey, context: context)
+
+        if let variationValue = evaluation.variationValue {
+            return variationValue
+        }
+
+        if let variation = evaluation.variation {
+            return variation.value
+        }
+
+        return nil
+    }
+}
+
+extension FeaturevisorInstance {
 
     func segmentIsMatched(segment: Segment, context: Context) -> Bool {
         return allConditionsAreMatched(condition: segment.conditions, context: context)

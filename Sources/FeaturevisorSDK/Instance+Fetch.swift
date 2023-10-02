@@ -1,7 +1,9 @@
 import FeaturevisorTypes
 import Foundation
 
-internal extension FeaturevisorInstance {
+extension FeaturevisorInstance {
+    
+    // MARK: - Fetch datafile content
 
     func fetchDatafileContent(
             from url: String,
@@ -12,7 +14,7 @@ internal extension FeaturevisorInstance {
             try fetchDatafileContent(from: url, completion: completion)
             return
         }
-        
+
         completion(handleDatafileFetch(url))
     }
 }
@@ -32,11 +34,11 @@ private extension FeaturevisorInstance {
 
         fetch(using: request, completion: completion)
     }
-    
+
     func fetch<T>(using request: URLRequest, completion: @escaping (Result<T, Error>) -> Void) where T: Decodable {
-        
+
         let task = urlSession.dataTask(with: request) { (data, response, error) in
-            
+
             if let error = error {
                 completion(.failure(error))
             } else if let data = data {
@@ -48,7 +50,7 @@ private extension FeaturevisorInstance {
                 }
             }
         }
-        
+
         task.resume()
     }
 }
