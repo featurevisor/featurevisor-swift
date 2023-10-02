@@ -84,22 +84,30 @@ public enum ConditionValue: Decodable {
     case array([String])
     // @TODO: add Date type?
     // @TODO: add `null` and `undefined` somehow
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if let string = try? container.decode(String.self) {
             self = .string(string)
-        } else if let integer = try? container.decode(Int.self) {
+        }
+        else if let integer = try? container.decode(Int.self) {
             self = .integer(integer)
-        } else if let double = try? container.decode(Double.self) {
+        }
+        else if let double = try? container.decode(Double.self) {
             self = .double(double)
-        } else if let boolean = try? container.decode(Bool.self) {
+        }
+        else if let boolean = try? container.decode(Bool.self) {
             self = .boolean(boolean)
-        } else if let array = try? container.decode([String].self) {
+        }
+        else if let array = try? container.decode([String].self) {
             self = .array(array)
-        } else {
-            let context = DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "\(ConditionValue.self) unknown")
+        }
+        else {
+            let context = DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "\(ConditionValue.self) unknown"
+            )
             throw DecodingError.dataCorrupted(context)
         }
     }
@@ -130,22 +138,30 @@ public enum Condition: Decodable {
     case and(AndCondition)
     case or(OrCondition)
     case not(NotCondition)
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-      
+
         if let plainCondition = try? container.decode(PlainCondition.self) {
             self = .plain(plainCondition)
-        } else if let multipleCondition = try? container.decode([Condition].self) {
+        }
+        else if let multipleCondition = try? container.decode([Condition].self) {
             self = .multiple(multipleCondition)
-        } else if let andCondition = try? container.decode(AndCondition.self) {
+        }
+        else if let andCondition = try? container.decode(AndCondition.self) {
             self = .and(andCondition)
-        } else if let orCondition = try? container.decode(OrCondition.self) {
+        }
+        else if let orCondition = try? container.decode(OrCondition.self) {
             self = .or(orCondition)
-        } else if let notCondition = try? container.decode(NotCondition.self) {
+        }
+        else if let notCondition = try? container.decode(NotCondition.self) {
             self = .not(notCondition)
-        } else {
-            let context = DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "\(Condition.self) unknown")
+        }
+        else {
+            let context = DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "\(Condition.self) unknown"
+            )
             throw DecodingError.dataCorrupted(context)
         }
     }
@@ -157,23 +173,24 @@ public struct Segment: Decodable {
     public let archived: Bool?
     public let key: SegmentKey
     public let conditions: Condition
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         archived = try? container.decode(Bool.self, forKey: .archived)
         key = try container.decode(SegmentKey.self, forKey: .key)
         conditions = try container.decodeStringified(Condition.self, forKey: .conditions)
     }
-    
+
     public init(
         key: SegmentKey,
         conditions: Condition,
-        archived: Bool?) {
-            self.key = key
-            self.conditions = conditions
-            self.archived = archived
-        }
-    
+        archived: Bool?
+    ) {
+        self.key = key
+        self.conditions = conditions
+        self.archived = archived
+    }
+
     public enum CodingKeys: String, CodingKey {
         case archived
         case key
@@ -202,22 +219,30 @@ public enum GroupSegment: Decodable {
     case and(AndGroupSegment)
     case or(OrGroupSegment)
     case not(NotGroupSegment)
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-      
+
         if let plainCondition = try? container.decode(PlainGroupSegment.self) {
             self = .plain(plainCondition)
-        } else if let multipleCondition = try? container.decode([GroupSegment].self) {
+        }
+        else if let multipleCondition = try? container.decode([GroupSegment].self) {
             self = .multiple(multipleCondition)
-        } else if let andCondition = try? container.decode(AndGroupSegment.self) {
+        }
+        else if let andCondition = try? container.decode(AndGroupSegment.self) {
             self = .and(andCondition)
-        } else if let orCondition = try? container.decode(OrGroupSegment.self) {
+        }
+        else if let orCondition = try? container.decode(OrGroupSegment.self) {
             self = .or(orCondition)
-        } else if let notCondition = try? container.decode(NotGroupSegment.self) {
+        }
+        else if let notCondition = try? container.decode(NotGroupSegment.self) {
             self = .not(notCondition)
-        } else {
-            let context = DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "\(GroupSegment.self) unknown")
+        }
+        else {
+            let context = DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "\(GroupSegment.self) unknown"
+            )
             throw DecodingError.dataCorrupted(context)
         }
     }
@@ -248,31 +273,41 @@ public enum VariableValue: Codable {
     case object(VariableObjectValue)
     case json(String)
     // @TODO: handle null and undefined later
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if let string = try? container.decode(String.self) {
-            
+
             guard let data = string.data(using: .utf8),
-                  let _ = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) else {
+                let _ = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
+            else {
                 self = .string(string)
                 return
             }
-            
+
             self = .json(string)
-        } else if let integer = try? container.decode(Int.self) {
+        }
+        else if let integer = try? container.decode(Int.self) {
             self = .integer(integer)
-        } else if let double = try? container.decode(Double.self) {
+        }
+        else if let double = try? container.decode(Double.self) {
             self = .double(double)
-        } else if let boolean = try? container.decode(Bool.self) {
+        }
+        else if let boolean = try? container.decode(Bool.self) {
             self = .boolean(boolean)
-        } else if let array = try? container.decode([String].self) {
+        }
+        else if let array = try? container.decode([String].self) {
             self = .array(array)
-        } else if let object = try? container.decode(VariableObjectValue.self) {
+        }
+        else if let object = try? container.decode(VariableObjectValue.self) {
             self = .object(object)
-        } else {
-            let context = DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "\(VariableValue.self) unknown")
+        }
+        else {
+            let context = DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "\(VariableValue.self) unknown"
+            )
             throw DecodingError.dataCorrupted(context)
         }
     }
@@ -281,39 +316,39 @@ public enum VariableValue: Codable {
         var container = encoder.singleValueContainer()
 
         switch self {
-        case .string(let string):
-            try container.encode(string)
-        case .integer(let integer):
-            try container.encode(integer)
-        case .double(let double):
-            try container.encode(double)
-        case .boolean(let bool):
-            try container.encode(bool)
-        case .array(let array):
-            try container.encode(array)
-        case .object(let object):
-            try container.encode(object)
-        case .json(let json):
-            try container.encode(json)
+            case .string(let string):
+                try container.encode(string)
+            case .integer(let integer):
+                try container.encode(integer)
+            case .double(let double):
+                try container.encode(double)
+            case .boolean(let bool):
+                try container.encode(bool)
+            case .array(let array):
+                try container.encode(array)
+            case .object(let object):
+                try container.encode(object)
+            case .json(let json):
+                try container.encode(json)
         }
     }
 
     public var value: Any {
         switch self {
-        case .boolean(let bool):
-            return bool
-        case .string(let string):
-            return string
-        case .integer(let integer):
-            return integer
-        case .double(let double):
-            return double
-        case .array(let array):
-            return array
-        case .object(let object):
-            return object
-        case .json(let json):
-            return json
+            case .boolean(let bool):
+                return bool
+            case .string(let string):
+                return string
+            case .integer(let integer):
+                return integer
+            case .double(let double):
+                return double
+            case .array(let array):
+                return array
+            case .object(let object):
+                return object
+            case .json(let json):
+                return json
         }
     }
 }
@@ -324,14 +359,14 @@ public struct VariableOverride: Decodable {
     // one of the below must be present in YAML
     public let conditions: Condition?
     public let segments: GroupSegment?
-        
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         value = try container.decode(VariableValue.self, forKey: .value)
         conditions = try container.decodeStringifiedIfPresent(Condition.self, forKey: .conditions)
         segments = try container.decodeGroupSegmentIfPresent(forKey: .segments)
     }
-    
+
     enum CodingKeys: CodingKey {
         case value
         case conditions
@@ -370,7 +405,7 @@ public struct Force: Decodable {
     public let enabled: Bool?
     public let variation: VariationValue
     public let variables: VariableValues
-        
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         enabled = try? container.decodeIfPresent(Bool.self, forKey: .enabled)
@@ -379,7 +414,7 @@ public struct Force: Decodable {
         conditions = try container.decodeStringifiedIfPresent(Condition.self, forKey: .conditions)
         segments = try container.decodeGroupSegmentIfPresent(forKey: .segments)
     }
-    
+
     enum CodingKeys: CodingKey {
         case conditions
         case segments
@@ -414,7 +449,7 @@ public typealias Percentage = Int
 public struct Range: Decodable {
     public let start: Percentage
     public let end: Percentage
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let range = try container.decode([Percentage].self)
@@ -440,10 +475,10 @@ public struct Traffic: Decodable {
 
     public let enabled: Bool?
     public let variation: VariationValue?
-    public let variables: VariableValues? // @TODO Tuple typealias is not managed by Decodable
+    public let variables: VariableValues?  // @TODO Tuple typealias is not managed by Decodable
 
     public let allocation: [Allocation]
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
@@ -457,13 +492,14 @@ public struct Traffic: Decodable {
     }
 
     internal init(
-            key: RuleKey,
-            segments: GroupSegment,
-            percentage: Percentage,
-            allocation: [Allocation],
-            enabled: Bool? = nil,
-            variation: VariationValue? = nil,
-            variables: VariableValues? = nil) {
+        key: RuleKey,
+        segments: GroupSegment,
+        percentage: Percentage,
+        allocation: [Allocation],
+        enabled: Bool? = nil,
+        variation: VariationValue? = nil,
+        variables: VariableValues? = nil
+    ) {
         self.key = key
         self.segments = segments
         self.percentage = percentage
@@ -472,7 +508,7 @@ public struct Traffic: Decodable {
         self.variation = variation
         self.variables = variables
     }
-    
+
     public enum CodingKeys: CodingKey {
         case key
         case segments
@@ -488,7 +524,7 @@ public typealias PlainBucketBy = String
 public typealias AndBucketBy = [String]
 public struct OrBucketBy: Decodable {
     public let or: [String]
-    
+
     public init(or: [String]) {
         self.or = or
     }
@@ -498,22 +534,28 @@ public enum BucketBy: Decodable {
     case single(PlainBucketBy)
     case and(AndBucketBy)
     case or(OrBucketBy)
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
 
         if let single = try? container.decode(PlainBucketBy.self) {
             self = .single(single)
-        } else if let ands = try? container.decode(AndBucketBy.self) {
+        }
+        else if let ands = try? container.decode(AndBucketBy.self) {
             self = .and(ands)
-        } else if let ors = try? container.decode(OrBucketBy.self) {
+        }
+        else if let ors = try? container.decode(OrBucketBy.self) {
             self = .or(ors)
-        } else {
-            let context = DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "\(BucketBy.self) unknown")
+        }
+        else {
+            let context = DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "\(BucketBy.self) unknown"
+            )
             throw DecodingError.dataCorrupted(context)
         }
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case single
         case and
@@ -541,14 +583,15 @@ public struct Feature: Decodable {
     public let traffic: [Traffic]
     public let force: [Force]
     public let ranges: [Range]  // if in a Group (mutex), these are available slot ranges
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
+
         key = try container.decode(FeatureKey.self, forKey: .key)
         bucketBy = try container.decode(BucketBy.self, forKey: .bucketBy)
         deprecated = try? container.decode(Bool.self, forKey: .deprecated)
-        variablesSchema = (try? container.decode([VariableSchema].self, forKey: .variablesSchema)) ?? []
+        variablesSchema =
+            (try? container.decode([VariableSchema].self, forKey: .variablesSchema)) ?? []
         variations = (try? container.decode([Variation].self, forKey: .variations)) ?? []
         required = (try? container.decode([Required].self, forKey: .required)) ?? []
         traffic = (try? container.decode([Traffic].self, forKey: .traffic)) ?? []
@@ -556,17 +599,17 @@ public struct Feature: Decodable {
         ranges = (try? container.decode([Range].self, forKey: .ranges)) ?? []
     }
 
-
     internal init(
-            key: FeatureKey,
-            bucketBy: BucketBy,
-            deprecated: Bool? = nil,
-            variablesSchema: [VariableSchema] = [],
-            variations: [Variation] = [],
-            required: [Required] = [],
-            traffic: [Traffic] = [],
-            force: [Force] = [],
-            ranges: [Range] = []) {
+        key: FeatureKey,
+        bucketBy: BucketBy,
+        deprecated: Bool? = nil,
+        variablesSchema: [VariableSchema] = [],
+        variations: [Variation] = [],
+        required: [Required] = [],
+        traffic: [Traffic] = [],
+        force: [Force] = [],
+        ranges: [Range] = []
+    ) {
         self.key = key
         self.bucketBy = bucketBy
         self.deprecated = deprecated
@@ -577,7 +620,7 @@ public struct Feature: Decodable {
         self.force = force
         self.ranges = ranges
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case key
         case deprecated
@@ -611,9 +654,9 @@ public struct DatafileContent: Decodable {
         self.segments = segments
         self.features = features
     }
-    
+
     public init(from decoder: Decoder) throws {
-      let values = try decoder.container(keyedBy: CodingKeys.self)
+        let values = try decoder.container(keyedBy: CodingKeys.self)
 
         schemaVersion = try values.decode(String.self, forKey: .schemaVersion)
         revision = try values.decode(String.self, forKey: .revision)
@@ -621,7 +664,7 @@ public struct DatafileContent: Decodable {
         segments = try values.decode([Segment].self, forKey: .segments)
         features = try values.decode([Feature].self, forKey: .features)
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case schemaVersion
         case revision
@@ -695,6 +738,7 @@ public struct ParsedFeature {
 ///
 public struct FeatureAssertion {
     public let description: String?
+    public let environment: EnvironmentKey?
     public let at: Weight
     public let context: Context
     public let expectedToBeEnabled: Bool
@@ -703,7 +747,7 @@ public struct FeatureAssertion {
 }
 
 public struct TestFeature {
-    public let key: FeatureKey
+    public let feature: FeatureKey
     public let assertions: [FeatureAssertion]
 }
 
@@ -714,22 +758,11 @@ public struct SegmentAssertion {
 }
 
 public struct TestSegment {
-    public let key: SegmentKey
+    public let segment: SegmentKey
     public let assertions: [SegmentAssertion]
 }
 
-public struct Test {
-    public let description: String?
-
-    // needed for feature testing
-    public let tag: String?
-    public let environment: EnvironmentKey?
-    public let features: [TestFeature]?
-
-    // needed for segment testing
-    public let segments: [TestSegment]?
-}
-
-public struct Spec {
-    public let tests: [Test]
+public enum Test {
+    case feature(TestFeature)
+    case segment(TestSegment)
 }
