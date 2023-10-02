@@ -84,10 +84,10 @@ public enum ConditionValue: Decodable {
     case array([String])
     // @TODO: add Date type?
     // @TODO: add `null` and `undefined` somehow
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if let string = try? container.decode(String.self) {
             self = .string(string)
         } else if let integer = try? container.decode(Int.self) {
@@ -130,10 +130,10 @@ public enum Condition: Decodable {
     case and(AndCondition)
     case or(OrCondition)
     case not(NotCondition)
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-      
+
         if let plainCondition = try? container.decode(PlainCondition.self) {
             self = .plain(plainCondition)
         } else if let multipleCondition = try? container.decode([Condition].self) {
@@ -157,14 +157,14 @@ public struct Segment: Decodable {
     public let archived: Bool?
     public let key: SegmentKey
     public let conditions: Condition
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         archived = try? container.decode(Bool.self, forKey: .archived)
         key = try container.decode(SegmentKey.self, forKey: .key)
         conditions = try container.decodeStringified(Condition.self, forKey: .conditions)
     }
-    
+
     public init(
         key: SegmentKey,
         conditions: Condition,
@@ -173,7 +173,7 @@ public struct Segment: Decodable {
             self.conditions = conditions
             self.archived = archived
         }
-    
+
     public enum CodingKeys: String, CodingKey {
         case archived
         case key
@@ -202,10 +202,10 @@ public enum GroupSegment: Decodable {
     case and(AndGroupSegment)
     case or(OrGroupSegment)
     case not(NotGroupSegment)
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-      
+
         if let plainCondition = try? container.decode(PlainGroupSegment.self) {
             self = .plain(plainCondition)
         } else if let multipleCondition = try? container.decode([GroupSegment].self) {
@@ -248,18 +248,18 @@ public enum VariableValue: Codable {
     case object(VariableObjectValue)
     case json(String)
     // @TODO: handle null and undefined later
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if let string = try? container.decode(String.self) {
-            
+
             guard let data = string.data(using: .utf8),
                   let _ = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) else {
                 self = .string(string)
                 return
             }
-            
+
             self = .json(string)
         } else if let integer = try? container.decode(Int.self) {
             self = .integer(integer)
@@ -324,14 +324,14 @@ public struct VariableOverride: Decodable {
     // one of the below must be present in YAML
     public let conditions: Condition?
     public let segments: GroupSegment?
-        
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         value = try container.decode(VariableValue.self, forKey: .value)
         conditions = try container.decodeStringifiedIfPresent(Condition.self, forKey: .conditions)
         segments = try container.decodeGroupSegmentIfPresent(forKey: .segments)
     }
-    
+
     enum CodingKeys: CodingKey {
         case value
         case conditions
@@ -370,7 +370,7 @@ public struct Force: Decodable {
     public let enabled: Bool?
     public let variation: VariationValue
     public let variables: VariableValues
-        
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         enabled = try? container.decodeIfPresent(Bool.self, forKey: .enabled)
@@ -379,7 +379,7 @@ public struct Force: Decodable {
         conditions = try container.decodeStringifiedIfPresent(Condition.self, forKey: .conditions)
         segments = try container.decodeGroupSegmentIfPresent(forKey: .segments)
     }
-    
+
     enum CodingKeys: CodingKey {
         case conditions
         case segments
@@ -414,7 +414,7 @@ public typealias Percentage = Int
 public struct Range: Decodable {
     public let start: Percentage
     public let end: Percentage
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let range = try container.decode([Percentage].self)
@@ -443,7 +443,7 @@ public struct Traffic: Decodable {
     public let variables: VariableValues? // @TODO Tuple typealias is not managed by Decodable
 
     public let allocation: [Allocation]
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
@@ -472,7 +472,7 @@ public struct Traffic: Decodable {
         self.variation = variation
         self.variables = variables
     }
-    
+
     public enum CodingKeys: CodingKey {
         case key
         case segments
@@ -488,7 +488,7 @@ public typealias PlainBucketBy = String
 public typealias AndBucketBy = [String]
 public struct OrBucketBy: Decodable {
     public let or: [String]
-    
+
     public init(or: [String]) {
         self.or = or
     }
@@ -498,7 +498,7 @@ public enum BucketBy: Decodable {
     case single(PlainBucketBy)
     case and(AndBucketBy)
     case or(OrBucketBy)
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
 
@@ -513,7 +513,7 @@ public enum BucketBy: Decodable {
             throw DecodingError.dataCorrupted(context)
         }
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case single
         case and
@@ -541,10 +541,10 @@ public struct Feature: Decodable {
     public let traffic: [Traffic]
     public let force: [Force]
     public let ranges: [Range]  // if in a Group (mutex), these are available slot ranges
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
+
         key = try container.decode(FeatureKey.self, forKey: .key)
         bucketBy = try container.decode(BucketBy.self, forKey: .bucketBy)
         deprecated = try? container.decode(Bool.self, forKey: .deprecated)
@@ -577,7 +577,7 @@ public struct Feature: Decodable {
         self.force = force
         self.ranges = ranges
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case key
         case deprecated
@@ -611,7 +611,7 @@ public struct DatafileContent: Decodable {
         self.segments = segments
         self.features = features
     }
-    
+
     public init(from decoder: Decoder) throws {
       let values = try decoder.container(keyedBy: CodingKeys.self)
 
@@ -621,7 +621,7 @@ public struct DatafileContent: Decodable {
         segments = try values.decode([Segment].self, forKey: .segments)
         features = try values.decode([Feature].self, forKey: .features)
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case schemaVersion
         case revision
@@ -695,6 +695,7 @@ public struct ParsedFeature {
 ///
 public struct FeatureAssertion {
     public let description: String?
+    public let environment: EnvironmentKey
     public let at: Weight
     public let context: Context
     public let expectedToBeEnabled: Bool
@@ -703,7 +704,7 @@ public struct FeatureAssertion {
 }
 
 public struct TestFeature {
-    public let key: FeatureKey
+    public let feature: FeatureKey
     public let assertions: [FeatureAssertion]
 }
 
@@ -714,22 +715,11 @@ public struct SegmentAssertion {
 }
 
 public struct TestSegment {
-    public let key: SegmentKey
+    public let segment: SegmentKey
     public let assertions: [SegmentAssertion]
 }
 
-public struct Test {
-    public let description: String?
-
-    // needed for feature testing
-    public let tag: String?
-    public let environment: EnvironmentKey?
-    public let features: [TestFeature]?
-
-    // needed for segment testing
-    public let segments: [TestSegment]?
-}
-
-public struct Spec {
-    public let tests: [Test]
+public enum Test {
+    case feature(TestFeature)
+    case segment(TestSegment)
 }
