@@ -1,14 +1,14 @@
 import Foundation
 
-public extension FeaturevisorInstance {
+extension FeaturevisorInstance {
 
     // MARK: - Refresh
 
-    func refresh() {
+    public func refresh() {
         logger.debug("refreshing datafile")
 
         if statuses.refreshInProgress {
-            logger.warn("refresh in progress, skipping");
+            logger.warn("refresh in progress, skipping")
             return
         }
 
@@ -19,36 +19,37 @@ public extension FeaturevisorInstance {
 
         statuses.refreshInProgress = true
 
-        try? fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) { [weak self] result in
+        try? fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) {
+            [weak self] result in
             guard let self else {
                 return
             }
 
             switch result {
-            case .success(let datafileContent):
-                let currentRevision = self.getRevision()
-                let newRevision = datafileContent.revision
-                let isNotSameRevision = currentRevision != newRevision
+                case .success(let datafileContent):
+                    let currentRevision = self.getRevision()
+                    let newRevision = datafileContent.revision
+                    let isNotSameRevision = currentRevision != newRevision
 
-                self.datafileReader = DatafileReader(datafileContent: datafileContent)
-                logger.info("refreshed datafile")
+                    self.datafileReader = DatafileReader(datafileContent: datafileContent)
+                    logger.info("refreshed datafile")
 
-                self.emitter.emit(.refresh)
+                    self.emitter.emit(.refresh)
 
-                if isNotSameRevision {
-                    self.emitter.emit(.update)
-                }
+                    if isNotSameRevision {
+                        self.emitter.emit(.update)
+                    }
 
-                self.statuses.refreshInProgress = false
+                    self.statuses.refreshInProgress = false
 
-            case .failure(let error):
-                self.logger.error("failed to refresh datafile", ["error": error])
-                self.statuses.refreshInProgress = false
+                case .failure(let error):
+                    self.logger.error("failed to refresh datafile", ["error": error])
+                    self.statuses.refreshInProgress = false
             }
         }
     }
 
-    func startRefreshing() {
+    public func startRefreshing() {
 
         guard let datafileUrl else {
             logger.error("cannot start refreshing since `datafileUrl` is not provided")
@@ -65,30 +66,35 @@ public extension FeaturevisorInstance {
             return
         }
 
-        DispatchQueue.global().async { [weak self] in
-            self?.timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(refreshInterval), repeats: true) { _ in
-                self?.refresh()
-            }
+        DispatchQueue.global()
+            .async { [weak self] in
+                self?.timer = Timer.scheduledTimer(
+                    withTimeInterval: TimeInterval(refreshInterval),
+                    repeats: true
+                ) { _ in
+                    self?.refresh()
+                }
 
-            if let timer = self?.timer {
-                RunLoop.current.add(timer, forMode: .common)
-                RunLoop.current.run()
+                if let timer = self?.timer {
+                    RunLoop.current.add(timer, forMode: .common)
+                    RunLoop.current.run()
+                }
             }
-        }
     }
 
-    func stopRefreshing() {
+    public func stopRefreshing() {
 
-        DispatchQueue.global().async { [weak self] in
+        DispatchQueue.global()
+            .async { [weak self] in
 
-            guard let intervalId = self?.timer else {
-                self?.logger.warn("refreshing has not started yet")
-                return
+                guard let intervalId = self?.timer else {
+                    self?.logger.warn("refreshing has not started yet")
+                    return
+                }
+
+                intervalId.invalidate()
+                self?.timer = nil
             }
-
-            intervalId.invalidate()
-            self?.timer = nil
-        }
 
         logger.warn("refreshing has stopped")
     }

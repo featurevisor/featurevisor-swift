@@ -1,10 +1,10 @@
 import Foundation
 
-public extension FeaturevisorInstance {
+extension FeaturevisorInstance {
 
     // MARK: - Statuses
 
-    func isReady() -> Bool {
+    public func isReady() -> Bool {
         return statuses.ready
     }
 

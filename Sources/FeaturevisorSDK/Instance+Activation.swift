@@ -1,10 +1,10 @@
 import FeaturevisorTypes
 
-public extension FeaturevisorInstance {
+extension FeaturevisorInstance {
 
     // MARK: - Activate
 
-    func activate(featureKey: FeatureKey, context: Context = [:]) -> VariationValue? {
+    public func activate(featureKey: FeatureKey, context: Context = [:]) -> VariationValue? {
         do {
             let evaluation = evaluateVariation(featureKey: featureKey, context: context)
             let variationValue = evaluation.variation?.value ?? evaluation.variationValue
@@ -17,7 +17,8 @@ public extension FeaturevisorInstance {
 
             var captureContext: Context = [:]
 
-            let attributesForCapturing = datafileReader.getAllAttributes().filter { $0.capture == true }
+            let attributesForCapturing = datafileReader.getAllAttributes()
+                .filter { $0.capture == true }
 
             attributesForCapturing.forEach({ attribute in
                 if finalContext[attribute.key] != nil {
@@ -25,10 +26,18 @@ public extension FeaturevisorInstance {
                 }
             })
 
-            emitter.emit(EventName.activation, featureKey, variationValue, finalContext, captureContext, evaluation)
+            emitter.emit(
+                EventName.activation,
+                featureKey,
+                variationValue,
+                finalContext,
+                captureContext,
+                evaluation
+            )
 
             return variationValue
-        } catch {
+        }
+        catch {
             logger.error("activate", ["featureKey": featureKey, "error": error])
             return nil
         }

@@ -1,27 +1,28 @@
 import FeaturevisorTypes
 
-public extension FeaturevisorInstance {
+extension FeaturevisorInstance {
 
     // MARK: - Feature enabled
 
-    func isEnabled(featureKey: FeatureKey, context: Context = [:]) -> Bool {
+    public func isEnabled(featureKey: FeatureKey, context: Context = [:]) -> Bool {
         let evaluation = evaluateFlag(featureKey: featureKey, context: context)
         return evaluation.enabled == true
     }
 
     // MARK: - Variation
 
-    func evaluateVariation(featureKey: FeatureKey, context: Context = [:]) -> Evaluation {
+    public func evaluateVariation(featureKey: FeatureKey, context: Context = [:]) -> Evaluation {
         let evaluation: Evaluation
 
         let flag = evaluateFlag(featureKey: featureKey, context: context)
 
         if flag.enabled == false {
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .disabled)
+                featureKey: featureKey,
+                reason: .disabled
+            )
 
-            logger.debug("feature is disabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("feature is disabled", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -29,11 +30,12 @@ public extension FeaturevisorInstance {
         // sticky
         if let variationValue = stickyFeatures?[featureKey]?.variation {
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .sticky,
-                    variationValue: variationValue)
+                featureKey: featureKey,
+                reason: .sticky,
+                variationValue: variationValue
+            )
 
-            logger.debug("using sticky variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("using sticky variation", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -41,11 +43,12 @@ public extension FeaturevisorInstance {
         // initial
         if !statuses.ready, let variationValue = initialFeatures?[featureKey]?.variation {
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .initial,
-                    variationValue: variationValue)
+                featureKey: featureKey,
+                reason: .initial,
+                variationValue: variationValue
+            )
 
-            logger.debug("using initial variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("using initial variation", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -53,10 +56,11 @@ public extension FeaturevisorInstance {
         guard let feature = getFeature(byKey: featureKey) else {
             // not found
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .notFound)
+                featureKey: featureKey,
+                reason: .notFound
+            )
 
-            logger.warn("feature not found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.warn("feature not found", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -64,10 +68,11 @@ public extension FeaturevisorInstance {
         guard !feature.variations.isEmpty else {
             // no variations
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .noVariations)
+                featureKey: featureKey,
+                reason: .noVariations
+            )
 
-            logger.warn("no variations", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.warn("no variations", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -75,18 +80,23 @@ public extension FeaturevisorInstance {
         let finalContext = interceptContext != nil ? interceptContext!(context) : context
 
         // forced
-        if let force = findForceFromFeature(feature, context: context, datafileReader: datafileReader) {
+        if let force = findForceFromFeature(
+            feature,
+            context: context,
+            datafileReader: datafileReader
+        ) {
             let variation = feature.variations.first(where: { variation in
                 return variation.value == force.variation
             })
 
             if let variation {
                 evaluation = Evaluation(
-                        featureKey: feature.key,
-                        reason: .forced,
-                        variation: variation)
+                    featureKey: feature.key,
+                    reason: .forced,
+                    variation: variation
+                )
 
-                logger.debug("forced variation found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                logger.debug("forced variation found", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
                 return evaluation
             }
@@ -96,11 +106,12 @@ public extension FeaturevisorInstance {
         let bucketValue = getBucketValue(feature: feature, context: finalContext)
 
         let matchedTrafficAndAllocation = getMatchedTrafficAndAllocation(
-                traffic: feature.traffic,
-                context: finalContext,
-                bucketValue: bucketValue,
-                datafileReader: datafileReader,
-                logger: logger)
+            traffic: feature.traffic,
+            context: finalContext,
+            bucketValue: bucketValue,
+            datafileReader: datafileReader,
+            logger: logger
+        )
 
         if let matchedTraffic = matchedTrafficAndAllocation.matchedTraffic {
 
@@ -113,13 +124,14 @@ public extension FeaturevisorInstance {
 
                 if let variation {
                     evaluation = Evaluation(
-                            featureKey: feature.key,
-                            reason: .rule,
-                            bucketValue: bucketValue,
-                            ruleKey: matchedTraffic.key,
-                            variation: variation)
+                        featureKey: feature.key,
+                        reason: .rule,
+                        bucketValue: bucketValue,
+                        ruleKey: matchedTraffic.key,
+                        variation: variation
+                    )
 
-                    logger.debug("override from rule", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                    logger.debug("override from rule", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
                     return evaluation
                 }
@@ -134,12 +146,13 @@ public extension FeaturevisorInstance {
 
                 if let variation {
                     evaluation = Evaluation(
-                            featureKey: feature.key,
-                            reason: .allocated,
-                            bucketValue: bucketValue,
-                            variation: variation)
+                        featureKey: feature.key,
+                        reason: .allocated,
+                        bucketValue: bucketValue,
+                        variation: variation
+                    )
 
-                    logger.debug("allocated variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                    logger.debug("allocated variation", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
                     return evaluation
                 }
@@ -148,29 +161,31 @@ public extension FeaturevisorInstance {
 
         // nothing matched
         evaluation = Evaluation(
-                featureKey: feature.key,
-                reason: .error,
-                bucketValue: bucketValue)
+            featureKey: feature.key,
+            reason: .error,
+            bucketValue: bucketValue
+        )
 
-        logger.debug("no matched variation", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+        logger.debug("no matched variation", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
         return evaluation
     }
 
     // MARK: - Flag
 
-    func evaluateFlag(featureKey: FeatureKey, context: Context = [:]) -> Evaluation {
+    public func evaluateFlag(featureKey: FeatureKey, context: Context = [:]) -> Evaluation {
         let evaluation: Evaluation
 
         // sticky
         if let stickyFeature = stickyFeatures?[featureKey] {
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .sticky,
-                    enabled: stickyFeature.enabled,
-                    sticky: stickyFeature)
+                featureKey: featureKey,
+                reason: .sticky,
+                enabled: stickyFeature.enabled,
+                sticky: stickyFeature
+            )
 
-            logger.debug("using sticky enabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("using sticky enabled", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -178,25 +193,27 @@ public extension FeaturevisorInstance {
         // initial
         if statuses.ready, let initialFeature = initialFeatures?[featureKey] {
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .initial,
-                    enabled: initialFeature.enabled,
-                    initial: initialFeature)
+                featureKey: featureKey,
+                reason: .initial,
+                enabled: initialFeature.enabled,
+                initial: initialFeature
+            )
 
-            logger.debug("using initial enabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("using initial enabled", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
 
-        let feature = getFeature(byKey: featureKey);
+        let feature = getFeature(byKey: featureKey)
 
         // not found
         guard let feature else {
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .notFound)
+                featureKey: featureKey,
+                reason: .notFound
+            )
 
-            logger.warn("feature not found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.warn("feature not found", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -209,15 +226,16 @@ public extension FeaturevisorInstance {
         let finalContext = interceptContext != nil ? interceptContext!(context) : context
 
         // forced
-        let force = findForceFromFeature(feature, context: context, datafileReader: datafileReader);
+        let force = findForceFromFeature(feature, context: context, datafileReader: datafileReader)
 
         if let force, force.enabled != nil {
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .forced,
-                    enabled: force.enabled)
+                featureKey: featureKey,
+                reason: .forced,
+                enabled: force.enabled
+            )
 
-            logger.debug("forced enabled found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("forced enabled found", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -229,44 +247,51 @@ public extension FeaturevisorInstance {
                 let requiredVariation: VariationValue?
 
                 switch item {
-                case .featureKey(let featureKey):
-                    requiredKey = featureKey
-                    requiredVariation = nil
-                case .withVariation(let variation):
-                    requiredKey = variation.key
-                    requiredVariation = variation.variation
+                    case .featureKey(let featureKey):
+                        requiredKey = featureKey
+                        requiredVariation = nil
+                    case .withVariation(let variation):
+                        requiredKey = variation.key
+                        requiredVariation = variation.variation
                 }
 
                 let requiredIsEnabled = isEnabled(featureKey: requiredKey, context: finalContext)
 
-                if (!requiredIsEnabled) {
+                if !requiredIsEnabled {
                     return false
                 }
 
-                if let requiredVariation, let requiredVariationValue = getVariation(featureKey: requiredKey, context: finalContext) {
+                if let requiredVariation,
+                    let requiredVariationValue = getVariation(
+                        featureKey: requiredKey,
+                        context: finalContext
+                    )
+                {
                     return requiredVariationValue == requiredVariation
                 }
 
                 return true
             })
 
-            if (!requiredFeaturesAreEnabled) {
+            if !requiredFeaturesAreEnabled {
                 evaluation = Evaluation(
-                        featureKey: feature.key,
-                        reason: .required,
-                        enabled: requiredFeaturesAreEnabled)
+                    featureKey: feature.key,
+                    reason: .required,
+                    enabled: requiredFeaturesAreEnabled
+                )
 
                 return evaluation
             }
         }
 
         // bucketing
-        let bucketValue = getBucketValue(feature: feature, context: finalContext);
+        let bucketValue = getBucketValue(feature: feature, context: finalContext)
 
         let matchedTraffic = getMatchedTraffic(
-                traffic: feature.traffic,
-                context: finalContext,
-                datafileReader: datafileReader)
+            traffic: feature.traffic,
+            context: finalContext,
+            datafileReader: datafileReader
+        )
 
         if let matchedTraffic {
 
@@ -274,27 +299,29 @@ public extension FeaturevisorInstance {
 
                 let matchedRange = feature.ranges.first(where: { range in
                     return bucketValue >= range.start && bucketValue < range.end
-                });
+                })
 
                 // matched
-                if (matchedRange != nil) {
+                if matchedRange != nil {
                     evaluation = Evaluation(
-                            featureKey: feature.key,
-                            reason: .allocated,
-                            bucketValue: bucketValue,
-                            enabled: matchedTraffic.enabled ?? true)
+                        featureKey: feature.key,
+                        reason: .allocated,
+                        bucketValue: bucketValue,
+                        enabled: matchedTraffic.enabled ?? true
+                    )
 
                     return evaluation
                 }
 
                 // no match
                 evaluation = Evaluation(
-                        featureKey: feature.key,
-                        reason: .outOfRange,
-                        bucketValue: bucketValue,
-                        enabled: false)
+                    featureKey: feature.key,
+                    reason: .outOfRange,
+                    bucketValue: bucketValue,
+                    enabled: false
+                )
 
-                logger.debug("not matched", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                logger.debug("not matched", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
                 return evaluation
             }
@@ -302,14 +329,15 @@ public extension FeaturevisorInstance {
             // override from rule
             if let matchedTrafficEnabled = matchedTraffic.enabled {
                 evaluation = Evaluation(
-                        featureKey: feature.key,
-                        reason: .override,
-                        bucketValue: bucketValue,
-                        ruleKey: matchedTraffic.key,
-                        enabled: matchedTrafficEnabled,
-                        traffic: matchedTraffic)
+                    featureKey: feature.key,
+                    reason: .override,
+                    bucketValue: bucketValue,
+                    ruleKey: matchedTraffic.key,
+                    enabled: matchedTrafficEnabled,
+                    traffic: matchedTraffic
+                )
 
-                logger.debug("override from rule", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                logger.debug("override from rule", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
                 return evaluation
             }
@@ -318,12 +346,13 @@ public extension FeaturevisorInstance {
             if bucketValue < matchedTraffic.percentage {
                 // @TODO: verify if range check should be inclusive or not
                 evaluation = Evaluation(
-                        featureKey: feature.key,
-                        reason: .rule,
-                        bucketValue: bucketValue,
-                        ruleKey: matchedTraffic.key,
-                        enabled: true,
-                        traffic: matchedTraffic)
+                    featureKey: feature.key,
+                    reason: .rule,
+                    bucketValue: bucketValue,
+                    ruleKey: matchedTraffic.key,
+                    enabled: true,
+                    traffic: matchedTraffic
+                )
 
                 return evaluation
             }
@@ -331,20 +360,22 @@ public extension FeaturevisorInstance {
 
         // nothing matched
         evaluation = Evaluation(
-                featureKey: feature.key,
-                reason: .error,
-                bucketValue: bucketValue,
-                enabled: false)
+            featureKey: feature.key,
+            reason: .error,
+            bucketValue: bucketValue,
+            enabled: false
+        )
 
         return evaluation
     }
 
     // MARK: - Variable
 
-    func evaluateVariable(
-            featureKey: FeatureKey,
-            variableKey: VariableKey,
-            context: Context = [:]) -> Evaluation {
+    public func evaluateVariable(
+        featureKey: FeatureKey,
+        variableKey: VariableKey,
+        context: Context = [:]
+    ) -> Evaluation {
 
         let evaluation: Evaluation
 
@@ -353,7 +384,7 @@ public extension FeaturevisorInstance {
         if flag.enabled == false {
             evaluation = Evaluation(featureKey: featureKey, reason: .disabled)
 
-            logger.debug("feature is disabled", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("feature is disabled", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -361,12 +392,13 @@ public extension FeaturevisorInstance {
         // sticky
         if let variableValue = stickyFeatures?[featureKey]?.variables?[variableKey] {
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .sticky,
-                    variableKey: variableKey,
-                    variableValue: variableValue)
+                featureKey: featureKey,
+                reason: .sticky,
+                variableKey: variableKey,
+                variableValue: variableValue
+            )
 
-            logger.debug("using sticky variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("using sticky variable", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -376,12 +408,13 @@ public extension FeaturevisorInstance {
 
             if let variableValue = initialFeature.variables?[variableKey] {
                 evaluation = Evaluation(
-                        featureKey: featureKey,
-                        reason: .initial,
-                        variableKey: variableKey,
-                        variableValue: variableValue)
+                    featureKey: featureKey,
+                    reason: .initial,
+                    variableKey: variableKey,
+                    variableValue: variableValue
+                )
 
-                logger.debug("using initial variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                logger.debug("using initial variable", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
                 return evaluation
             }
@@ -390,11 +423,12 @@ public extension FeaturevisorInstance {
         guard let feature = getFeature(byKey: featureKey) else {
             // not found
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .notFound,
-                    variableKey: variableKey)
+                featureKey: featureKey,
+                reason: .notFound,
+                variableKey: variableKey
+            )
 
-            logger.warn("feature not found in datafile", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.warn("feature not found in datafile", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -406,11 +440,12 @@ public extension FeaturevisorInstance {
         guard let variableSchema else {
             // variable schema not found
             evaluation = Evaluation(
-                    featureKey: featureKey,
-                    reason: .notFound,
-                    variableKey: variableKey)
+                featureKey: featureKey,
+                reason: .notFound,
+                variableKey: variableKey
+            )
 
-            logger.warn("variable schema not found", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.warn("variable schema not found", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -422,13 +457,14 @@ public extension FeaturevisorInstance {
 
         if let force, let variableValue = force.variables[variableKey] {
             evaluation = Evaluation(
-                    featureKey: feature.key,
-                    reason: .forced,
-                    variableKey: variableKey,
-                    variableValue: variableValue,
-                    variableSchema: variableSchema)
+                featureKey: feature.key,
+                reason: .forced,
+                variableKey: variableKey,
+                variableValue: variableValue,
+                variableSchema: variableSchema
+            )
 
-            logger.debug("forced variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+            logger.debug("forced variable", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
             return evaluation
         }
@@ -437,25 +473,27 @@ public extension FeaturevisorInstance {
         let bucketValue = getBucketValue(feature: feature, context: finalContext)
 
         let matchedTrafficAndAllocation = getMatchedTrafficAndAllocation(
-                traffic: feature.traffic,
-                context: finalContext,
-                bucketValue: bucketValue,
-                datafileReader: datafileReader,
-                logger: logger)
+            traffic: feature.traffic,
+            context: finalContext,
+            bucketValue: bucketValue,
+            datafileReader: datafileReader,
+            logger: logger
+        )
 
         if let matchedTraffic = matchedTrafficAndAllocation.matchedTraffic {
             // override from rule
             if let variableValue = matchedTraffic.variables?[variableKey] {
                 evaluation = Evaluation(
-                        featureKey: feature.key,
-                        reason: .rule,
-                        bucketValue: bucketValue,
-                        ruleKey: matchedTraffic.key,
-                        variableKey: variableKey,
-                        variableValue: variableValue,
-                        variableSchema: variableSchema)
+                    featureKey: feature.key,
+                    reason: .rule,
+                    bucketValue: bucketValue,
+                    ruleKey: matchedTraffic.key,
+                    variableKey: variableKey,
+                    variableValue: variableValue,
+                    variableSchema: variableSchema
+                )
 
-                logger.debug("override from rule", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                logger.debug("override from rule", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
                 return evaluation
             }
@@ -476,15 +514,17 @@ public extension FeaturevisorInstance {
                         let override = overrides.first(where: { override in
                             if let condition = override.conditions {
                                 return allConditionsAreMatched(
-                                        condition: condition,
-                                        context: finalContext)
+                                    condition: condition,
+                                    context: finalContext
+                                )
                             }
 
                             if let segments = override.segments {
                                 return allGroupSegmentsAreMatched(
-                                        groupSegments: segments,
-                                        context: finalContext,
-                                        datafileReader: datafileReader)
+                                    groupSegments: segments,
+                                    context: finalContext,
+                                    datafileReader: datafileReader
+                                )
                             }
 
                             return false
@@ -492,15 +532,16 @@ public extension FeaturevisorInstance {
 
                         if let override {
                             evaluation = Evaluation(
-                                    featureKey: feature.key,
-                                    reason: .override,
-                                    bucketValue: bucketValue,
-                                    ruleKey: matchedTraffic.key,
-                                    variableKey: variableKey,
-                                    variableValue: override.value,
-                                    variableSchema: variableSchema)
+                                featureKey: feature.key,
+                                reason: .override,
+                                bucketValue: bucketValue,
+                                ruleKey: matchedTraffic.key,
+                                variableKey: variableKey,
+                                variableValue: override.value,
+                                variableSchema: variableSchema
+                            )
 
-                            logger.debug("variable override", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                            logger.debug("variable override", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
                             return evaluation
                         }
@@ -508,15 +549,16 @@ public extension FeaturevisorInstance {
 
                     if let variableFromVariationValue = variableFromVariation?.value {
                         evaluation = Evaluation(
-                                featureKey: feature.key,
-                                reason: .allocated,
-                                bucketValue: bucketValue,
-                                ruleKey: matchedTraffic.key,
-                                variableKey: variableKey,
-                                variableValue: variableFromVariationValue,
-                                variableSchema: variableSchema)
+                            featureKey: feature.key,
+                            reason: .allocated,
+                            bucketValue: bucketValue,
+                            ruleKey: matchedTraffic.key,
+                            variableKey: variableKey,
+                            variableValue: variableFromVariationValue,
+                            variableSchema: variableSchema
+                        )
 
-                        logger.debug("allocated variable", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+                        logger.debug("allocated variable", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
                         return evaluation
                     }
@@ -526,24 +568,25 @@ public extension FeaturevisorInstance {
 
         // fall back to default
         evaluation = Evaluation(
-                featureKey: feature.key,
-                reason: .defaulted,
-                bucketValue: bucketValue,
-                variableKey: variableKey,
-                variableValue: variableSchema.defaultValue,
-                variableSchema: variableSchema)
+            featureKey: feature.key,
+            reason: .defaulted,
+            bucketValue: bucketValue,
+            variableKey: variableKey,
+            variableValue: variableSchema.defaultValue,
+            variableSchema: variableSchema
+        )
 
-        logger.debug("using default value", ["featureKey": featureKey]) // TODO: Log evaluation object. Make it encodable
+        logger.debug("using default value", ["featureKey": featureKey])  // TODO: Log evaluation object. Make it encodable
 
-        return evaluation;
+        return evaluation
     }
 }
 
-private extension FeaturevisorInstance {
+extension FeaturevisorInstance {
 
     // MARK: - Bucketing
 
-    func getFeature(byKey featureKey: String) -> Feature? {
+    fileprivate func getFeature(byKey featureKey: String) -> Feature? {
         return self.datafileReader.getFeature(featureKey)
     }
 
@@ -554,15 +597,15 @@ private extension FeaturevisorInstance {
         var attributeKeys: [AttributeKey]
 
         switch feature.bucketBy {
-        case .single(let bucketBy):
-            type = "plain"
-            attributeKeys = [bucketBy]
-        case .and(let bucketBy):
-            type = "and"
-            attributeKeys = bucketBy
-        case .or(let bucketBy):
-            type = "or"
-            attributeKeys = bucketBy.or
+            case .single(let bucketBy):
+                type = "plain"
+                attributeKeys = [bucketBy]
+            case .and(let bucketBy):
+                type = "and"
+                attributeKeys = bucketBy
+            case .or(let bucketBy):
+                type = "or"
+                attributeKeys = bucketBy.or
         }
 
         var bucketKey: [AttributeValue] = []
@@ -574,7 +617,8 @@ private extension FeaturevisorInstance {
 
             if type == "plain" || type == "and" {
                 bucketKey.append(attributeValue)
-            } else {  // or
+            }
+            else {  // or
                 if bucketKey.isEmpty {
                     bucketKey.append(attributeValue)
                 }
@@ -583,10 +627,11 @@ private extension FeaturevisorInstance {
 
         bucketKey.append(.string(featureKey))
 
-        let result = bucketKey.map {
-                    $0.stringValue
-                }
-                .joined(separator: self.bucketKeySeparator)
+        let result =
+            bucketKey.map {
+                $0.stringValue
+            }
+            .joined(separator: self.bucketKeySeparator)
 
         if let configureBucketKey = self.configureBucketKey {
             return configureBucketKey(feature, context, result)
@@ -595,7 +640,7 @@ private extension FeaturevisorInstance {
         return result
     }
 
-    func getBucketValue(feature: Feature, context: Context) -> BucketValue {
+    fileprivate func getBucketValue(feature: Feature, context: Context) -> BucketValue {
 
         let bucketKey = getBucketKey(feature: feature, context: context)
         let value = Bucket.resolveNumber(forKey: bucketKey)
@@ -607,4 +652,3 @@ private extension FeaturevisorInstance {
         return value
     }
 }
-
