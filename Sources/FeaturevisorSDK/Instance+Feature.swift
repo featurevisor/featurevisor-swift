@@ -2,6 +2,8 @@ import Foundation
 import FeaturevisorTypes
 
 extension FeaturevisorInstance {
+    
+    // MARK: - Feature
 
     func findForceFromFeature(
             _ feature: Feature,
