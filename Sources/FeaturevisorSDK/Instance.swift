@@ -51,20 +51,21 @@ public struct Evaluation {
     public let variableSchema: VariableSchema?
 
     public init(
-            featureKey: FeatureKey,
-            reason: EvaluationReason,
-            bucketValue: BucketValue? = nil,
-            ruleKey: RuleKey? = nil,
-            error: Error? = nil,
-            enabled: Bool? = nil,
-            traffic: Traffic? = nil,
-            sticky: OverrideFeature? = nil,
-            initial: OverrideFeature? = nil,
-            variation: Variation? = nil,
-            variationValue: VariationValue? = nil,
-            variableKey: VariableKey? = nil,
-            variableValue: VariableValue? = nil,
-            variableSchema: VariableSchema? = nil) {
+        featureKey: FeatureKey,
+        reason: EvaluationReason,
+        bucketValue: BucketValue? = nil,
+        ruleKey: RuleKey? = nil,
+        error: Error? = nil,
+        enabled: Bool? = nil,
+        traffic: Traffic? = nil,
+        sticky: OverrideFeature? = nil,
+        initial: OverrideFeature? = nil,
+        variation: Variation? = nil,
+        variationValue: VariationValue? = nil,
+        variableKey: VariableKey? = nil,
+        variableValue: VariableValue? = nil,
+        variableSchema: VariableSchema? = nil
+    ) {
         self.featureKey = featureKey
         self.reason = reason
         self.bucketValue = bucketValue
@@ -163,7 +164,8 @@ public class FeaturevisorInstance {
         if let datafileUrl = options.datafileUrl {
             datafileReader = DatafileReader(datafileContent: options.datafile ?? emptyDatafile)
 
-            try fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) { [weak self] result in
+            try fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) {
+                [weak self] result in
                 switch result {
                     case .success(let datafileContent):
                         self?.datafileReader = DatafileReader(datafileContent: datafileContent)
@@ -178,12 +180,14 @@ public class FeaturevisorInstance {
                         self?.logger.error("Failed to fetch datafile: \(error)")
                 }
             }
-        } else if let datafile = options.datafile {
+        }
+        else if let datafile = options.datafile {
             datafileReader = DatafileReader(datafileContent: datafile)
             statuses.ready = true
 
             emitter.emit(EventName.ready)
-        } else {
+        }
+        else {
             throw FeaturevisorError.missingDatafileOptions
         }
     }
@@ -198,7 +202,8 @@ public class FeaturevisorInstance {
         do {
             let datafileContent = try JSONDecoder().decode(DatafileContent.self, from: data)
             datafileReader = DatafileReader(datafileContent: datafileContent)
-        } catch {
+        }
+        catch {
             logger.error("could not parse datafile", ["error": error])
         }
     }

@@ -14,7 +14,7 @@ final class BucketTests: XCTestCase {
             "123.foo": 3151,
             "123.bar": 9710,
             "123.456.foo": 14432,
-            "123.456.bar": 1982
+            "123.456.bar": 1982,
         ]
 
         expectedResults.forEach { value, result in
@@ -25,4 +25,4 @@ final class BucketTests: XCTestCase {
             XCTAssertEqual(number, result)
         }
     }
- }
+}

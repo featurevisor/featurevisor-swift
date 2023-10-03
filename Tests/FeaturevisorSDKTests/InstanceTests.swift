@@ -4,29 +4,32 @@ import XCTest
 @testable import FeaturevisorTypes
 
 class FeaturevisorInstanceTests: XCTestCase {
-    
+
     func testCreateInstanceThrowsInvalidURLError() {
-        
+
         // GIVEN
         var options = InstanceOptions.default
         options.datafileUrl = "hf://wrong url.com"
-        
+
         // WHEN
         XCTAssertThrowsError(try createInstance(options: options)) { error in
-            
+
             // THEN
-            XCTAssertEqual(error as! FeaturevisorError, FeaturevisorError.invalidURL(string: "hf://wrong url.com"))
+            XCTAssertEqual(
+                error as! FeaturevisorError,
+                FeaturevisorError.invalidURL(string: "hf://wrong url.com")
+            )
         }
     }
-    
+
     func testCreateInstanceThrowsMissingDatafileOptionsError() {
-        
+
         // GIVEN
         let options = InstanceOptions.default
-        
+
         // WHEN
         XCTAssertThrowsError(try createInstance(options: options)) { error in
-            
+
             // THEN
             XCTAssertEqual(error as! FeaturevisorError, FeaturevisorError.missingDatafileOptions)
         }
@@ -38,8 +41,14 @@ class FeaturevisorInstanceTests: XCTestCase {
         let expectation: XCTestExpectation = expectation(description: "Expectation")
 
         MockURLProtocol.requestHandler = { request in
-            let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"0.0.666\",\"attributes\":[],\"segments\":[],\"features\":[]}"
-            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            let jsonString =
+                "{\"schemaVersion\":\"1\",\"revision\":\"0.0.666\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
             return (response, jsonString.data(using: .utf8))
         }
 
@@ -61,44 +70,57 @@ class FeaturevisorInstanceTests: XCTestCase {
     func testShouldConfigurePlainBucketBy() {
 
         // GIVEN
-        let featureKey = "test";
+        let featureKey = "test"
         let context: Context = ["userId": .string("123")]
         var capturedBucketKey = ""
 
         var options: InstanceOptions = .default
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "1.0",
-                attributes: [],
-                segments: [],
-                features: [
-                    Feature(
-                            key: "test",
-                            bucketBy: .single("userId"),
-                            variations: [
-                                Variation(description: nil, value: "control", weight: nil, variables: nil),
-                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
-                            ],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [
-                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 100000)),
-                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 0))
-                                        ])
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [],
+            segments: [],
+            features: [
+                Feature(
+                    key: "test",
+                    bucketBy: .single("userId"),
+                    variations: [
+                        Variation(description: nil, value: "control", weight: nil, variables: nil),
+                        Variation(
+                            description: nil,
+                            value: "treatment",
+                            weight: nil,
+                            variables: nil
+                        ),
+                    ],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: [
+                                Allocation(
+                                    variation: "control",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 100000)
+                                ),
+                                Allocation(
+                                    variation: "treatment",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 0)
+                                ),
                             ]
-                    )
-                ])
+                        )
+                    ]
+                )
+            ]
+        )
 
-        options.configureBucketKey = ({ feature, context, bucketKey in
-            capturedBucketKey = bucketKey
-            return bucketKey
-        })
+        options.configureBucketKey =
+            ({ feature, context, bucketKey in
+                capturedBucketKey = bucketKey
+                return bucketKey
+            })
 
         let sdk = try! createInstance(options: options)
-
 
         // WHEN
         let isEnabled = sdk.isEnabled(featureKey: featureKey, context: context)
@@ -113,44 +135,57 @@ class FeaturevisorInstanceTests: XCTestCase {
     func testShouldConfigureAndBucketBy() {
 
         // GIVEN
-        let featureKey = "test";
+        let featureKey = "test"
         let context: Context = ["userId": .string("123"), "organizationId": .string("456")]
         var capturedBucketKey = ""
 
         var options: InstanceOptions = .default
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "1.0",
-                attributes: [],
-                segments: [],
-                features: [
-                    Feature(
-                            key: "test",
-                            bucketBy: .and(["userId", "organizationId"]),
-                            variations: [
-                                Variation(description: nil, value: "control", weight: nil, variables: nil),
-                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
-                            ],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [
-                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 100000)),
-                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 0))
-                                        ])
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [],
+            segments: [],
+            features: [
+                Feature(
+                    key: "test",
+                    bucketBy: .and(["userId", "organizationId"]),
+                    variations: [
+                        Variation(description: nil, value: "control", weight: nil, variables: nil),
+                        Variation(
+                            description: nil,
+                            value: "treatment",
+                            weight: nil,
+                            variables: nil
+                        ),
+                    ],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: [
+                                Allocation(
+                                    variation: "control",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 100000)
+                                ),
+                                Allocation(
+                                    variation: "treatment",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 0)
+                                ),
                             ]
-                    )
-                ])
+                        )
+                    ]
+                )
+            ]
+        )
 
-        options.configureBucketKey = ({ feature, context, bucketKey in
-            capturedBucketKey = bucketKey
-            return bucketKey
-        })
+        options.configureBucketKey =
+            ({ feature, context, bucketKey in
+                capturedBucketKey = bucketKey
+                return bucketKey
+            })
 
         let sdk = try! createInstance(options: options)
-
 
         // WHEN
         let variation = sdk.getVariation(featureKey: featureKey, context: context)!
@@ -167,53 +202,78 @@ class FeaturevisorInstanceTests: XCTestCase {
 
         var options: InstanceOptions = .default
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "1.0",
-                attributes: [],
-                segments: [],
-                features: [
-                    Feature(
-                            key: "test",
-                            bucketBy: .or(.init(or: ["userId", "deviceId"])),
-                            variations: [
-                                Variation(description: nil, value: "control", weight: nil, variables: nil),
-                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
-                            ],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [
-                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 100000)),
-                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 0))
-                                        ])
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [],
+            segments: [],
+            features: [
+                Feature(
+                    key: "test",
+                    bucketBy: .or(.init(or: ["userId", "deviceId"])),
+                    variations: [
+                        Variation(description: nil, value: "control", weight: nil, variables: nil),
+                        Variation(
+                            description: nil,
+                            value: "treatment",
+                            weight: nil,
+                            variables: nil
+                        ),
+                    ],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: [
+                                Allocation(
+                                    variation: "control",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 100000)
+                                ),
+                                Allocation(
+                                    variation: "treatment",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 0)
+                                ),
                             ]
-                    )
-                ])
+                        )
+                    ]
+                )
+            ]
+        )
 
-        options.configureBucketKey = ({ feature, context, bucketKey in
-            capturedBucketKey = bucketKey
-            return bucketKey
-        })
+        options.configureBucketKey =
+            ({ feature, context, bucketKey in
+                capturedBucketKey = bucketKey
+                return bucketKey
+            })
 
         // WHEN
         let sdk = try! createInstance(options: options)
 
         // THEN
-        XCTAssertTrue(sdk.isEnabled(
+        XCTAssertTrue(
+            sdk.isEnabled(
                 featureKey: "test",
-                context: ["userId": .string("123"), "deviceId": .string("456")]))
+                context: ["userId": .string("123"), "deviceId": .string("456")]
+            )
+        )
 
-        XCTAssertEqual(sdk.getVariation(
+        XCTAssertEqual(
+            sdk.getVariation(
                 featureKey: "test",
-                context: ["userId": .string("123"), "deviceId": .string("456")]), "control")
+                context: ["userId": .string("123"), "deviceId": .string("456")]
+            ),
+            "control"
+        )
 
         XCTAssertEqual(capturedBucketKey, "123.test")
 
-        XCTAssertEqual(sdk.getVariation(
+        XCTAssertEqual(
+            sdk.getVariation(
                 featureKey: "test",
-                context: ["deviceId": .string("456")]), "control")
+                context: ["deviceId": .string("456")]
+            ),
+            "control"
+        )
 
         XCTAssertEqual(capturedBucketKey, "456.test")
     }
@@ -225,46 +285,61 @@ class FeaturevisorInstanceTests: XCTestCase {
 
         var options: InstanceOptions = .default
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "1.0",
-                attributes: [],
-                segments: [],
-                features: [
-                    Feature(
-                            key: "test",
-                            bucketBy: .single("userId"),
-                            variations: [
-                                Variation(description: nil, value: "control", weight: nil, variables: nil),
-                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
-                            ],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [
-                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 100000)),
-                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 0))
-                                        ])
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [],
+            segments: [],
+            features: [
+                Feature(
+                    key: "test",
+                    bucketBy: .single("userId"),
+                    variations: [
+                        Variation(description: nil, value: "control", weight: nil, variables: nil),
+                        Variation(
+                            description: nil,
+                            value: "treatment",
+                            weight: nil,
+                            variables: nil
+                        ),
+                    ],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: [
+                                Allocation(
+                                    variation: "control",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 100000)
+                                ),
+                                Allocation(
+                                    variation: "treatment",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 0)
+                                ),
                             ]
-                    )
-                ])
-        options.interceptContext = ({ context in
-            intercepted = true
-            return context
-        })
+                        )
+                    ]
+                )
+            ]
+        )
+        options.interceptContext =
+            ({ context in
+                intercepted = true
+                return context
+            })
 
         // WHEN
         let sdk = try! createInstance(options: options)
         let variation = sdk.getVariation(
-                featureKey: "test",
-                context: [
-                    "userId": .string("123")
-                ])
+            featureKey: "test",
+            context: [
+                "userId": .string("123")
+            ]
+        )
 
         // THEN
-        XCTAssertEqual(variation, "control");
-        XCTAssertTrue(intercepted);
+        XCTAssertEqual(variation, "control")
+        XCTAssertTrue(intercepted)
     }
 
     func testShouldActivateFeature() {
@@ -274,53 +349,68 @@ class FeaturevisorInstanceTests: XCTestCase {
 
         var options: InstanceOptions = .default
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "1.0",
-                attributes: [],
-                segments: [],
-                features: [
-                    Feature(
-                            key: "test",
-                            bucketBy: .single("userId"),
-                            variations: [
-                                Variation(description: nil, value: "control", weight: nil, variables: nil),
-                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
-                            ],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [
-                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 100000)),
-                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 0))
-                                        ])
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [],
+            segments: [],
+            features: [
+                Feature(
+                    key: "test",
+                    bucketBy: .single("userId"),
+                    variations: [
+                        Variation(description: nil, value: "control", weight: nil, variables: nil),
+                        Variation(
+                            description: nil,
+                            value: "treatment",
+                            weight: nil,
+                            variables: nil
+                        ),
+                    ],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: [
+                                Allocation(
+                                    variation: "control",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 100000)
+                                ),
+                                Allocation(
+                                    variation: "treatment",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 0)
+                                ),
                             ]
-                    )
-                ])
-        options.onActivation = ({ closure in
-            activated = true
-        })
+                        )
+                    ]
+                )
+            ]
+        )
+        options.onActivation =
+            ({ closure in
+                activated = true
+            })
 
         // WHEN
         let sdk = try! createInstance(options: options)
 
         // THEN
         let variation = sdk.getVariation(
-                featureKey: "test",
-                context: [
-                    "userId": .string("123")
-                ])
-
+            featureKey: "test",
+            context: [
+                "userId": .string("123")
+            ]
+        )
 
         XCTAssertFalse(activated)
         XCTAssertEqual(variation, "control")
 
         let activatedVariation = sdk.activate(
-                featureKey: "test",
-                context: [
-                    "userId": .string("123")
-                ])
+            featureKey: "test",
+            context: [
+                "userId": .string("123")
+            ]
+        )
 
         XCTAssertTrue(activated)
         XCTAssertEqual(activatedVariation, "control")
@@ -331,34 +421,39 @@ class FeaturevisorInstanceTests: XCTestCase {
         // GIVEN
         var options: InstanceOptions = .default
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "1.0",
-                attributes: [],
-                segments: [],
-                features: [
-                    Feature(
-                            key: "requiredKey",
-                            bucketBy: .single("userId"),
-                            variations: [],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 0,
-                                        allocation: [])
-                            ]),
-                    Feature(
-                            key: "myKey",
-                            bucketBy: .single("userId"),
-                            variations: [],
-                            required: [.featureKey("requiredKey")],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [])]
-                    )]
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [],
+            segments: [],
+            features: [
+                Feature(
+                    key: "requiredKey",
+                    bucketBy: .single("userId"),
+                    variations: [],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 0,
+                            allocation: []
+                        )
+                    ]
+                ),
+                Feature(
+                    key: "myKey",
+                    bucketBy: .single("userId"),
+                    variations: [],
+                    required: [.featureKey("requiredKey")],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: []
+                        )
+                    ]
+                ),
+            ]
         )
 
         // WHEN
@@ -374,34 +469,39 @@ class FeaturevisorInstanceTests: XCTestCase {
         // GIVEN
         var options: InstanceOptions = .default
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "1.0",
-                attributes: [],
-                segments: [],
-                features: [
-                    Feature(
-                            key: "requiredKey",
-                            bucketBy: .single("userId"),
-                            variations: [],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000, // enabled
-                                        allocation: [])
-                            ]),
-                    Feature(
-                            key: "myKey",
-                            bucketBy: .single("userId"),
-                            variations: [],
-                            required: [.featureKey("requiredKey")],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [])]
-                    )]
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [],
+            segments: [],
+            features: [
+                Feature(
+                    key: "requiredKey",
+                    bucketBy: .single("userId"),
+                    variations: [],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,  // enabled
+                            allocation: []
+                        )
+                    ]
+                ),
+                Feature(
+                    key: "myKey",
+                    bucketBy: .single("userId"),
+                    variations: [],
+                    required: [.featureKey("requiredKey")],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: []
+                        )
+                    ]
+                ),
+            ]
         )
 
         // WHEN
@@ -418,40 +518,56 @@ class FeaturevisorInstanceTests: XCTestCase {
         // GIVEN
         var options: InstanceOptions = .default
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "1.0",
-                attributes: [],
-                segments: [],
-                features: [
-                    Feature(
-                            key: "requiredKey",
-                            bucketBy: .single("userId"),
-                            variations: [
-                                Variation(description: nil, value: "control", weight: nil, variables: nil),
-                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
-                            ],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [
-                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 0)),
-                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 100000))
-                                        ])
-                            ]),
-                    Feature(
-                            key: "myKey",
-                            bucketBy: .single("userId"),
-                            variations: [],
-                            required: [.withVariation(.init(key: "requiredKey", variation: "control"))], // different variation
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [])]
-                    )]
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [],
+            segments: [],
+            features: [
+                Feature(
+                    key: "requiredKey",
+                    bucketBy: .single("userId"),
+                    variations: [
+                        Variation(description: nil, value: "control", weight: nil, variables: nil),
+                        Variation(
+                            description: nil,
+                            value: "treatment",
+                            weight: nil,
+                            variables: nil
+                        ),
+                    ],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: [
+                                Allocation(
+                                    variation: "control",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 0)
+                                ),
+                                Allocation(
+                                    variation: "treatment",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 100000)
+                                ),
+                            ]
+                        )
+                    ]
+                ),
+                Feature(
+                    key: "myKey",
+                    bucketBy: .single("userId"),
+                    variations: [],
+                    required: [.withVariation(.init(key: "requiredKey", variation: "control"))],  // different variation
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: []
+                        )
+                    ]
+                ),
+            ]
         )
 
         // WHEN
@@ -467,40 +583,56 @@ class FeaturevisorInstanceTests: XCTestCase {
         // GIVEN
         var options: InstanceOptions = .default
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "1.0",
-                attributes: [],
-                segments: [],
-                features: [
-                    Feature(
-                            key: "requiredKey",
-                            bucketBy: .single("userId"),
-                            variations: [
-                                Variation(description: nil, value: "control", weight: nil, variables: nil),
-                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
-                            ],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [
-                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 0)),
-                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 100000))
-                                        ])
-                            ]),
-                    Feature(
-                            key: "myKey",
-                            bucketBy: .single("userId"),
-                            variations: [],
-                            required: [.withVariation(.init(key: "requiredKey", variation: "treatment"))], // desired variation
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [])]
-                    )]
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [],
+            segments: [],
+            features: [
+                Feature(
+                    key: "requiredKey",
+                    bucketBy: .single("userId"),
+                    variations: [
+                        Variation(description: nil, value: "control", weight: nil, variables: nil),
+                        Variation(
+                            description: nil,
+                            value: "treatment",
+                            weight: nil,
+                            variables: nil
+                        ),
+                    ],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: [
+                                Allocation(
+                                    variation: "control",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 0)
+                                ),
+                                Allocation(
+                                    variation: "treatment",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 100000)
+                                ),
+                            ]
+                        )
+                    ]
+                ),
+                Feature(
+                    key: "myKey",
+                    bucketBy: .single("userId"),
+                    variations: [],
+                    required: [.withVariation(.init(key: "requiredKey", variation: "treatment"))],  // desired variation
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: []
+                        )
+                    ]
+                ),
+            ]
         )
 
         // WHEN
@@ -516,48 +648,75 @@ class FeaturevisorInstanceTests: XCTestCase {
         var deprecatedCount = 0
         var options: InstanceOptions = .default
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "1.0",
-                attributes: [],
-                segments: [],
-                features: [
-                    Feature(
-                            key: "test",
-                            bucketBy: .single("userId"),
-                            variations: [
-                                Variation(description: nil, value: "control", weight: nil, variables: nil),
-                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
-                            ],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [
-                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 100000)),
-                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 0))
-                                        ])
-                            ]),
-                    Feature(
-                            key: "deprecatedTest",
-                            bucketBy: .single("userId"),
-                            deprecated: true,
-                            variations: [
-                                Variation(description: nil, value: "control", weight: nil, variables: nil),
-                                Variation(description: nil, value: "treatment", weight: nil, variables: nil)
-                            ],
-                            required: [],
-                            traffic: [
-                                Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [
-                                            Allocation(variation: "control", range: FeaturevisorTypes.Range(start: 0, end: 100000)),
-                                            Allocation(variation: "treatment", range: FeaturevisorTypes.Range(start: 0, end: 0))
-                                        ])
-                            ])
-                ])
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [],
+            segments: [],
+            features: [
+                Feature(
+                    key: "test",
+                    bucketBy: .single("userId"),
+                    variations: [
+                        Variation(description: nil, value: "control", weight: nil, variables: nil),
+                        Variation(
+                            description: nil,
+                            value: "treatment",
+                            weight: nil,
+                            variables: nil
+                        ),
+                    ],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: [
+                                Allocation(
+                                    variation: "control",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 100000)
+                                ),
+                                Allocation(
+                                    variation: "treatment",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 0)
+                                ),
+                            ]
+                        )
+                    ]
+                ),
+                Feature(
+                    key: "deprecatedTest",
+                    bucketBy: .single("userId"),
+                    deprecated: true,
+                    variations: [
+                        Variation(description: nil, value: "control", weight: nil, variables: nil),
+                        Variation(
+                            description: nil,
+                            value: "treatment",
+                            weight: nil,
+                            variables: nil
+                        ),
+                    ],
+                    required: [],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: [
+                                Allocation(
+                                    variation: "control",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 100000)
+                                ),
+                                Allocation(
+                                    variation: "treatment",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 0)
+                                ),
+                            ]
+                        )
+                    ]
+                ),
+            ]
+        )
 
         options.logger = createLogger { level, message, details in
             guard case .warn = level else {
@@ -571,8 +730,14 @@ class FeaturevisorInstanceTests: XCTestCase {
 
         // WHEN
         let sdk = try! createInstance(options: options)
-        let testVariation = sdk.getVariation(featureKey: "test", context: ["userId": .string("123")])
-        let deprecatedTestVariation = sdk.getVariation(featureKey: "deprecatedTest", context: ["userId": .string("123")])
+        let testVariation = sdk.getVariation(
+            featureKey: "test",
+            context: ["userId": .string("123")]
+        )
+        let deprecatedTestVariation = sdk.getVariation(
+            featureKey: "deprecatedTest",
+            context: ["userId": .string("123")]
+        )
 
         // THEN
         XCTAssertEqual(testVariation, "control")
@@ -590,8 +755,14 @@ class FeaturevisorInstanceTests: XCTestCase {
         let expectation: XCTestExpectation = expectation(description: "Expectation")
 
         MockURLProtocol.requestHandler = { request in
-            let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
-            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            let jsonString =
+                "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
             revision += 1
             return (response, jsonString.data(using: .utf8))
         }
@@ -599,13 +770,15 @@ class FeaturevisorInstanceTests: XCTestCase {
         var options: InstanceOptions = .default
         options.sessionConfiguration.protocolClasses = [MockURLProtocol.self]
         options.datafileUrl = "https://featurevisor-awesome-url.com/tags.json"
-        options.onRefresh = ({ _ in
-            refreshed = true
-        })
-        options.onUpdate = ({ _ in
-            updatedViaOption = true
-            expectation.fulfill()
-        })
+        options.onRefresh =
+            ({ _ in
+                refreshed = true
+            })
+        options.onUpdate =
+            ({ _ in
+                updatedViaOption = true
+                expectation.fulfill()
+            })
 
         // WHEN
         let sdk = try! createInstance(options: options)
@@ -617,7 +790,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         XCTAssertTrue(refreshed)
         XCTAssertTrue(updatedViaOption)
     }
-    
+
     func testShouldStartRefreshing() {
 
         // GIVEN
@@ -627,8 +800,14 @@ class FeaturevisorInstanceTests: XCTestCase {
         let expectedRefreshCount = 3
 
         MockURLProtocol.requestHandler = { request in
-            let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
-            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            let jsonString =
+                "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
             revision += 1
             return (response, jsonString.data(using: .utf8))
         }
@@ -637,9 +816,10 @@ class FeaturevisorInstanceTests: XCTestCase {
         options.sessionConfiguration.protocolClasses = [MockURLProtocol.self]
         options.refreshInterval = refreshInterval
         options.datafileUrl = "https://featurevisor-awesome-url.com/tags.json"
-        options.onRefresh = ({ _ in
-            refreshedCount += 1
-        })
+        options.onRefresh =
+            ({ _ in
+                refreshedCount += 1
+            })
 
         // WHEN
         let sdk = try! createInstance(options: options)
@@ -660,8 +840,14 @@ class FeaturevisorInstanceTests: XCTestCase {
         let refreshInterval = 1.0
 
         MockURLProtocol.requestHandler = { request in
-            let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
-            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            let jsonString =
+                "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
             revision += 1
             return (response, jsonString.data(using: .utf8))
         }
@@ -700,11 +886,14 @@ class FeaturevisorInstanceTests: XCTestCase {
             revision: "",
             attributes: [],
             segments: [],
-            features: [])
+            features: []
+        )
         let sdk = try! createInstance(options: options)
 
         // WHEN
-        sdk.setDatafile("{\"schemaVersion\":\"1\",\"revision\":\"0.0.66\",\"attributes\":[],\"segments\":[],\"features\":[]}")
+        sdk.setDatafile(
+            "{\"schemaVersion\":\"1\",\"revision\":\"0.0.66\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+        )
 
         // THEN
         XCTAssertEqual(sdk.getRevision(), "0.0.66")
@@ -718,7 +907,8 @@ class FeaturevisorInstanceTests: XCTestCase {
             revision: "0.0.66",
             attributes: [],
             segments: [],
-            features: [])
+            features: []
+        )
 
         var options = InstanceOptions.default
         options.datafile = DatafileContent(
@@ -726,7 +916,8 @@ class FeaturevisorInstanceTests: XCTestCase {
             revision: "",
             attributes: [],
             segments: [],
-            features: [])
+            features: []
+        )
         let sdk = try! createInstance(options: options)
 
         // WHEN
@@ -751,16 +942,19 @@ class FeaturevisorInstanceTests: XCTestCase {
             }
         }
         options.datafile = DatafileContent(
-                schemaVersion: "",
-                revision: "",
-                attributes: [],
-                segments: [],
-                features: [])
+            schemaVersion: "",
+            revision: "",
+            attributes: [],
+            segments: [],
+            features: []
+        )
 
         let sdk = try! createInstance(options: options)
 
         // WHEN
-        sdk.setDatafile("{\"schemaVersion\":1,\"revision\":\"0.0.66\", attributes:[],\"segments\":[],\"features\":[]}")
+        sdk.setDatafile(
+            "{\"schemaVersion\":1,\"revision\":\"0.0.66\", attributes:[],\"segments\":[],\"features\":[]}"
+        )
 
         // THEN
         XCTAssertEqual(errorCount, 1)
@@ -774,20 +968,22 @@ class FeaturevisorInstanceTests: XCTestCase {
         options.datafileUrl = "https://dazn.featurevisor.datafilecontent.com"
         options.handleDatafileFetch = { _ in
             let datafileContent = DatafileContent(
-                    schemaVersion: "2",
-                    revision: "6.6.6",
-                    attributes: [],
-                    segments: [],
-                    features: [])
+                schemaVersion: "2",
+                revision: "6.6.6",
+                attributes: [],
+                segments: [],
+                features: []
+            )
 
             return .success(datafileContent)
         }
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "0.0.1",
-                attributes: [],
-                segments: [],
-                features: [])
+            schemaVersion: "1",
+            revision: "0.0.1",
+            attributes: [],
+            segments: [],
+            features: []
+        )
 
         // WHEN
         let sdk = try! createInstance(options: options)
@@ -815,11 +1011,12 @@ class FeaturevisorInstanceTests: XCTestCase {
             }
         }
         options.datafile = DatafileContent(
-                schemaVersion: "1",
-                revision: "0.0.1",
-                attributes: [],
-                segments: [],
-                features: [])
+            schemaVersion: "1",
+            revision: "0.0.1",
+            attributes: [],
+            segments: [],
+            features: []
+        )
 
         // WHEN
         _ = try! createInstance(options: options)
