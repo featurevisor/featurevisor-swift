@@ -738,6 +738,7 @@ public struct ParsedFeature {
 ///
 public struct FeatureAssertion {
     public let description: String?
+    public let environment: EnvironmentKey
     public let at: Weight
     public let context: Context
     public let expectedToBeEnabled: Bool
@@ -746,7 +747,7 @@ public struct FeatureAssertion {
 }
 
 public struct TestFeature {
-    public let key: FeatureKey
+    public let feature: FeatureKey
     public let assertions: [FeatureAssertion]
 }
 
@@ -757,22 +758,11 @@ public struct SegmentAssertion {
 }
 
 public struct TestSegment {
-    public let key: SegmentKey
+    public let segment: SegmentKey
     public let assertions: [SegmentAssertion]
 }
 
-public struct Test {
-    public let description: String?
-
-    // needed for feature testing
-    public let tag: String?
-    public let environment: EnvironmentKey?
-    public let features: [TestFeature]?
-
-    // needed for segment testing
-    public let segments: [TestSegment]?
-}
-
-public struct Spec {
-    public let tests: [Test]
+public enum Test {
+    case feature(TestFeature)
+    case segment(TestSegment)
 }
