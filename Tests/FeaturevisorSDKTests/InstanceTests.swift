@@ -124,129 +124,116 @@ class FeaturevisorInstanceTests: XCTestCase {
             return
         }
         
-        func testCreateInstanceThrowsMissingDatafileOptionsError() {
-            
-            // GIVEN
-            let options = InstanceOptions.default
-            
-            // WHEN
-            XCTAssertThrowsError(try createInstance(options: options)) { error in
-                
-                // THEN
-                XCTAssertEqual(error as! FeaturevisorError, FeaturevisorError.missingDatafileOptions)
+    }
+
+    func testCreateInstanceThrowsInvalidURLError() {
+
+        // GIVEN
+        var options = InstanceOptions.default
+        options.datafileUrl = "hf://wrong url.com"
+
+        // WHEN
+        XCTAssertThrowsError(try createInstance(options: options)) { error in
+
+            MockURLProtocol.requestHandler = { request in
+                let jsonString =
+                "{\"schemaVersion\":\"1\",\"revision\":\"0.0.666\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+                let response = HTTPURLResponse(
+                    url: request.url!,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                )!
+                return (response, jsonString.data(using: .utf8))
             }
-            
-            //THEN
-            XCTAssertEqual(decodedDictionary as NSDictionary, expectedDictionary as NSDictionary)
+        }
+    }
+
+    func testCreateInstanceThrowsMissingDatafileOptionsError() {
+
+        // GIVEN
+        let options = InstanceOptions.default
+
+        // WHEN
+        XCTAssertThrowsError(try createInstance(options: options)) { error in
+
+            // THEN
+            XCTAssertEqual(error as! FeaturevisorError, FeaturevisorError.missingDatafileOptions)
+        }
+    }
+    
+    func testInitializationSuccessDatafileContentFetching() {
+        
+        // GIVEN
+
+        MockURLProtocol.requestHandler = { request in
+            let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"0.0.666\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, jsonString.data(using: .utf8))
         }
         
-        func testCreateInstanceThrowsInvalidURLError() {
-            
-            // GIVEN
-            var options = InstanceOptions.default
-            options.datafileUrl = "hf://wrong url.com"
-            
-            // WHEN
-            XCTAssertThrowsError(try createInstance(options: options)) { error in
-                
-                MockURLProtocol.requestHandler = { request in
-                    let jsonString =
-                    "{\"schemaVersion\":\"1\",\"revision\":\"0.0.666\",\"attributes\":[],\"segments\":[],\"features\":[]}"
-                    let response = HTTPURLResponse(
-                        url: request.url!,
-                        statusCode: 200,
-                        httpVersion: nil,
-                        headerFields: nil
-                    )!
-                    return (response, jsonString.data(using: .utf8))
-                }
-                
-                func testCreateInstanceThrowsMissingDatafileOptionsError() {
-                    
-                    // GIVEN
-                    let options = InstanceOptions.default
-                    
-                    // WHEN
-                    XCTAssertThrowsError(try createInstance(options: options)) { error in
-                        
-                        // THEN
-                        XCTAssertEqual(error as! FeaturevisorError, FeaturevisorError.missingDatafileOptions)
-                    }
-                }
-                
-                func testInitializationSuccessDatafileContentFetching() {
-                    
-                    // GIVEN
-                    let expectation: XCTestExpectation = expectation(description: "Expectation")
-                    
-                    MockURLProtocol.requestHandler = { request in
-                        let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"0.0.666\",\"attributes\":[],\"segments\":[],\"features\":[]}"
-                        let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-                        return (response, jsonString.data(using: .utf8))
-                    }
-                    
-                    // GIVEN
-                    let featureKey = "test"
-                    let context: Context = ["userId": .string("123")]
-                    var capturedBucketKey = ""
-                    
-                    var options: InstanceOptions = .default
-                    options.datafile = DatafileContent(
-                        schemaVersion: "1",
-                        revision: "1.0",
-                        attributes: [],
-                        segments: [],
-                        features: [
-                            Feature(
-                                key: "test",
-                                bucketBy: .single("userId"),
-                                variations: [
-                                    Variation(description: nil, value: "control", weight: nil, variables: nil),
-                                    Variation(
-                                        description: nil,
-                                        value: "treatment",
-                                        weight: nil,
-                                        variables: nil
-                                    ),
-                                ],
-                                traffic: [
-                                    Traffic(
-                                        key: "1",
-                                        segments: .plain("*"),
-                                        percentage: 100000,
-                                        allocation: [
-                                            Allocation(
-                                                variation: "control",
-                                                range: FeaturevisorTypes.Range(start: 0, end: 100000)
-                                            ),
-                                            Allocation(
-                                                variation: "treatment",
-                                                range: FeaturevisorTypes.Range(start: 0, end: 0)
-                                            ),
-                                        ]
-                                    )
-                                ]
-                            )
-                        ]
-                    )
-                    
-                    options.configureBucketKey =
-                    ({ feature, context, bucketKey in
-                        capturedBucketKey = bucketKey
-                        return bucketKey
-                    })
-                    
-                    let sdk = try! createInstance(options: options)
-                    
-                    // WHEN
-                    let isEnabled = sdk.isEnabled(featureKey: featureKey, context: context)
-                    let variation = sdk.getVariation(featureKey: featureKey, context: context)!
-                    
-                    // THEN
-                    XCTAssertTrue(isEnabled)
-                    XCTAssertEqual(variation, "control")
-                    XCTAssertEqual(capturedBucketKey, "123.test")
-                }
+        // GIVEN
+        let featureKey = "test"
+        let context: Context = ["userId": .string("123")]
+        var capturedBucketKey = ""
+        
+        var options: InstanceOptions = .default
+        options.datafile = DatafileContent(
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [],
+            segments: [],
+            features: [
+                Feature(
+                    key: "test",
+                    bucketBy: .single("userId"),
+                    variations: [
+                        Variation(description: nil, value: "control", weight: nil, variables: nil),
+                        Variation(
+                            description: nil,
+                            value: "treatment",
+                            weight: nil,
+                            variables: nil
+                        ),
+                    ],
+                    traffic: [
+                        Traffic(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: [
+                                Allocation(
+                                    variation: "control",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 100000)
+                                ),
+                                Allocation(
+                                    variation: "treatment",
+                                    range: FeaturevisorTypes.Range(start: 0, end: 0)
+                                ),
+                            ]
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        options.configureBucketKey =
+        ({ feature, context, bucketKey in
+            capturedBucketKey = bucketKey
+            return bucketKey
+        })
+        
+        let sdk = try! createInstance(options: options)
+        
+        // WHEN
+        let isEnabled = sdk.isEnabled(featureKey: featureKey, context: context)
+        let variation = sdk.getVariation(featureKey: featureKey, context: context)!
+        
+        // THEN
+        XCTAssertTrue(isEnabled)
+        XCTAssertEqual(variation, "control")
+        XCTAssertEqual(capturedBucketKey, "123.test")
+    }
                 
                 func testShouldConfigureAndBucketBy() {
                     
@@ -907,48 +894,49 @@ class FeaturevisorInstanceTests: XCTestCase {
                     XCTAssertTrue(updatedViaOption)
                 }
                 
-                func testShouldStartRefreshing() {
-                    
-                    // GIVEN
-                    var revision = 1
-                    var refreshedCount = 0
-                    let refreshInterval = 1.0
-                    let expectedRefreshCount = 3
-                    
-                    MockURLProtocol.requestHandler = { request in
-                        let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
-                        let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-                        revision += 1
-                        return (response, jsonString.data(using: .utf8))
-                    }
-                    
-                    var options: InstanceOptions = .default
-                    options.sessionConfiguration.protocolClasses = [MockURLProtocol.self]
-                    options.refreshInterval = refreshInterval
-                    options.datafileUrl = "https://featurevisor-awesome-url.com/tags.json"
-                    options.onRefresh = ({ _ in
-                        refreshedCount += 1
-                    })
-                    
-                    // WHEN
-                    let sdk = try! createInstance(options: options)
-                    
-                    while refreshedCount < expectedRefreshCount {
-                        Thread.sleep(forTimeInterval: 0.1)
-                    }
-                    
-                    MockURLProtocol.requestHandler = { request in
-                        let jsonString =
-                        "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
-                        let response = HTTPURLResponse(
-                            url: request.url!,
-                            statusCode: 200,
-                            httpVersion: nil,
-                            headerFields: nil
-                        )!
-                        revision += 1
-                        return (response, jsonString.data(using: .utf8))
-                    }
+func testShouldStartRefreshing() {
+    
+    // GIVEN
+    var revision = 1
+    var refreshedCount = 0
+    let refreshInterval = 1.0
+    let expectedRefreshCount = 3
+    
+    MockURLProtocol.requestHandler = { request in
+        let jsonString = "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+        let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+        revision += 1
+        return (response, jsonString.data(using: .utf8))
+    }
+    
+    var options: InstanceOptions = .default
+    options.sessionConfiguration.protocolClasses = [MockURLProtocol.self]
+    options.refreshInterval = refreshInterval
+    options.datafileUrl = "https://featurevisor-awesome-url.com/tags.json"
+    options.onRefresh = ({ _ in
+        refreshedCount += 1
+    })
+    
+    // WHEN
+    let sdk = try! createInstance(options: options)
+    
+    while refreshedCount < expectedRefreshCount {
+        Thread.sleep(forTimeInterval: 0.1)
+    }
+    
+    MockURLProtocol.requestHandler = { request in
+        let jsonString =
+        "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+        let response = HTTPURLResponse(
+            url: request.url!,
+            statusCode: 200,
+            httpVersion: nil,
+            headerFields: nil
+        )!
+        revision += 1
+        return (response, jsonString.data(using: .utf8))
+    }
+}
                     
                     func testShouldStopRefreshing() {
                         
@@ -1118,7 +1106,3 @@ class FeaturevisorInstanceTests: XCTestCase {
                         XCTAssertTrue(wasDatafileContentFetchErrorThrown)
                     }
                 }
-            }
-        }
-    }
-}
