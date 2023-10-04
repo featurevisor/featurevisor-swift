@@ -51,7 +51,7 @@ extension FeaturevisorInstance {
 
     public func startRefreshing() {
 
-        guard let datafileUrl else {
+        guard datafileUrl != nil else {
             logger.error("cannot start refreshing since `datafileUrl` is not provided")
             return
         }

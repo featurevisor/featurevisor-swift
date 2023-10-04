@@ -954,7 +954,7 @@ class FeaturevisorInstanceTests: XCTestCase {
             })
 
         // WHEN
-        let sdk = try! createInstance(options: options)
+        let sdk = (try? createInstance(options: options)) ?? nil
 
         while refreshedCount < expectedRefreshCount {
             Thread.sleep(forTimeInterval: 0.1)
