@@ -16,57 +16,67 @@ extension FeaturevisorInstanceTests {
         }
 
         let variable = Variable(
-                key: "hero",
-                value: .object([
-                    "title": .string("Hero Title for B"),
-                    "subtitle": .string("Hero Subtitle for B"),
-                    "score": .integer(10)
-                ]),
-                overrides: nil)
+            key: "hero",
+            value: .object([
+                "title": .string("Hero Title for B"),
+                "subtitle": .string("Hero Subtitle for B"),
+                "score": .integer(10),
+            ]),
+            overrides: nil
+        )
 
         let variation = Variation(
-                description: nil,
-                value: "control",
-                weight: 33.34,
-                variables: [variable])
+            description: nil,
+            value: "control",
+            weight: 33.34,
+            variables: [variable]
+        )
 
         let allocation = Allocation(
-                variation: "control",
-                range: Range(start: 0, end: 33340))
+            variation: "control",
+            range: Range(start: 0, end: 33340)
+        )
 
         let traffic = Traffic(
-                key: "1",
-                segments: .plain("*"),
-                percentage: 100000,
-                allocation: [allocation])
+            key: "1",
+            segments: .plain("*"),
+            percentage: 100000,
+            allocation: [allocation]
+        )
 
         let variableSchema = VariableSchema(
-                key: "hero",
-                type: .object,
-                defaultValue: .object([
-                    "title": .string("Hero Title for B"),
-                    "subtitle": .string("Hero Subtitle for B"),
-                    "score": .integer(10)])
+            key: "hero",
+            type: .object,
+            defaultValue: .object([
+                "title": .string("Hero Title for B"),
+                "subtitle": .string("Hero Subtitle for B"),
+                "score": .integer(10),
+            ])
         )
 
         let feature = Feature(
-                key: "e_bar",
-                bucketBy: .single("userId"),
-                variablesSchema: [variableSchema],
-                variations: [variation],
-                traffic: [traffic])
+            key: "e_bar",
+            bucketBy: .single("userId"),
+            variablesSchema: [variableSchema],
+            variations: [variation],
+            traffic: [traffic]
+        )
 
         let segment = Segment(
-                key: "*",
-                conditions: .plain(PlainCondition(attribute: "chapter", operator: .equals, value: .string("account"))),
-                archived: nil)
+            key: "*",
+            conditions: .plain(
+                PlainCondition(attribute: "chapter", operator: .equals, value: .string("account"))
+            ),
+            archived: nil
+        )
 
         let datafileContent = DatafileContent(
-                schemaVersion: "1.0",
-                revision: "0.0.1",
-                attributes: [],
-                segments: [segment],
-                features: [feature])
+            schemaVersion: "1.0",
+            revision: "0.0.1",
+            attributes: [],
+            segments: [segment],
+            features: [feature]
+        )
 
         var options = InstanceOptions.default
         options.datafile = datafileContent
@@ -75,9 +85,10 @@ extension FeaturevisorInstanceTests {
 
         // WHEN
         let object: CustomObject = sdk.getVariableObject(
-                featureKey: "e_bar",
-                variableKey: "hero",
-                context: [:])!
+            featureKey: "e_bar",
+            variableKey: "hero",
+            context: [:]
+        )!
 
         // THEN
         XCTAssertEqual(object.title, "Hero Title for B")

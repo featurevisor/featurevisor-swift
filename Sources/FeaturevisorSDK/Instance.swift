@@ -147,23 +147,23 @@ let emptyDatafile = DatafileContent(
 
 public class FeaturevisorInstance {
     // from options
-    private var bucketKeySeparator: String
-    private var configureBucketKey: ConfigureBucketKey?
-    private var configureBucketValue: ConfigureBucketValue?
-    private var datafileUrl: String?
-    private var handleDatafileFetch: DatafileFetchHandler?
-    private var initialFeatures: InitialFeatures?
-    private var interceptContext: InterceptContext?
-    private var logger: Logger
-    private var refreshInterval: TimeInterval?  // seconds
-    private var stickyFeatures: StickyFeatures?
+    internal var datafileUrl: String?
+    internal var handleDatafileFetch: DatafileFetchHandler?
+    internal var refreshInterval: TimeInterval?  // seconds
+    internal var bucketKeySeparator: String
+    internal var configureBucketValue: ConfigureBucketValue?
+    internal var configureBucketKey: ConfigureBucketKey?
+    internal var initialFeatures: InitialFeatures?
+    internal var interceptContext: InterceptContext?
+    internal var logger: Logger
+    internal var stickyFeatures: StickyFeatures?
 
     // internally created
-    private var datafileReader: DatafileReader
-    private var emitter: Emitter
-    private var statuses: Statuses
+    internal var timer: Timer?
+    internal var datafileReader: DatafileReader
+    internal var emitter: Emitter
+    internal var statuses: Statuses
     internal var urlSession: URLSession
-    private var timer: Timer?
 
     // exposed from emitter
     public var on: ((EventName, @escaping Listener) -> Void)?
@@ -218,7 +218,8 @@ public class FeaturevisorInstance {
         if let datafileUrl = options.datafileUrl {
             datafileReader = DatafileReader(datafileContent: options.datafile ?? emptyDatafile)
 
-            try fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) { [weak self] result in
+            try fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) {
+                [weak self] result in
                 switch result {
                     case .success(let datafileContent):
                         self?.datafileReader = DatafileReader(datafileContent: datafileContent)
@@ -233,12 +234,14 @@ public class FeaturevisorInstance {
                         self?.logger.error("Failed to fetch datafile: \(error)")
                 }
             }
-        } else if let datafile = options.datafile {
+        }
+        else if let datafile = options.datafile {
             datafileReader = DatafileReader(datafileContent: datafile)
             statuses.ready = true
 
             emitter.emit(EventName.ready)
-        } else {
+        }
+        else {
             throw FeaturevisorError.missingDatafileOptions
         }
     }
@@ -253,7 +256,8 @@ public class FeaturevisorInstance {
         do {
             let datafileContent = try JSONDecoder().decode(DatafileContent.self, from: data)
             datafileReader = DatafileReader(datafileContent: datafileContent)
-        } catch {
+        }
+        catch {
             logger.error("could not parse datafile", ["error": error])
         }
     }
