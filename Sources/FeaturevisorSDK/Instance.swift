@@ -78,7 +78,8 @@ public struct Evaluation: Codable {
         variationValue: VariationValue? = nil,
         variableKey: VariableKey? = nil,
         variableValue: VariableValue? = nil,
-        variableSchema: VariableSchema? = nil) {
+        variableSchema: VariableSchema? = nil
+    ) {
 
         self.featureKey = featureKey
         self.reason = reason
@@ -117,7 +118,8 @@ public struct Evaluation: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
         featureKey = try container.decode(FeatureKey.self, forKey: .featureKey)
-        reason = try EvaluationReason(rawValue: container.decode(String.self, forKey: .reason)) ?? .error
+        reason =
+            try EvaluationReason(rawValue: container.decode(String.self, forKey: .reason)) ?? .error
         bucketValue = try container.decodeIfPresent(BucketValue.self, forKey: .bucketValue)
         ruleKey = try? container.decodeIfPresent(RuleKey.self, forKey: .ruleKey)
         enabled = try? container.decodeIfPresent(Bool.self, forKey: .enabled)
@@ -125,15 +127,22 @@ public struct Evaluation: Codable {
         sticky = try? container.decodeIfPresent(OverrideFeature.self, forKey: .sticky)
         initial = try? container.decodeIfPresent(OverrideFeature.self, forKey: .initial)
         variation = try? container.decodeIfPresent(Variation.self, forKey: .variation)
-        variationValue = try? container.decodeIfPresent(VariationValue.self, forKey: .variationValue)
+        variationValue = try? container.decodeIfPresent(
+            VariationValue.self,
+            forKey: .variationValue
+        )
         variableKey = try? container.decodeIfPresent(VariableKey.self, forKey: .variableKey)
         variableValue = try? container.decodeIfPresent(VariableValue.self, forKey: .variableValue)
-        variableSchema = try? container.decodeIfPresent(VariableSchema.self, forKey: .variableSchema)
+        variableSchema = try? container.decodeIfPresent(
+            VariableSchema.self,
+            forKey: .variableSchema
+        )
     }
 
     func toDictionary() -> [String: Any] {
         guard let data = try? JSONEncoder().encode(self) else { return [:] }
-        return (try? JSONSerialization.jsonObject(with: data, options: .allowFragments)).flatMap { $0 as? [String: Any]} ?? [:]
+        return (try? JSONSerialization.jsonObject(with: data, options: .allowFragments))
+            .flatMap { $0 as? [String: Any] } ?? [:]
     }
 }
 
