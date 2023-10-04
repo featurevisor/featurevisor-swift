@@ -78,8 +78,8 @@ public struct Evaluation: Codable {
         variationValue: VariationValue? = nil,
         variableKey: VariableKey? = nil,
         variableValue: VariableValue? = nil,
-        variableSchema: VariableSchema? = nil
-    ) {
+        variableSchema: VariableSchema? = nil) {
+
         self.featureKey = featureKey
         self.reason = reason
         self.bucketValue = bucketValue
@@ -100,17 +100,17 @@ public struct Evaluation: Codable {
 
         try container.encode(featureKey, forKey: .featureKey)
         try container.encode(reason.rawValue, forKey: .reason)
-        try container.encode(bucketValue, forKey: .bucketValue)
-        try container.encode(ruleKey, forKey: .ruleKey)
-        try container.encode(enabled, forKey: .enabled)
-        try container.encode(traffic, forKey: .traffic)
-        try container.encode(sticky, forKey: .sticky)
-        try container.encode(initial, forKey: .initial)
-        try container.encode(variation, forKey: .variation)
-        try container.encode(variationValue, forKey: .variationValue)
-        try container.encode(variableKey, forKey: .variableKey)
-        try container.encode(variableValue, forKey: .variableValue)
-        try container.encode(variableSchema, forKey: .variableSchema)
+        try container.encodeIfPresent(bucketValue, forKey: .bucketValue)
+        try container.encodeIfPresent(ruleKey, forKey: .ruleKey)
+        try container.encodeIfPresent(enabled, forKey: .enabled)
+        try container.encodeIfPresent(traffic, forKey: .traffic)
+        try container.encodeIfPresent(sticky, forKey: .sticky)
+        try container.encodeIfPresent(initial, forKey: .initial)
+        try container.encodeIfPresent(variation, forKey: .variation)
+        try container.encodeIfPresent(variationValue, forKey: .variationValue)
+        try container.encodeIfPresent(variableKey, forKey: .variableKey)
+        try container.encodeIfPresent(variableValue, forKey: .variableValue)
+        try container.encodeIfPresent(variableSchema, forKey: .variableSchema)
     }
 
     public init(from decoder: Decoder) throws {
