@@ -5,6 +5,138 @@ import XCTest
 
 class FeaturevisorInstanceTests: XCTestCase {
 
+    func testEncodingEvaluationWithNilValuesReturnsValidDatafileContent() throws {
+
+        //GIVEN
+        let evaluation = Evaluation(
+            featureKey: "feature123",
+            reason: .allocated
+        )
+
+        let encoder = JSONEncoder()
+        let jsonData = try encoder.encode(evaluation)
+
+        //WHEN
+        guard
+            let decodedDictionary = try JSONSerialization.jsonObject(with: jsonData, options: [])
+                as? [String: Any]
+        else {
+            XCTFail("Failed to decode JSON to a dictionary.")
+            return
+        }
+        //THEN
+        let expectedDictionary: [String: Any] = [
+            "featureKey": "feature123",
+            "reason": "allocated",
+        ]
+
+        XCTAssertEqual(decodedDictionary as NSDictionary, expectedDictionary as NSDictionary)
+    }
+
+    func testEncodeEvaluationReturnsValidDatafileContent() throws {
+
+        //GIVEN
+        let traffic = Traffic(
+            key: "key",
+            segments: .plain("segment"),
+            percentage: 13,
+            allocation: []
+        )
+        let overrideFeature = OverrideFeature(
+            enabled: false,
+            variation: "variation",
+            variables: [:]
+        )
+        let variation = Variation(
+            description: "description",
+            value: "value",
+            weight: 3,
+            variables: []
+        )
+        let variableSchema = VariableSchema(
+            key: "key",
+            type: .object,
+            defaultValue: .object(["": .boolean(false)])
+        )
+
+        let evaluation = Evaluation(
+            featureKey: "feature123",
+            reason: .allocated,
+            bucketValue: 42,
+            ruleKey: "rule456",
+            enabled: true,
+            traffic: traffic,
+            sticky: overrideFeature,
+            initial: overrideFeature,
+            variation: variation,
+            variationValue: "value",
+            variableKey: "color",
+            variableValue: .string(""),
+            variableSchema: variableSchema
+        )
+
+        let encoder = JSONEncoder()
+        let jsonData = try encoder.encode(evaluation)
+
+        //WHEN
+        guard
+            let decodedDictionary = try JSONSerialization.jsonObject(with: jsonData, options: [])
+                as? [String: Any]
+        else {
+            XCTFail("Failed to decode JSON to a dictionary.")
+            return
+        }
+
+        //THEN
+        let expectedTraffic: [String: Any] = [
+            "allocation": [Any](),
+            "key": "key",
+            "percentage": 13,
+            "segments": [
+                "plain": [
+                    "_0": "segment"
+                ]
+            ],
+        ]
+
+        let expectedOverrideFeature: [String: Any] = [
+            "enabled": false,
+            "variables": [String: Any](),
+            "variation": "variation",
+        ]
+
+        let expectedVariation: [String: Any] = [
+            "description": "description",
+            "value": "value",
+            "variables": [Any](),
+            "weight": 3,
+        ]
+
+        let expectedVariableSchema: [String: Any] = [
+            "key": "key",
+            "defaultValue": ["": 0],
+            "type": "object",
+        ]
+
+        let expectedDictionary: [String: Any] = [
+            "featureKey": "feature123",
+            "reason": "allocated",
+            "bucketValue": 42,
+            "ruleKey": "rule456",
+            "enabled": true,
+            "traffic": expectedTraffic,
+            "sticky": expectedOverrideFeature,
+            "initial": expectedOverrideFeature,
+            "variation": expectedVariation,
+            "variationValue": "value",
+            "variableKey": "color",
+            "variableValue": "",
+            "variableSchema": expectedVariableSchema,
+        ]
+
+        XCTAssertEqual(decodedDictionary as NSDictionary, expectedDictionary as NSDictionary)
+    }
+
     func testCreateInstanceThrowsInvalidURLError() {
 
         // GIVEN
