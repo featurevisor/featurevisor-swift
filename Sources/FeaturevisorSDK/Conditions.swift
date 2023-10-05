@@ -1,6 +1,62 @@
 import FeaturevisorTypes
 import Foundation
 
+struct Semver {
+    let version: String
+    let major: Int
+    let minor: Int
+    let patch: Int
+
+    init(_ version: String) {
+        self.version = version
+        let components = version.components(separatedBy: ".")
+        major = Int(components[0]) ?? 0
+        minor = components.count > 1 ? Int(components[1]) ?? 0 : 0
+        patch = components.count > 2 ? Int(components[2]) ?? 0 : 0
+    }
+
+    static func == (lhs: Semver, rhs: Semver) -> Bool {
+        return lhs.major == rhs.major && lhs.minor == rhs.minor && lhs.patch == rhs.patch
+    }
+
+    static func != (lhs: Semver, rhs: Semver) -> Bool {
+        return !(lhs == rhs)
+    }
+
+    static func > (lhs: Semver, rhs: Semver) -> Bool {
+        if lhs.major > rhs.major {
+            return true
+        }
+        else if lhs.major < rhs.major {
+            return false
+        }
+        else if lhs.minor > rhs.minor {
+            return true
+        }
+        else if lhs.minor < rhs.minor {
+            return false
+        }
+        else if lhs.patch > rhs.patch {
+            return true
+        }
+        else {
+            return false
+        }
+    }
+
+    static func >= (lhs: Semver, rhs: Semver) -> Bool {
+        return lhs == rhs || lhs > rhs
+    }
+
+    static func < (lhs: Semver, rhs: Semver) -> Bool {
+        return !(lhs >= rhs)
+    }
+
+    static func <= (lhs: Semver, rhs: Semver) -> Bool {
+        return !(lhs > rhs)
+    }
+}
+
 func parseDateFromString(dateString: String) -> Date? {
     let dateFormatter = ISO8601DateFormatter()
     dateFormatter.formatOptions = [.withInternetDateTime]
@@ -34,29 +90,26 @@ public func conditionIsMatched(condition: PlainCondition, context: Context) -> B
         // string, string
         case let (.string(valueInAttributes), .string(valueInCondition)):
             if String(op.rawValue).starts(with: "semver") {
-                // @TODO: handle semver comparisons here
 
-                // let semverInAttributes = Semver(valueInAttributes)
-                // let semverInCondition = Semver(valueInCondition)
+                let semverInAttributes = Semver(valueInAttributes)
+                let semverInCondition = Semver(valueInCondition)
 
-                // switch op {
-                //   case .semverEquals:
-                //     return semverInAttributes == semverInCondition
-                //   case .semverNotEquals:
-                //     return semverInAttributes != semverInCondition
-                //   case .semverGreaterThan:
-                //     return semverInAttributes > semverInCondition
-                //   case .semverGreaterThanOrEquals:
-                //     return semverInAttributes >= semverInCondition
-                //   case .semverLessThan:
-                //     return semverInAttributes < semverInCondition
-                //   case .semverLessThanOrEquals:
-                //     return semverInAttributes <= semverInCondition
-                //   default:
-                //     return false
-                // }
-
-                return false
+                switch op {
+                    case .semverEquals:
+                        return semverInAttributes == semverInCondition
+                    case .semverNotEquals:
+                        return semverInAttributes != semverInCondition
+                    case .semverGreaterThan:
+                        return semverInAttributes > semverInCondition
+                    case .semverGreaterThanOrEquals:
+                        return semverInAttributes >= semverInCondition
+                    case .semverLessThan:
+                        return semverInAttributes < semverInCondition
+                    case .semverLessThanOrEquals:
+                        return semverInAttributes <= semverInCondition
+                    default:
+                        return false
+                }
             }
 
             switch op {
