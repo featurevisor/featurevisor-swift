@@ -651,19 +651,3 @@ extension FeaturevisorInstance {
         return value
     }
 }
-
-extension FeaturevisorInstance {
-
-    func toDictionary(_ evaluation: Evaluation) -> [String: Any] {
-
-        var dictionary = [String: Any]()
-        let mirror = Mirror(reflecting: self)
-
-        for child in mirror.children {
-            if let key = child.label {
-                dictionary[key] = child.value
-            }
-        }
-        return dictionary
-    }
-}
