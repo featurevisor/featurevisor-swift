@@ -19,8 +19,9 @@ extension FeaturevisorInstance {
 
         statuses.refreshInProgress = true
 
-        try? fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) {
-            [weak self] result in
+        try? fetchDatafileContent(
+            from: datafileUrl,
+            handleDatafileFetch: handleDatafileFetch) { [weak self] result in
             guard let self else {
                 return
             }
@@ -51,7 +52,7 @@ extension FeaturevisorInstance {
 
     public func startRefreshing() {
 
-        guard let datafileUrl else {
+        guard datafileUrl != nil else {
             logger.error("cannot start refreshing since `datafileUrl` is not provided")
             return
         }

@@ -961,6 +961,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         }
 
         // THEN
+        XCTAssertEqual(sdk.getRevision(), "4")
         XCTAssertEqual(refreshedCount, expectedRefreshCount)
     }
 
