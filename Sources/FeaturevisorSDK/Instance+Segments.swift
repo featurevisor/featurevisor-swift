@@ -80,6 +80,5 @@ extension FeaturevisorInstance {
                     )
                 }
         }
-
     }
 }

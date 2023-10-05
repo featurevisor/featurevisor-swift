@@ -50,13 +50,13 @@ final class FeaturevisorTypesTests: XCTestCase {
         XCTAssertEqual(feature1.traffic.count, 2)
         XCTAssertEqual(feature1.force.count, 1)
 
-        let variation = feature1.variations[0]
-        XCTAssertEqual(variation.value, "control")
-        XCTAssertNil(variation.description)
-        XCTAssertEqual(variation.weight, 33.34)
-        XCTAssertEqual(variation.variables!.count, 1)
+        let variation11 = feature1.variations[0]
+        XCTAssertEqual(variation11.value, "control")
+        XCTAssertNil(variation11.description)
+        XCTAssertEqual(variation11.weight, 33.34)
+        XCTAssertEqual(variation11.variables!.count, 1)
 
-        let variable11 = variation.variables![0]
+        let variable11 = variation11.variables![0]
         XCTAssertEqual(variable11.key, "hero")
         XCTAssertEqual(
             variable11.value,

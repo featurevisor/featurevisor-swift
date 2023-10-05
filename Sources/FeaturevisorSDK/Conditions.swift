@@ -99,20 +99,27 @@ public func conditionIsMatched(condition: PlainCondition, context: Context) -> B
             }
 
         // date, string
-        case (.date(let dateInAttributes), .string(let valueInCondition)):
+        case (.date(let valueInAttributes), .string(let valueInCondition)):
             switch op {
                 case .before:
+                    let dateInAttributes = valueInAttributes
                     let dateInCondition = parseDateFromString(dateString: valueInCondition)
+
                     if let dateInCondition = dateInCondition {
                         return dateInAttributes < dateInCondition
                     }
+
                     return false
                 case .after:
+                    let dateInAttributes = valueInAttributes
                     let dateInCondition = parseDateFromString(dateString: valueInCondition)
+
                     if let dateInCondition = dateInCondition {
                         return dateInAttributes > dateInCondition
                     }
+
                     return false
+
                 default:
                     return false
             }
