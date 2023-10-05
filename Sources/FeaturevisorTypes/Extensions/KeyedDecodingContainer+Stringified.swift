@@ -26,7 +26,8 @@ extension KeyedDecodingContainer {
 
     func decodeStringifiedIfPresent<T>(
         _ type: T.Type,
-        forKey key: KeyedDecodingContainer<K>.Key) throws -> T? where T: Decodable {
+        forKey key: KeyedDecodingContainer<K>.Key
+    ) throws -> T? where T: Decodable {
 
         guard self.contains(key) else {
             return nil
