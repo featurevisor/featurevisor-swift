@@ -24,24 +24,13 @@ struct Semver {
     }
 
     static func > (lhs: Semver, rhs: Semver) -> Bool {
-        if lhs.major > rhs.major {
-            return true
+        if lhs.major != rhs.major {
+            return lhs.major > rhs.major
         }
-        else if lhs.major < rhs.major {
-            return false
+        if lhs.minor != rhs.minor {
+            return lhs.minor > rhs.minor
         }
-        else if lhs.minor > rhs.minor {
-            return true
-        }
-        else if lhs.minor < rhs.minor {
-            return false
-        }
-        else if lhs.patch > rhs.patch {
-            return true
-        }
-        else {
-            return false
-        }
+        return lhs.patch > rhs.patch
     }
 
     static func >= (lhs: Semver, rhs: Semver) -> Bool {
