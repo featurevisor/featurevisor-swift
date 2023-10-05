@@ -19,8 +19,9 @@ extension FeaturevisorInstance {
 
         statuses.refreshInProgress = true
 
-        try? fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) {
-            [weak self] result in
+        try? fetchDatafileContent(
+            from: datafileUrl,
+            handleDatafileFetch: handleDatafileFetch) { [weak self] result in
             guard let self else {
                 return
             }

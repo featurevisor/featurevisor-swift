@@ -954,13 +954,14 @@ class FeaturevisorInstanceTests: XCTestCase {
             })
 
         // WHEN
-        let sdk = (try? createInstance(options: options)) ?? nil
+        let sdk = try! createInstance(options: options)
 
         while refreshedCount < expectedRefreshCount {
             Thread.sleep(forTimeInterval: 0.1)
         }
 
         // THEN
+        XCTAssertEqual(sdk.getRevision(), "4")
         XCTAssertEqual(refreshedCount, expectedRefreshCount)
     }
 

@@ -227,8 +227,9 @@ public class FeaturevisorInstance {
         if let datafileUrl = options.datafileUrl {
             datafileReader = DatafileReader(datafileContent: options.datafile ?? emptyDatafile)
 
-            try fetchDatafileContent(from: datafileUrl, handleDatafileFetch: handleDatafileFetch) {
-                [weak self] result in
+            try fetchDatafileContent(
+                from: datafileUrl,
+                handleDatafileFetch: handleDatafileFetch) { [weak self] result in
                 switch result {
                     case .success(let datafileContent):
                         self?.datafileReader = DatafileReader(datafileContent: datafileContent)
