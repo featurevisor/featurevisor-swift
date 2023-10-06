@@ -1,7 +1,7 @@
 import FeaturevisorTypes
 import Foundation
 
-struct Semver {
+struct Semver: Equatable {
     let version: String
     let major: Int
     let minor: Int
