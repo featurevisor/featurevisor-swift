@@ -689,7 +689,14 @@ class FeaturevisorInstanceTests: XCTestCase {
                     key: "myKey",
                     bucketBy: .single("userId"),
                     variations: [],
-                    required: [.withVariation(.init(key: "requiredKey", variation: "control"))],  // different variation
+                    required: [
+                        .withVariation(
+                            .init(
+                                key: "requiredKey",
+                                variation: "control"
+                            )
+                        )
+                    ],  // different variation
                     traffic: [
                         Traffic(
                             key: "1",
@@ -754,7 +761,14 @@ class FeaturevisorInstanceTests: XCTestCase {
                     key: "myKey",
                     bucketBy: .single("userId"),
                     variations: [],
-                    required: [.withVariation(.init(key: "requiredKey", variation: "treatment"))],  // desired variation
+                    required: [
+                        .withVariation(
+                            .init(
+                                key: "requiredKey",
+                                variation: "treatment"
+                            )
+                        )
+                    ],  // desired variation
                     traffic: [
                         Traffic(
                             key: "1",

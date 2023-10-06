@@ -21,7 +21,7 @@ public func conditionIsMatched(condition: PlainCondition, context: Context) -> B
 
     switch (valueInAttributes, valueInCondition) {
         // boolean, boolean
-        case let (.boolean(valueInAttributes), .boolean(valueInCondition)):
+        case (.boolean(let valueInAttributes), .boolean(let valueInCondition)):
             switch op {
                 case .equals:
                     return valueInAttributes == valueInCondition
@@ -32,7 +32,7 @@ public func conditionIsMatched(condition: PlainCondition, context: Context) -> B
             }
 
         // string, string
-        case let (.string(valueInAttributes), .string(valueInCondition)):
+        case (.string(let valueInAttributes), .string(let valueInCondition)):
             if String(op.rawValue).starts(with: "semver") {
                 // @TODO: handle semver comparisons here
 
@@ -99,7 +99,7 @@ public func conditionIsMatched(condition: PlainCondition, context: Context) -> B
             }
 
         // date, string
-        case let (.date(valueInAttributes), .string(valueInCondition)):
+        case (.date(let valueInAttributes), .string(let valueInCondition)):
             switch op {
                 case .before:
                     let dateInAttributes = valueInAttributes
@@ -125,7 +125,7 @@ public func conditionIsMatched(condition: PlainCondition, context: Context) -> B
             }
 
         // integer, integer
-        case let (.integer(valueInAttributes), .integer(valueInCondition)):
+        case (.integer(let valueInAttributes), .integer(let valueInCondition)):
             switch op {
                 case .equals:
                     return valueInAttributes == valueInCondition
@@ -144,7 +144,7 @@ public func conditionIsMatched(condition: PlainCondition, context: Context) -> B
             }
 
         // double, double
-        case let (.double(valueInAttributes), .double(valueInCondition)):
+        case (.double(let valueInAttributes), .double(let valueInCondition)):
             switch op {
                 case .equals:
                     return valueInAttributes == valueInCondition
@@ -170,25 +170,25 @@ public func conditionIsMatched(condition: PlainCondition, context: Context) -> B
 
 public func allConditionsAreMatched(condition: Condition, context: Context) -> Bool {
     switch condition {
-        case let .plain(condition):
+        case .plain(let condition):
             return conditionIsMatched(condition: condition, context: context)
 
-        case let .multiple(condition):
+        case .multiple(let condition):
             return condition.allSatisfy { condition in
                 allConditionsAreMatched(condition: condition, context: context)
             }
 
-        case let .and(condition):
+        case .and(let condition):
             return condition.and.allSatisfy { condition in
                 allConditionsAreMatched(condition: condition, context: context)
             }
 
-        case let .or(condition):
+        case .or(let condition):
             return condition.or.contains { condition in
                 allConditionsAreMatched(condition: condition, context: context)
             }
 
-        case let .not(condition):
+        case .not(let condition):
             return !condition.not.allSatisfy { condition in
                 allConditionsAreMatched(condition: condition, context: context)
             }

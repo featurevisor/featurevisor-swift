@@ -21,7 +21,8 @@ extension FeaturevisorInstance {
 
         try? fetchDatafileContent(
             from: datafileUrl,
-            handleDatafileFetch: handleDatafileFetch) { [weak self] result in
+            handleDatafileFetch: handleDatafileFetch
+        ) { [weak self] result in
             guard let self else {
                 return
             }
