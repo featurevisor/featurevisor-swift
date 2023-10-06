@@ -214,4 +214,74 @@ class ConditionsTests: XCTestCase {
         XCTAssertEqual(semver.minor, 0)
         XCTAssertEqual(semver.patch, 0)
     }
+
+    func testAllConditionsAreMatchedPlain() {
+        let condition = Condition.plain(
+            PlainCondition(attribute: "name", operator: .equals, value: .string("John"))
+        )
+        var context = Context()
+        context["name"] = .string("John")
+
+        XCTAssertTrue(allConditionsAreMatched(condition: condition, context: context))
+    }
+
+    func testAllConditionsAreMatchedMultiple() {
+        let conditions: [Condition] = [
+            .plain(PlainCondition(attribute: "age", operator: .greaterThan, value: .integer(25))),
+            .plain(PlainCondition(attribute: "name", operator: .equals, value: .string("John"))),
+        ]
+        var context = Context()
+        context["age"] = .integer(30)
+        context["name"] = .string("John")
+
+        XCTAssertTrue(allConditionsAreMatched(condition: .multiple(conditions), context: context))
+    }
+
+    func testAllConditionsAreMatchedAnd() {
+        let conditions: [Condition] = [
+            .plain(PlainCondition(attribute: "age", operator: .greaterThan, value: .integer(25))),
+            .plain(PlainCondition(attribute: "name", operator: .equals, value: .string("John"))),
+        ]
+        var context = Context()
+        context["age"] = .integer(30)
+        context["name"] = .string("John")
+
+        XCTAssertTrue(
+            allConditionsAreMatched(
+                condition: .and(AndCondition(and: conditions)),
+                context: context
+            )
+        )
+    }
+
+    func testAllConditionsAreMatchedOr() {
+        let conditions: [Condition] = [
+            .plain(PlainCondition(attribute: "age", operator: .greaterThan, value: .integer(25))),
+            .plain(PlainCondition(attribute: "name", operator: .equals, value: .string("John"))),
+        ]
+        var context = Context()
+        context["age"] = .integer(30)
+        context["name"] = .string("Jane")
+
+        XCTAssertTrue(
+            allConditionsAreMatched(condition: .or(OrCondition(or: conditions)), context: context)
+        )
+    }
+
+    func testAllConditionsAreMatchedNot() {
+        let conditions: [Condition] = [
+            .plain(PlainCondition(attribute: "age", operator: .greaterThan, value: .integer(25))),
+            .plain(PlainCondition(attribute: "name", operator: .equals, value: .string("John"))),
+        ]
+        var context = Context()
+        context["age"] = .integer(30)
+        context["name"] = .string("Jane")
+
+        XCTAssertTrue(
+            allConditionsAreMatched(
+                condition: .not(NotCondition(not: conditions)),
+                context: context
+            )
+        )
+    }
 }
