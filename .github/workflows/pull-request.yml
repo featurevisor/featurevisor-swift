@@ -17,6 +17,12 @@ jobs:
     - uses: swift-actions/setup-swift@65540b95f51493d65f5e59e97dcef9629ddf11bf
       with:
         swift-version: "5.8"
+    - name: Install swift-format tool
+      run: brew install swift-format
+    - name: Swift-format linting Sources directory
+      run: swift-format lint -s -r ./Sources
+    - name: Swift-format linting Tests directory
+      run: swift-format lint -s -r ./Tests
     - name: Build
       run: swift build -v
     - name: Run unit tests

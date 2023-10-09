@@ -33,7 +33,7 @@ extension FeaturevisorInstance {
     ) -> Bool {
 
         switch groupSegments {
-            case let .plain(segmentKey):
+            case .plain(let segmentKey):
                 if segmentKey == "*" {
                     return true
                 }
@@ -44,7 +44,7 @@ extension FeaturevisorInstance {
 
                 return false
 
-            case let .multiple(groupSegments):
+            case .multiple(let groupSegments):
                 return groupSegments.allSatisfy { groupSegment in
                     allGroupSegmentsAreMatched(
                         groupSegments: groupSegment,
@@ -53,7 +53,7 @@ extension FeaturevisorInstance {
                     )
                 }
 
-            case let .and(andGroupSegment):
+            case .and(let andGroupSegment):
                 return andGroupSegment.and.allSatisfy { groupSegment in
                     allGroupSegmentsAreMatched(
                         groupSegments: groupSegment,
@@ -62,7 +62,7 @@ extension FeaturevisorInstance {
                     )
                 }
 
-            case let .or(orGroupSegment):
+            case .or(let orGroupSegment):
                 return orGroupSegment.or.contains { groupSegment in
                     allGroupSegmentsAreMatched(
                         groupSegments: groupSegment,
@@ -71,7 +71,7 @@ extension FeaturevisorInstance {
                     )
                 }
 
-            case let .not(notGroupSegment):
+            case .not(let notGroupSegment):
                 return !notGroupSegment.not.allSatisfy { groupSegment in
                     allGroupSegmentsAreMatched(
                         groupSegments: groupSegment,
