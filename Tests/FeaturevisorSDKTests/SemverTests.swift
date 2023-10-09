@@ -3,7 +3,7 @@ import XCTest
 @testable import FeaturevisorSDK
 @testable import FeaturevisorTypes
 
-extension ConditionsTests {
+class SemverTests: XCTestCase {
 
     func testSemverEquality() {
 
