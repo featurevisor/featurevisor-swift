@@ -5,6 +5,10 @@ extension FeaturevisorInstance {
 
     // MARK: - Feature
 
+    public func getFeature(byKey featureKey: String) -> Feature? {
+        return datafileReader.getFeature(featureKey)
+    }
+
     func findForceFromFeature(
         _ feature: Feature,
         context: Context,
