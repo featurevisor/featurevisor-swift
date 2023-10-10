@@ -34,29 +34,26 @@ public func conditionIsMatched(condition: PlainCondition, context: Context) -> B
         // string, string
         case (.string(let valueInAttributes), .string(let valueInCondition)):
             if String(op.rawValue).starts(with: "semver") {
-                // @TODO: handle semver comparisons here
 
-                // let semverInAttributes = Semver(valueInAttributes)
-                // let semverInCondition = Semver(valueInCondition)
+                let semverInAttributes = Semver(valueInAttributes)
+                let semverInCondition = Semver(valueInCondition)
 
-                // switch op {
-                //   case .semverEquals:
-                //     return semverInAttributes == semverInCondition
-                //   case .semverNotEquals:
-                //     return semverInAttributes != semverInCondition
-                //   case .semverGreaterThan:
-                //     return semverInAttributes > semverInCondition
-                //   case .semverGreaterThanOrEquals:
-                //     return semverInAttributes >= semverInCondition
-                //   case .semverLessThan:
-                //     return semverInAttributes < semverInCondition
-                //   case .semverLessThanOrEquals:
-                //     return semverInAttributes <= semverInCondition
-                //   default:
-                //     return false
-                // }
-
-                return false
+                switch op {
+                    case .semverEquals:
+                        return semverInAttributes == semverInCondition
+                    case .semverNotEquals:
+                        return semverInAttributes != semverInCondition
+                    case .semverGreaterThan:
+                        return semverInAttributes > semverInCondition
+                    case .semverGreaterThanOrEquals:
+                        return semverInAttributes >= semverInCondition
+                    case .semverLessThan:
+                        return semverInAttributes < semverInCondition
+                    case .semverLessThanOrEquals:
+                        return semverInAttributes <= semverInCondition
+                    default:
+                        return false
+                }
             }
 
             switch op {

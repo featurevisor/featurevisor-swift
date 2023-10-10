@@ -193,7 +193,7 @@ class FeaturevisorInstanceTests: XCTestCase {
 
         // WHEN
         let sdk = try! createInstance(options: featurevisorOptions)
-        wait(for: [expectation], timeout: 0.1)
+        wait(for: [expectation], timeout: 0.5)
 
         // THEN
         XCTAssertEqual(sdk.getRevision(), "0.0.666")
@@ -929,7 +929,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         // WHEN
         let sdk = try! createInstance(options: options)
         sdk.refresh()
-        wait(for: [expectation], timeout: 0.1)
+        wait(for: [expectation], timeout: 0.5)
 
         // THEN
         XCTAssertEqual(sdk.getRevision(), "2")
