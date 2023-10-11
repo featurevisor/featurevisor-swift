@@ -585,10 +585,6 @@ extension FeaturevisorInstance {
 
     // MARK: - Bucketing
 
-    fileprivate func getFeature(byKey featureKey: String) -> Feature? {
-        return self.datafileReader.getFeature(featureKey)
-    }
-
     private func getBucketKey(feature: Feature, context: Context) -> BucketKey {
         let featureKey = feature.key
 
