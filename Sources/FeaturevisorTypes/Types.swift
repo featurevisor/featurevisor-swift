@@ -35,7 +35,12 @@ public struct Attribute: Decodable {
     public let archived: Bool?  // only available in YAML
     public let capture: Bool?
 
-    public init(key: AttributeKey, type: String, archived: Bool?, capture: Bool?) {
+    public init(
+        key: AttributeKey,
+        type: String,
+        archived: Bool? = nil,
+        capture: Bool? = nil
+    ) {
         self.key = key
         self.type = type
         self.archived = archived
@@ -184,7 +189,7 @@ public struct Segment: Codable {
     public init(
         key: SegmentKey,
         conditions: Condition,
-        archived: Bool?
+        archived: Bool? = nil
     ) {
         self.key = key
         self.conditions = conditions
