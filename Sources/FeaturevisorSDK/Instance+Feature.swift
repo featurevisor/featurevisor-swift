@@ -77,26 +77,29 @@ extension FeaturevisorInstance {
         logger: Logger
     ) -> MatchedTrafficAndAllocation {
 
-        var matchedAllocation: Allocation?
+        guard
+            let matchedTraffic = traffic.first(where: { traffic in
+                return allGroupSegmentsAreMatched(
+                    groupSegments: traffic.segments,
+                    context: context,
+                    datafileReader: datafileReader
+                )
+            })
+        else {
+            return (
+                matchedTraffic: nil,
+                matchedAllocation: nil
+            )
+        }
 
-        let matchedTraffic = traffic.first(where: { traffic in
-            if !allGroupSegmentsAreMatched(
-                groupSegments: traffic.segments,
-                context: context,
-                datafileReader: datafileReader
-            ) {
-                return false
-            }
-
-            matchedAllocation = getMatchedAllocation(traffic: traffic, bucketValue: bucketValue)
-
-            return matchedAllocation != nil
-        })
+        let matchedAllocation = getMatchedAllocation(
+            traffic: matchedTraffic,
+            bucketValue: bucketValue
+        )
 
         return (
             matchedTraffic: matchedTraffic,
             matchedAllocation: matchedAllocation
         )
-
     }
 }

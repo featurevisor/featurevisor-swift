@@ -1171,4 +1171,69 @@ class FeaturevisorInstanceTests: XCTestCase {
         // THEN
         XCTAssertTrue(wasDatafileContentFetchErrorThrown)
     }
+
+    func testShouldGetVariablesWithoutAnyVariations() {
+
+        // GIVEN
+        var options: InstanceOptions = .default
+        options.datafile = DatafileContent(
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [
+                .init(key: "userId", type: "string", capture: true),
+                .init(key: "country", type: "string"),
+            ],
+            segments: [
+                .init(
+                    key: "netherlands",
+                    conditions: .plain(
+                        .init(attribute: "country", operator: .equals, value: .string("nl"))
+                    )
+                )
+            ],
+            features: [
+                .init(
+                    key: "test",
+                    bucketBy: .single("userId"),
+                    variablesSchema: [
+                        .init(key: "color", type: .string, defaultValue: .string("red"))
+                    ],
+                    traffic: [
+                        .init(
+                            key: "1",
+                            segments: .plain("netherlands"),
+                            percentage: 100000,
+                            allocation: [],
+                            variables: ["color": .string("orange")]
+                        ),
+                        .init(
+                            key: "2",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: []
+                        ),
+                    ]
+                )
+            ]
+        )
+
+        let sdk = try! createInstance(options: options)
+
+        // WHEN
+        let variableWithDefaultContext = sdk.getVariable(
+            featureKey: "test",
+            variableKey: "color",
+            context: ["userId": .string("123")]
+        )
+
+        let variableWithExtendedContextByCountry = sdk.getVariable(
+            featureKey: "test",
+            variableKey: "color",
+            context: ["userId": .string("123"), "country": .string("nl")]
+        )
+
+        // THEN
+        XCTAssertEqual(variableWithDefaultContext!.value as! String, "red")
+        XCTAssertEqual(variableWithExtendedContextByCountry!.value as! String, "orange")
+    }
 }
