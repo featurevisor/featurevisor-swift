@@ -33,6 +33,7 @@ extension FeaturevisorInstance {
 
         var request = URLRequest(url: datafileUrl)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
 
         fetch(using: request, completion: completion)
     }
