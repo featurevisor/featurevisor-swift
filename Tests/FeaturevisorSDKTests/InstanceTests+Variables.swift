@@ -9,12 +9,6 @@ extension FeaturevisorInstanceTests {
     func testGetVariableObjectReturnsValidObject() {
 
         // GIVEN
-        class CustomObject: Decodable {
-            let title: String
-            let subtitle: String
-            let score: Int
-        }
-
         let variable = Variable(
             key: "hero",
             value: .object([
@@ -84,15 +78,15 @@ extension FeaturevisorInstanceTests {
         let sdk = try! createInstance(options: options)
 
         // WHEN
-        let object: CustomObject = sdk.getVariableObject(
+        let object: VariableObjectValue = sdk.getVariableObject(
             featureKey: "e_bar",
             variableKey: "hero",
             context: [:]
         )!
 
         // THEN
-        XCTAssertEqual(object.title, "Hero Title for B")
-        XCTAssertEqual(object.subtitle, "Hero Subtitle for B")
-        XCTAssertEqual(object.score, 10)
+        XCTAssertEqual(object["title"]?.value as! String, "Hero Title for B")
+        XCTAssertEqual(object["subtitle"]?.value as! String, "Hero Subtitle for B")
+        XCTAssertEqual(object["score"]?.value as! Int, 10)
     }
 }

@@ -78,16 +78,16 @@ final class InstanceVariablesTests: XCTestCase {
         let sdk = try! createInstance(options: options)
 
         // WHEN
-        let object: CustomObject = sdk.getVariableObject(
+        let object: VariableObjectValue? = sdk.getVariableObject(
             featureKey: "e_bar",
             variableKey: "hero",
             context: [:]
         )!
 
         // THEN
-        XCTAssertEqual(object.title, "Hero Title for B")
-        XCTAssertEqual(object.subtitle, "Hero Subtitle for B")
-        XCTAssertEqual(object.score, 10)
+        XCTAssertEqual(object?["title"]?.value as! String, "Hero Title for B")
+        XCTAssertEqual(object?["subtitle"]?.value as! String, "Hero Subtitle for B")
+        XCTAssertEqual(object?["score"]?.value as! Int, 10)
     }
 
     func testGetVariableJSONReturnsValidObject() {
@@ -158,16 +158,16 @@ final class InstanceVariablesTests: XCTestCase {
         let sdk = try! createInstance(options: options)
 
         // WHEN
-        let object: CustomObject = sdk.getVariableJSON(
+        let object: VariableObjectValue? = sdk.getVariableJSON(
             featureKey: "e_bar",
             variableKey: "hero",
             context: [:]
         )!
 
         // THEN
-        XCTAssertEqual(object.title, "Hero Title for B")
-        XCTAssertEqual(object.subtitle, "Hero Subtitle for B")
-        XCTAssertEqual(object.score, 10)
+        XCTAssertEqual(object?["title"]?.value as! String, "Hero Title for B")
+        XCTAssertEqual(object?["subtitle"]?.value as! String, "Hero Subtitle for B")
+        XCTAssertEqual(object?["score"]?.value as! Int, 10)
     }
 }
 

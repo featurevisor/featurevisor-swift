@@ -72,25 +72,19 @@ extension FeaturevisorInstance {
             as? [String]
     }
 
-    public func getVariableObject<T: Decodable>(
+    public func getVariableObject(
         featureKey: FeatureKey,
         variableKey: String,
         context: Context
-    ) -> T? {
+    ) -> VariableObjectValue? {
 
-        let object =
+        return
             getVariable(
                 featureKey: featureKey,
                 variableKey: variableKey,
                 context: context
             )?
             .value as? VariableObjectValue
-
-        guard let data = try? JSONEncoder().encode(object) else {
-            return nil
-        }
-
-        return try? JSONDecoder().decode(T.self, from: data)
     }
 
     public func getVariableJSON<T: Decodable>(
