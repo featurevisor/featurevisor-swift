@@ -48,7 +48,7 @@ extension FeaturevisorInstance {
                     self.logger.error("failed to refresh datafile", ["error": error])
                     self.statuses.refreshInProgress = false
 
-                    self.emitter.emit(.datafileFetchError, error)
+                    self.emitter.emit(._datafileFetchError, error)
             }
         }
     }

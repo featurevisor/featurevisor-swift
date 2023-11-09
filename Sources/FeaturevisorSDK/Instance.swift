@@ -217,7 +217,7 @@ public class FeaturevisorInstance {
         }
 
         if let _onDatafileFetchError = options._onDatafileFetchError {
-            emitter.addListener(.datafileFetchError, _onDatafileFetchError)
+            emitter.addListener(._datafileFetchError, _onDatafileFetchError)
         }
 
         // expose emitter methods
@@ -248,7 +248,7 @@ public class FeaturevisorInstance {
                     case .failure(let error):
                         self?.logger.error("Failed to fetch datafile: \(error)")
 
-                        self?.emitter.emit(.datafileFetchError, error)
+                        self?.emitter.emit(._datafileFetchError, error)
                 }
             }
         }

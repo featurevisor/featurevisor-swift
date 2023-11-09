@@ -3,7 +3,7 @@ public enum EventName {
     case refresh
     case update
     case activation
-    case datafileFetchError
+    case _datafileFetchError
 }
 
 public typealias Listener = (@escaping (Any...) -> Void) -> Void
