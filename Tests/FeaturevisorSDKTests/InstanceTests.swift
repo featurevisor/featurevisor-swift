@@ -199,6 +199,41 @@ class FeaturevisorInstanceTests: XCTestCase {
         XCTAssertEqual(sdk.getRevision(), "0.0.666")
     }
 
+    func testInitializationShouldEmitDatafileErrorWhenDatafileFetchingFails() {
+
+        // GIVEN
+        var datafileFetchedError = false
+        let expectation: XCTestExpectation = expectation(description: "Expectation")
+
+        MockURLProtocol.requestHandler = { request in
+            let jsonCorruptedString =
+                "{\"schemaVersion\":\"1\",\"revision:0.0.666\",\"attributes\":[],\"segments\":[],\"features\":[]}"
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, jsonCorruptedString.data(using: .utf8))
+        }
+
+        var featurevisorOptions = InstanceOptions.default
+        featurevisorOptions.sessionConfiguration.protocolClasses = [MockURLProtocol.self]
+        featurevisorOptions.datafileUrl = "https://featurevisor-awesome-url.com/tags.json"
+        featurevisorOptions._onDatafileFetchError = { _ in
+            datafileFetchedError = true
+            expectation.fulfill()
+        }
+
+        // WHEN
+        let sdk = try! createInstance(options: featurevisorOptions)
+        wait(for: [expectation], timeout: 0.5)
+
+        // THEN
+        XCTAssertTrue(datafileFetchedError)
+        XCTAssertEqual(sdk.getRevision(), "unknown")
+    }
+
     func testShouldConfigurePlainBucketBy() {
 
         // GIVEN
@@ -935,6 +970,68 @@ class FeaturevisorInstanceTests: XCTestCase {
         XCTAssertEqual(sdk.getRevision(), "2")
         XCTAssertTrue(refreshed)
         XCTAssertTrue(updatedViaOption)
+    }
+
+    func testRefreshShouldEmitDatafileErrorWhenDatafileFetchingThrowsError() {
+
+        // GIVEN
+        var revision = 1
+        var refreshed = false
+        var updatedViaOption = false
+        var datafileFetchedError = false
+
+        let expectation: XCTestExpectation = expectation(description: "Expectation")
+
+        MockURLProtocol.requestHandler = { request in
+            let jsonValidSyntax =
+                "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",\"attributes\": [],\"segments\":[],\"features\":[]}"
+
+            let jsonInvalidSyntax =
+                "{\"schemaVersion\":\"1\",\"revision\":\"\(revision)\",INVALID_SYNTAX: [],\"segments\":[],\"features\":[]}"
+
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+
+            let shouldUseInvalidJson = revision != 1
+
+            revision += 1
+
+            return (
+                response,
+                (shouldUseInvalidJson ? jsonInvalidSyntax : jsonValidSyntax).data(using: .utf8)
+            )
+        }
+
+        var options: InstanceOptions = .default
+        options.sessionConfiguration.protocolClasses = [MockURLProtocol.self]
+        options.datafileUrl = "https://featurevisor-awesome-url.com/tags.json"
+        options.onRefresh =
+            ({ _ in
+                refreshed = true
+            })
+        options.onUpdate =
+            ({ _ in
+                updatedViaOption = true
+            })
+        options._onDatafileFetchError =
+            ({ _ in
+                datafileFetchedError = true
+                expectation.fulfill()
+            })
+
+        // WHEN
+        let sdk = try! createInstance(options: options)
+        sdk.refresh()
+        wait(for: [expectation], timeout: 0.5)
+
+        // THEN
+        XCTAssertTrue(datafileFetchedError)
+        XCTAssertFalse(refreshed)
+        XCTAssertFalse(updatedViaOption)
     }
 
     func testShouldStartRefreshing() {

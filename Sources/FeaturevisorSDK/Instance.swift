@@ -216,6 +216,10 @@ public class FeaturevisorInstance {
             emitter.addListener(.activation, onActivation)
         }
 
+        if let _onDatafileFetchError = options._onDatafileFetchError {
+            emitter.addListener(.datafileFetchError, _onDatafileFetchError)
+        }
+
         // expose emitter methods
         on = emitter.addListener
         addListener = emitter.addListener
@@ -236,13 +240,15 @@ public class FeaturevisorInstance {
                         self?.datafileReader = DatafileReader(datafileContent: datafileContent)
 
                         self?.statuses.ready = true
-                        self?.emitter.emit(EventName.ready)
+                        self?.emitter.emit(.ready)
 
                         if self?.refreshInterval != nil {
                             self?.startRefreshing()
                         }
                     case .failure(let error):
                         self?.logger.error("Failed to fetch datafile: \(error)")
+
+                        self?.emitter.emit(.datafileFetchError, error)
                 }
             }
         }
@@ -250,7 +256,7 @@ public class FeaturevisorInstance {
             datafileReader = DatafileReader(datafileContent: datafile)
             statuses.ready = true
 
-            emitter.emit(EventName.ready)
+            emitter.emit(.ready)
         }
         else {
             throw FeaturevisorError.missingDatafileOptions

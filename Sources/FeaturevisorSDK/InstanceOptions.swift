@@ -22,6 +22,7 @@ public struct InstanceOptions {
     public var onReady: Listener?
     public var onRefresh: Listener?
     public var onUpdate: Listener?
+    public var _onDatafileFetchError: Listener?
     public var refreshInterval: TimeInterval?  // seconds
     public var stickyFeatures: StickyFeatures?
     public var sessionConfiguration: URLSessionConfiguration = .default
