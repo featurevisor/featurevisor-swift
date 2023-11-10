@@ -103,6 +103,70 @@ class ConditionsTests: XCTestCase {
         XCTAssertTrue(conditionIsMatched(condition: condition, context: context))
     }
 
+    func testStringInArrayShouldReturnTrue() {
+        //Given
+        let condition = PlainCondition(
+            attribute: "text",
+            operator: .in,
+            value: .array(["test-1", "test-2"])
+        )
+        var context = Context()
+
+        //When
+        context["text"] = .string("test-1")
+
+        //Then
+        XCTAssertTrue(conditionIsMatched(condition: condition, context: context))
+    }
+
+    func testStringInArrayShouldReturnFalse() {
+        //Given
+        let condition = PlainCondition(
+            attribute: "text",
+            operator: .in,
+            value: .array(["test-1", "test-2"])
+        )
+        var context = Context()
+
+        //When
+        context["text"] = .string("test-3")
+
+        //Then
+        XCTAssertFalse(conditionIsMatched(condition: condition, context: context))
+    }
+
+    func testStringNotInArrayShouldReturnTrue() {
+        //Given
+        let condition = PlainCondition(
+            attribute: "text",
+            operator: .notIn,
+            value: .array(["test-1", "test-2"])
+        )
+        var context = Context()
+
+        //When
+        context["text"] = .string("test-3")
+
+        //Then
+        XCTAssertTrue(conditionIsMatched(condition: condition, context: context))
+    }
+
+    func testStringNotInArrayShouldReturnFalse() {
+        //Given
+        let condition = PlainCondition(
+            attribute: "text",
+            operator: .notIn,
+            value: .array(["test-1", "test-2"])
+        )
+        var context = Context()
+
+        //When
+        context["text"] = .string("test-2")
+
+        //Then
+        XCTAssertFalse(conditionIsMatched(condition: condition, context: context))
+    }
+
     func testDateBefore() {
 
         //Given

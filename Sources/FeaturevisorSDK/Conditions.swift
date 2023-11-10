@@ -95,6 +95,17 @@ public func conditionIsMatched(condition: PlainCondition, context: Context) -> B
                     return false
             }
 
+        // string, [strings]
+        case (.string(let valueInAttribute), .array(let valuesInCondition)):
+            switch op {
+                case .in:
+                    return valuesInCondition.contains(valueInAttribute)
+                case .notIn:
+                    return !valuesInCondition.contains(valueInAttribute)
+                default:
+                    return false
+            }
+
         // date, string
         case (.date(let valueInAttributes), .string(let valueInCondition)):
             switch op {
