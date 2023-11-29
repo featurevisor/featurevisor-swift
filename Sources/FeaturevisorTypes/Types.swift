@@ -604,7 +604,7 @@ public struct Feature: Decodable {
         ranges = (try? container.decode([Range].self, forKey: .ranges)) ?? []
     }
 
-    internal init(
+    public init(
         key: FeatureKey,
         bucketBy: BucketBy,
         deprecated: Bool? = nil,
