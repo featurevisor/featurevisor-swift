@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.0](https://github.com/featurevisor/featurevisor-swift/compare/0.2.0...0.3.0) (2023-12-01)
+
+### Refactor
+
+*  Make `init` for `Feature` object public  ([f14580b](https://github.com/featurevisor/featurevisor-swift/commit/f14580b1e1a67599b20d392e315831bc6ea7bd5a))
+
+
 ## [0.2.0](https://github.com/featurevisor/featurevisor-swift/compare/0.1.0...0.2.0) (2023-11-10)
 
 ### Bug Fixes
