@@ -454,7 +454,7 @@ extension FeaturevisorInstance {
         // forced
         let force = findForceFromFeature(feature, context: context, datafileReader: datafileReader)
 
-        if let force, let variableValue = force.variables[variableKey] {
+        if let force, let variableValue = force.variables?[variableKey] {
             evaluation = Evaluation(
                 featureKey: feature.key,
                 reason: .forced,
@@ -498,10 +498,21 @@ extension FeaturevisorInstance {
             }
 
             // regular allocation
-            if let matchedAllocation = matchedTrafficAndAllocation.matchedAllocation {
+            var variationValue: VariationValue? = nil
+
+            if let forceVariation = force?.variation {
+                variationValue = forceVariation
+            }
+            else if let matchedAllocationVariation = matchedTrafficAndAllocation.matchedAllocation?
+                .variation
+            {
+                variationValue = matchedAllocationVariation
+            }
+
+            if let variationValue {
 
                 let variation = feature.variations.first(where: { variation in
-                    return variation.value == matchedAllocation.variation
+                    return variation.value == variationValue
                 })
 
                 if let variationVariables = variation?.variables {

@@ -1172,6 +1172,398 @@ class FeaturevisorInstanceTests: XCTestCase {
         XCTAssertTrue(wasDatafileContentFetchErrorThrown)
     }
 
+    func testShouldGetVariable() {
+
+        // GIVEN
+        var options: InstanceOptions = .default
+        options.datafile = DatafileContent(
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [
+                .init(key: "userId", type: "string", capture: true),
+                .init(key: "country", type: "string"),
+            ],
+            segments: [
+                .init(
+                    key: "netherlands",
+                    conditions: .plain(
+                        .init(attribute: "country", operator: .equals, value: .string("nl"))
+                    )
+                ),
+                .init(
+                    key: "belgium",
+                    conditions: .plain(
+                        .init(attribute: "country", operator: .equals, value: .string("be"))
+                    )
+                ),
+            ],
+            features: [
+                .init(
+                    key: "test",
+                    bucketBy: .single("userId"),
+                    variablesSchema: [
+                        .init(key: "color", type: .string, defaultValue: .string("red")),
+                        .init(key: "showSidebar", type: .boolean, defaultValue: .boolean(false)),
+                        .init(
+                            key: "sidebarTitle",
+                            type: .string,
+                            defaultValue: .string("sidebar title")
+                        ),
+                        .init(key: "count", type: .integer, defaultValue: .integer(0)),
+                        .init(key: "price", type: .double, defaultValue: .double(9.99)),
+                        .init(
+                            key: "paymentMethods",
+                            type: .array,
+                            defaultValue: .array(["paypal", "creditcard"])
+                        ),
+                        .init(
+                            key: "flatConfig",
+                            type: .object,
+                            defaultValue: .object(["key": .string("value")])
+                        ),
+                        .init(
+                            key: "nestedConfig",
+                            type: .json,
+                            defaultValue: .json("{\"key\": {\"nested\": \"value\"}}")
+                        ),
+                    ],
+                    variations: [
+                        .init(description: nil, value: "control", weight: nil, variables: nil),
+                        .init(
+                            description: nil,
+                            value: "treatment",
+                            weight: nil,
+                            variables: [
+                                .init(
+                                    key: "showSidebar",
+                                    value: .boolean(true),
+                                    overrides: [
+                                        .init(
+                                            value: .boolean(false),
+                                            conditions: .multiple([
+                                                .plain(
+                                                    .init(
+                                                        attribute: "country",
+                                                        operator: .equals,
+                                                        value: .string("de")
+                                                    )
+                                                )
+                                            ])
+                                        ),
+                                        .init(
+                                            value: .boolean(false),
+                                            segments: .multiple([.plain("netherlands")])
+                                        ),
+                                    ]
+                                ),
+                                .init(
+                                    key: "sidebarTitle",
+                                    value: .string("sidebar title from variation"),
+                                    overrides: [
+                                        .init(
+                                            value: .string("German title"),
+                                            conditions: .multiple([
+                                                .plain(
+                                                    .init(
+                                                        attribute: "country",
+                                                        operator: .equals,
+                                                        value: .string("de")
+                                                    )
+                                                )
+                                            ])
+                                        ),
+                                        .init(
+                                            value: .string("Dutch title"),
+                                            segments: .multiple([.plain("netherlands")])
+                                        ),
+                                    ]
+                                ),
+                            ]
+                        ),
+                    ],
+                    traffic: [
+                        .init(
+                            key: "2",
+                            segments: .plain("belgium"),
+                            percentage: 100000,
+                            allocation: [
+                                .init(variation: "control", range: .init(start: 0, end: 0)),
+                                .init(variation: "treatment", range: .init(start: 0, end: 100000)),
+                            ],
+                            variation: "control",
+                            variables: ["color": .string("black")]
+                        ),
+                        .init(
+                            key: "1",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: [
+                                .init(variation: "control", range: .init(start: 0, end: 0)),
+                                .init(variation: "treatment", range: .init(start: 0, end: 100000)),
+                            ]
+                        ),
+                    ],
+                    force: [
+                        .init(
+                            variation: "control",
+                            variables: ["color": .string("red and white")],
+                            conditions: .multiple([
+                                .plain(
+                                    .init(
+                                        attribute: "userId",
+                                        operator: .equals,
+                                        value: .string("user-ch")
+                                    )
+                                )
+                            ]),
+                            enabled: true
+                        ),
+                        .init(
+                            conditions: .multiple([
+                                .plain(
+                                    .init(
+                                        attribute: "userId",
+                                        operator: .equals,
+                                        value: .string("user-gb")
+                                    )
+                                )
+                            ]),
+                            enabled: false
+                        ),
+                        .init(
+                            variation: "treatment",
+                            conditions: .multiple([
+                                .plain(
+                                    .init(
+                                        attribute: "userId",
+                                        operator: .equals,
+                                        value: .string("user-forced-variation")
+                                    )
+                                )
+                            ]),
+                            enabled: true
+                        ),
+                    ]
+                )
+            ]
+        )
+
+        // WHEN
+        let sdk = try! createInstance(options: options)
+
+        // THEN
+        XCTAssertEqual(
+            sdk.getVariation(featureKey: "test", context: ["userId": .string("123")]),
+            "treatment"
+        )
+        XCTAssertEqual(
+            sdk.getVariation(
+                featureKey: "test",
+                context: ["userId": .string("123"), "country": .string("be")]
+            ),
+            "control"
+        )
+        XCTAssertEqual(
+            sdk.getVariation(featureKey: "test", context: ["userId": .string("user-ch")]),
+            "control"
+        )
+
+        XCTAssertEqual(
+            sdk.getVariable(
+                featureKey: "test",
+                variableKey: "color",
+                context: ["userId": .string("123")]
+            )?
+            .value as! String,
+            "red"
+        )
+        XCTAssertEqual(
+            sdk.getVariableString(
+                featureKey: "test",
+                variableKey: "color",
+                context: ["userId": .string("123")]
+            ),
+            "red"
+        )
+        XCTAssertEqual(
+            sdk.getVariable(
+                featureKey: "test",
+                variableKey: "color",
+                context: ["userId": .string("123"), "country": .string("be")]
+            )?
+            .value as! String,
+            "black"
+        )
+        XCTAssertEqual(
+            sdk.getVariable(
+                featureKey: "test",
+                variableKey: "color",
+                context: ["userId": .string("user-ch")]
+            )?
+            .value as! String,
+            "red and white"
+        )
+
+        XCTAssertTrue(
+            sdk.getVariable(
+                featureKey: "test",
+                variableKey: "showSidebar",
+                context: ["userId": .string("123")]
+            )?
+            .value as! Bool
+        )
+        XCTAssertTrue(
+            sdk.getVariableBoolean(
+                featureKey: "test",
+                variableKey: "showSidebar",
+                context: ["userId": .string("123")]
+            )!
+        )
+        XCTAssertFalse(
+            sdk.getVariableBoolean(
+                featureKey: "test",
+                variableKey: "showSidebar",
+                context: ["userId": .string("123"), "country": .string("nl")]
+            )!
+        )
+        XCTAssertFalse(
+            sdk.getVariableBoolean(
+                featureKey: "test",
+                variableKey: "showSidebar",
+                context: ["userId": .string("123"), "country": .string("de")]
+            )!
+        )
+
+        XCTAssertEqual(
+            sdk.getVariableString(
+                featureKey: "test",
+                variableKey: "sidebarTitle",
+                context: ["userId": .string("user-forced-variation"), "country": .string("de")]
+            )!,
+            "German title"
+        )
+        XCTAssertEqual(
+            sdk.getVariableString(
+                featureKey: "test",
+                variableKey: "sidebarTitle",
+                context: ["userId": .string("user-forced-variation"), "country": .string("nl")]
+            )!,
+            "Dutch title"
+        )
+        XCTAssertEqual(
+            sdk.getVariableString(
+                featureKey: "test",
+                variableKey: "sidebarTitle",
+                context: ["userId": .string("user-forced-variation"), "country": .string("be")]
+            )!,
+            "sidebar title from variation"
+        )
+
+        XCTAssertEqual(
+            sdk.getVariable(
+                featureKey: "test",
+                variableKey: "count",
+                context: ["userId": .string("123")]
+            )?
+            .value as! Int,
+            0
+        )
+        XCTAssertEqual(
+            sdk.getVariableInteger(
+                featureKey: "test",
+                variableKey: "count",
+                context: ["userId": .string("123")]
+            ),
+            0
+        )
+
+        XCTAssertEqual(
+            sdk.getVariable(
+                featureKey: "test",
+                variableKey: "price",
+                context: ["userId": .string("123")]
+            )?
+            .value as! Double,
+            9.99
+        )
+        XCTAssertEqual(
+            sdk.getVariableDouble(
+                featureKey: "test",
+                variableKey: "price",
+                context: ["userId": .string("123")]
+            ),
+            9.99
+        )
+
+        XCTAssertEqual(
+            sdk.getVariable(
+                featureKey: "test",
+                variableKey: "paymentMethods",
+                context: ["userId": .string("123")]
+            )?
+            .value as! [String],
+            ["paypal", "creditcard"]
+        )
+        XCTAssertEqual(
+            sdk.getVariableArray(
+                featureKey: "test",
+                variableKey: "paymentMethods",
+                context: ["userId": .string("123")]
+            ),
+            ["paypal", "creditcard"]
+        )
+
+        XCTAssertEqual(
+            (sdk.getVariable(
+                featureKey: "test",
+                variableKey: "flatConfig",
+                context: ["userId": .string("123")]
+            )?
+            .value as! VariableObjectValue)["key"]?
+            .value as! String,
+            "value"
+        )
+        XCTAssertEqual(
+            sdk.getVariableObject(
+                featureKey: "test",
+                variableKey: "flatConfig",
+                context: ["userId": .string("123")]
+            ),
+            ["key": "value"]
+        )
+
+        XCTAssertEqual(
+            sdk.getVariable(
+                featureKey: "test",
+                variableKey: "nestedConfig",
+                context: ["userId": .string("123")]
+            )?
+            .value as! String,
+            "{\"key\": {\"nested\": \"value\"}}"
+        )
+        XCTAssertEqual(
+            sdk.getVariableJSON(
+                featureKey: "test",
+                variableKey: "nestedConfig",
+                context: ["userId": .string("123")]
+            ),
+            ["key": ["nested": "value"]]
+        )
+
+        // non existing
+        XCTAssertNil(sdk.getVariable(featureKey: "test", variableKey: "nonExisting"))
+        XCTAssertNil(sdk.getVariable(featureKey: "nonExistingFeature", variableKey: "nonExisting"))
+
+        // disabled
+        XCTAssertNil(
+            sdk.getVariable(
+                featureKey: "test",
+                variableKey: "color",
+                context: ["userId": .string("user-gb")]
+            )
+        )
+    }
+
     func testShouldGetVariablesWithoutAnyVariations() {
 
         // GIVEN

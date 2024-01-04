@@ -365,6 +365,17 @@ public struct VariableOverride: Codable {
     public let conditions: Condition?
     public let segments: GroupSegment?
 
+    internal init(
+        value: VariableValue,
+        conditions: Condition? = nil,
+        segments: GroupSegment? = nil
+    ) {
+
+        self.value = value
+        self.conditions = conditions
+        self.segments = segments
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         value = try container.decode(VariableValue.self, forKey: .value)
@@ -403,21 +414,36 @@ public typealias FeatureKey = String
 public typealias VariableValues = [VariableKey: VariableValue]
 
 public struct Force: Decodable {
+    public let variation: VariationValue?
+    public let variables: VariableValues?
+
     // one of the below must be present in YAML
     public let conditions: Condition?
     public let segments: GroupSegment?
 
     public let enabled: Bool?
-    public let variation: VariationValue
-    public let variables: VariableValues
+
+    internal init(
+        variation: VariationValue? = nil,
+        variables: VariableValues? = nil,
+        conditions: Condition? = nil,
+        segments: GroupSegment? = nil,
+        enabled: Bool? = nil
+    ) {
+        self.variation = variation
+        self.variables = variables
+        self.conditions = conditions
+        self.segments = segments
+        self.enabled = enabled
+    }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         enabled = try? container.decodeIfPresent(Bool.self, forKey: .enabled)
-        variation = try container.decode(VariationValue.self, forKey: .variation)
-        variables = try container.decode(VariableValues.self, forKey: .variables)
-        conditions = try container.decodeStringifiedIfPresent(Condition.self, forKey: .conditions)
-        segments = try container.decodeGroupSegmentIfPresent(forKey: .segments)
+        variation = try? container.decode(VariationValue.self, forKey: .variation)
+        variables = try? container.decode(VariableValues.self, forKey: .variables)
+        conditions = try? container.decodeStringifiedIfPresent(Condition.self, forKey: .conditions)
+        segments = try? container.decodeGroupSegmentIfPresent(forKey: .segments)
     }
 
     enum CodingKeys: CodingKey {
