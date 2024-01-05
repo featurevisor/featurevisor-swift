@@ -258,14 +258,17 @@ public class FeaturevisorInstance {
     }
 
     func setDatafile(_ datafileJSON: String) {
-
-        guard let data = datafileJSON.data(using: .utf8) else {
-            logger.error("could not get datafile as data representation")
-            return
-        }
-
         do {
-            let datafileContent = try JSONDecoder().decode(DatafileContent.self, from: data)
+            let datafileContent = try DatafileContent.from(string: datafileJSON)
+
+            guard let datafileContent else {
+                logger.error(
+                    "could not get datafile as data representation",
+                    ["jsonDatafile": datafileJSON]
+                )
+                return
+            }
+
             datafileReader = DatafileReader(datafileContent: datafileContent)
         }
         catch {
