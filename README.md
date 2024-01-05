@@ -67,7 +67,7 @@ We would like to be able to set up the Featurevisor SDK instance once and reuse 
 The SDK can be initialized in two different ways depending on your needs.
 
 ### Synchronous
-You can fetch the data file content on your own and just pass it via options.
+You can fetch the datafile content on your own and just pass it via options.
 
 ```swift
 import FeaturevisorSDK
@@ -76,7 +76,7 @@ let datafileContent: DatafileContent = ...
 var options: InstanceOptions = .default
 options.datafile = datafileContent
 
-let featurevisor = try createInstance(options: options)
+let f = try createInstance(options: options)
 ```
 
 ### Asynchronous
@@ -87,7 +87,7 @@ import FeaturevisorSDK
 
 var options: InstanceOptions = .default
 options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json" 
-let featurevisor = try createInstance(options: options)
+let f = try createInstance(options: options)
 ```
 
 If you need to take further control on how the datafile is fetched, you can pass a custom `handleDatafileFetch` function
@@ -101,9 +101,9 @@ import FeaturevisorSDK
 
 var options: InstanceOptions = .default
 options.handleDatafileFetch = { datafileUrl in
-    ...
+    // you need to return here Result<DatafileContent, Error>
 }
-let featurevisor = try createInstance(options: options)
+let f = try createInstance(options: options)
 ```
 
 ### Context
@@ -137,7 +137,7 @@ let context = [
     "country": .string("nl")
 ]
 
-let isEnabled = sdk.isEnabled(featureKey: featureKey, context: context)
+let isEnabled = f.isEnabled(featureKey: featureKey, context: context)
 ```
 
 ### Getting variations
@@ -149,7 +149,7 @@ let context = [
     "userId": .string("123")
 ]
 
-let variation = sdk.getVariation(featureKey: featureKey, context: context)
+let variation = f.getVariation(featureKey: featureKey, context: context)
 ```
 
 ### Getting variables
@@ -159,48 +159,48 @@ let variableKey = "color"
 let context = [
     "userId": .string("123")
 ]
-sdk.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
+let variable: VariableValue? = f.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
 ```
 
 ### Type specific methods
 
 #### Boolean
 ```swift
-sdk.getVariableBoolean(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+let booleanVariable: Bool? = f.getVariableBoolean(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
 ```
 
 #### String
 ```swift
-sdk.getVariableString(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+let stringVariable: String? = f.getVariableString(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
 ```
 
 #### Integer
 ```swift
-sdk.getVariableInteger(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+let integerVariable: Int? = f.getVariableInteger(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
 ```
 
 #### Double
 ```swift
-sdk.getVariableDouble(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+let doubleVariable: Double? = f.getVariableDouble(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
 ```
 
 #### Array of strings
 ```swift
-sdk.getVariableArray(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+let arrayVariable: [String]? = f.getVariableArray(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
 ```
 
 #### Generic decodable object
 ```swift
-sdk.getVariableObject(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+let objectVariable: MyDecodableObject? = f.getVariableObject(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
 ```
 
 #### JSON object
 ```swift
-sdk.getVariableJSON(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+let jsonVariable: MyJSONDecodableObject? = f.getVariableJSON(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
 ```
 
 ### Logging
-By default, Featurevisor will log logs to the for `warn` and `error` levels.
+By default, Featurevisor will log logs in console output window for `warn` and `error` levels.
 
 #### Level
 ```swift
@@ -211,6 +211,11 @@ let logger = createLogger(levels: [.error, .warn, .info, .debug])
 let logger = createLogger(
         levels: [.error, .warn, .info, .debug],
         handle: { level, message, details in ... })
+
+var options = InstanceOptions.default
+options.logger = logger
+
+let f = try createInstance(options: options)
 ```
 
 ### Refreshing datafile
@@ -221,7 +226,7 @@ It is only possible to refresh datafile in Featurevisor if you are using the dat
 #### Manual refresh
 
 ```swift
-sdk.refresh()
+f.refresh()
 ```
 
 #### Refresh by interval
@@ -234,19 +239,19 @@ var options: InstanceOptions = .default
 options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json"
 options.refreshInterval = 30 // 30 seconds
 
-let featurevisor = try createInstance(options: options)
+let f = try createInstance(options: options)
 ```
 
 You can stop the interval by calling
 
 ```swift
-sdk.stopRefreshing()
+f.stopRefreshing()
 ```
 
 If you want to resume refreshing
 
 ```swift
-sdk.startRefreshing()
+f.startRefreshing()
 ```
 
 ### Listening for updates
@@ -259,7 +264,7 @@ var options: InstanceOptions = .default
 options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json"
 options.onRefresh = { ... }
 
-let featurevisor = try createInstance(options: options)
+let f = try createInstance(options: options)
 ```
 
 Not every refresh is going to be of a new datafile version. If you want to know if datafile content has changed in any particular refresh, you can listen to `onUpdate` option
@@ -271,7 +276,7 @@ var options: InstanceOptions = .default
 options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json"
 options.onUpdate = { ... }
 
-let featurevisor = try createInstance(options: options)
+let f = try createInstance(options: options)
 ```
 
 ### Events
@@ -290,12 +295,12 @@ var options: InstanceOptions = .default
 options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json"
 options.onReady = { ... }
 
-let featurevisor = try createInstance(options: options)
+let f = try createInstance(options: options)
 ```
 
 You can also synchronously check if the SDK is ready
 ```swift
-guard sdk.isReady() else {
+guard f.isReady() else {
   // sdk is not ready to be used
 }
 ```
@@ -310,7 +315,7 @@ var options: InstanceOptions = .default
 options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json"
 options.onActivation = { ... }
 
-let featurevisor = try createInstance(options: options)
+let f = try createInstance(options: options)
 ```
 
 ### Test runner
