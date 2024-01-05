@@ -43,113 +43,284 @@
 
 # featurevisor-swift
 
-This repository is a work in progress to port the [Featurevisor](https://featurevisor.com) JavaScript SDK to Swift.
-
-We are not ready yet. Please come back later.
+This repository is a port of the [Featurevisor](https://featurevisor.com) JavaScript SDK to Swift.
 
 ## Installation
 
-With [SPM](https://www.swift.org/package-manager/), add the package under `dependencies` in `Package.swift` file:
+### Swift Package Manager
+
+The [Swift Package Manager](https://swift.org/package-manager/) is a tool for automating the distribution of Swift code and is integrated into the `swift` compiler.
+
+Once you have your Swift package set up, adding Featurevisor as a dependency is as easy as adding it to the `dependencies` value of your `Package.swift`.
 
 ```swift
-// swift-tools-version:4.0
-import PackageDescription
-
-let package = Package(
-  name: "ExampleApp",
-  dependencies: [
-    // add the repo with desired semver as a dependency here
-    .package(url: "git@github.com:featurevisor/featurevisor-swift.git", .exact("X.Y.Z"))
-  ],
-  .target(
-    name: "ExampleApp",
-    dependencies: [
-      // add the name of module from the dependency in your desired targets
-      "FeaturevisorSDK"
-    ]
-  )
-)
-```
-
-Building your application will fetch and install everything locally:
-
-```
-$ swift build
+dependencies: [
+    .package(url: "https://github.com/featurevisor/featurevisor-swift.git", .upToNextMajor(from: "X.Y.Z"))
+]
 ```
 
 ## Usage
 
-@TODO: ...
+### Setting up Featurevisor SDK
+We would like to be able to set up the Featurevisor SDK instance once and reuse the same instance everywhere.
 
-## Development
+The SDK can be initialized in two different ways depending on your needs.
 
-We wish to reach feature parity with the existing JavaScript SDK: https://featurevisor.com/docs/sdks/
+### Synchronous
+You can fetch the datafile content on your own and just pass it via options.
 
-We are breaking down the various parts that we need to migrate to Swift in the sections below:
+```swift
+import FeaturevisorSDK
 
-### SDK API
+let datafileContent: DatafileContent = ...
+var options: InstanceOptions = .default
+options.datafile = datafileContent
 
-(Table below requires review to get accurate status)
+let f = try createInstance(options: options)
+```
 
-| Section             | Task                                                | Status |
-|---------------------|-----------------------------------------------------|----|
-| Files               | `@featurevisor/types` ➡️ `FeaturevisorTypes`        | ✅  |
-|                     | SDK's `bucket.ts` ➡️ `bucket.swift`                 | ✅  |
-|                     | SDK's `conditions.ts` ➡️ `conditions.swift`         | ✅  |
-|                     | SDK's `datafileReader.ts` ➡️ `DatafileReader.swift` | ✅  |
-|                     | SDK's `emitter.ts` ➡️ `Emitter.swift`               | ✅  |
-|                     | SDK's `feature.ts` ➡️ `Emitter.swift`               |    |
-|                     | SDK's `instance.ts` ➡️ `Instance.swift`             |    |
-|                     | SDK's `logger.ts` ➡️ `Logger.swift`                 | ✅  |
-|                     | SDK's `segments.ts` ➡️ `segments.swift`             | ✅  |
-|                     |                                                     |    |
-| Constructor options | `bucketKeySeparator`                                | ✅  |
-|                     | `configureBucketKey`                                | ✅  |
-|                     | `configureBucketValue`                              | ✅  |
-|                     | `datafile`                                          | ✅  |
-|                     | `datafileUrl`                                       | ✅  |
-|                     | `handleDatafileFetch`                               | ✅  |
-|                     | `initialFeatures`                                   | ✅  |
-|                     | `interceptContext`                                  | ✅  |
-|                     | `logger`                                            | ✅  |
-|                     | `onActivation`                                      | ✅  |
-|                     | `onReady`                                           | ✅  |
-|                     | `onRefresh`                                         | ✅  |
-|                     | `onUpdate`                                          | ✅  |
-|                     | `refreshInternal`                                   | ✅  |
-|                     | `stickyFeatures`                                    | ✅  |
-|                     |                                                     |    |
-| Instance methods    | `constructor`                                       | ✅  |
-|                     | `setDatafile` removed to workaround init issues     | ✅  |
-|                     | `setStickyFeatures`                                 | ✅  |
-|                     | `getRevision`                                       | ✅  |
-|                     | `getFeature`                                        | ✅  |
-|                     | `getBucketKey`                                      | ✅  |
-|                     | `getBucketValue`                                    | ✅  |
-|                     | `isReady`                                           | ✅  |
-|                     | `refresh`                                           | ✅  |
-|                     | `startRefreshing`                                   | ✅  |
-|                     | `stopRefreshing`                                    | ✅  |
-|                     | `evaluateFlag`                                      | ✅  |
-|                     | `isEnabled`                                         | ✅  |
-|                     | `evaluateVariation`                                 | ✅  |
-|                     | `getVariation`                                      | ✅  |
-|                     | `activate`                                          | ✅  |
-|                     | `evaluateVariable`                                  | ✅  |
-|                     | `getVariable`                                       | ✅  |
-|                     | `getVariableBoolean`                                | ✅  |
-|                     | `getVariableString`                                 | ✅  |
-|                     | `getVariableInteger`                                | ✅  |
-|                     | `getVariableDouble`                                 | ✅  |
-|                     | `getVariableArray`                                  | ✅  |
-|                     | `getVariableObject`                                 | ✅  |
-|                     | `getVariableJSON`                                   | ✅  |
-|                     |                                                     |    |
-| Functions           | `createInstance` missing proper error handling      | ⚠️ |
-|                     | `fetchDatafileContent`                              | ✅ |
-|                     | `getValueByType`                                    |    |
+### Asynchronous
+If you want to delegate the responsibility of fetching the datafile to the SDK.
+
+```swift
+import FeaturevisorSDK
+
+var options: InstanceOptions = .default
+options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json" 
+let f = try createInstance(options: options)
+```
+
+If you need to take further control on how the datafile is fetched, you can pass a custom `handleDatafileFetch` function
+
+```swift
+public typealias DatafileFetchHandler = (_ datafileUrl: String) -> Result<DatafileContent, Error>
+```
+
+```swift
+import FeaturevisorSDK
+
+var options: InstanceOptions = .default
+options.handleDatafileFetch = { datafileUrl in
+    // you need to return here Result<DatafileContent, Error>
+}
+let f = try createInstance(options: options)
+```
+
+### Context
+Contexts are a set of attribute values that we pass to SDK for evaluating features.
+
+They are objects where keys are the attribute keys, and values are the attribute values.
+
+```swift
+public enum AttributeValue {
+    case string(String)
+    case integer(Int)
+    case double(Double)
+    case boolean(Bool)
+    case date(Date)
+```
+
+```swift
+let context = [
+  "myAttributeKey": .string("myStringAttributeValue"),
+  "anotherAttributeKey": .double(0.999),
+]
+```
+
+### Checking if enabled
+Once the SDK is initialized, you can check if a feature is enabled or not:
+
+```swift
+let featureKey = "my_feature";
+let context = [
+    "userId": .string("123"),
+    "country": .string("nl")
+]
+
+let isEnabled = f.isEnabled(featureKey: featureKey, context: context)
+```
+
+### Getting variations
+If your feature has any variations defined, you can get evaluate them as follows
+
+```swift
+let featureKey = "my_feature";
+let context = [
+    "userId": .string("123")
+]
+
+let variation = f.getVariation(featureKey: featureKey, context: context)
+```
+
+### Getting variables
+```swift
+let featureKey = "my_feature";
+let variableKey = "color"
+let context = [
+    "userId": .string("123")
+]
+let variable: VariableValue? = f.getVariable(featureKey: featureKey, variableKey: variableKey, context: context)
+```
+
+### Type specific methods
+
+#### Boolean
+```swift
+let booleanVariable: Bool? = f.getVariableBoolean(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+```
+
+#### String
+```swift
+let stringVariable: String? = f.getVariableString(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+```
+
+#### Integer
+```swift
+let integerVariable: Int? = f.getVariableInteger(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+```
+
+#### Double
+```swift
+let doubleVariable: Double? = f.getVariableDouble(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+```
+
+#### Array of strings
+```swift
+let arrayVariable: [String]? = f.getVariableArray(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+```
+
+#### Generic decodable object
+```swift
+let objectVariable: MyDecodableObject? = f.getVariableObject(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+```
+
+#### JSON object
+```swift
+let jsonVariable: MyJSONDecodableObject? = f.getVariableJSON(featureKey: FeatureKey, variableKey: VariableKey, context: Context)
+```
+
+### Logging
+By default, Featurevisor will log logs in console output window for `warn` and `error` levels.
+
+#### Level
+```swift
+let logger = createLogger(levels: [.error, .warn, .info, .debug])
+```
+#### Handler
+```swift
+let logger = createLogger(
+        levels: [.error, .warn, .info, .debug],
+        handle: { level, message, details in ... })
+
+var options = InstanceOptions.default
+options.logger = logger
+
+let f = try createInstance(options: options)
+```
+
+### Refreshing datafile
+Refreshing the datafile is convenient when you want to update the datafile in runtime, for example when you want to update the feature variations and variables config without having to restart your application.
+
+It is only possible to refresh datafile in Featurevisor if you are using the datafileUrl option when creating your SDK instance.
+
+#### Manual refresh
+
+```swift
+f.refresh()
+```
+
+#### Refresh by interval
+If you want to refresh your datafile every X number of seconds, you can pass the `refreshInterval` option when creating your SDK instance:
+
+```swift
+import FeaturevisorSDK
+
+var options: InstanceOptions = .default
+options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json"
+options.refreshInterval = 30 // 30 seconds
+
+let f = try createInstance(options: options)
+```
+
+You can stop the interval by calling
+
+```swift
+f.stopRefreshing()
+```
+
+If you want to resume refreshing
+
+```swift
+f.startRefreshing()
+```
+
+### Listening for updates
+Every successful refresh will trigger the `onRefresh` option
+
+```swift
+import FeaturevisorSDK
+
+var options: InstanceOptions = .default
+options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json"
+options.onRefresh = { ... }
+
+let f = try createInstance(options: options)
+```
+
+Not every refresh is going to be of a new datafile version. If you want to know if datafile content has changed in any particular refresh, you can listen to `onUpdate` option
+
+```swift
+import FeaturevisorSDK
+
+var options: InstanceOptions = .default
+options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json"
+options.onUpdate = { ... }
+
+let f = try createInstance(options: options)
+```
+
+### Events
+Featurevisor SDK implements a simple event emitter that allows you to listen to events that happen in the runtime.
+
+#### Listening to events
+You can listen to these events that can occur at various stages in your application
+
+##### ready
+When the SDK is ready to be used if used in an asynchronous way involving datafileUrl option
+
+```swift
+import FeaturevisorSDK
+
+var options: InstanceOptions = .default
+options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json"
+options.onReady = { ... }
+
+let f = try createInstance(options: options)
+```
+
+You can also synchronously check if the SDK is ready
+```swift
+guard f.isReady() else {
+  // sdk is not ready to be used
+}
+```
+
+##### activation
+When a feature is activated
+
+```swift
+import FeaturevisorSDK
+
+var options: InstanceOptions = .default
+options.datafileUrl = "https://cdn.yoursite.com/production/datafile-tag-all.json"
+options.onActivation = { ... }
+
+let f = try createInstance(options: options)
+```
 
 ### Test runner
+
+@TODO: ...
 
 We should also have an executable as an output of this repository that can be used to run the test specs against the Swift SDK: https://featurevisor.com/docs/testing/
 
