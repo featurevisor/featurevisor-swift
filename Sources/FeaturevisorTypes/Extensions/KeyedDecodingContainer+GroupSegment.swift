@@ -32,6 +32,12 @@ extension KeyedDecodingContainer {
                     throw DecodingError.dataCorrupted(context)
                 }
 
+                guard
+                    let _ = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
+                else {
+                    return .plain(stringifiedGroupSegment)
+                }
+
                 return try JSONDecoder().decode(GroupSegment.self, from: data)
         }
     }
