@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.5.0](https://github.com/featurevisor/featurevisor-swift/compare/0.4.0...0.5.0) (2024-01-09)
+
+### Bugfixs
+
+*  Wrong parsing datafile for segments if defined as pure string ([a47d430](https://github.com/featurevisor/featurevisor-swift/commit/a47d4309aa0edbc9cea6b6c394f974e2da59fbc1))
+
 ## [0.4.0](https://github.com/featurevisor/featurevisor-swift/compare/0.3.0...0.4.0) (2024-01-04)
 
 ### Bugfixs
