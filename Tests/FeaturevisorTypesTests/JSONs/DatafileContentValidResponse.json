@@ -15,12 +15,24 @@
       "key": "userId",
       "type": "string",
       "capture": true
+    },
+    {
+      "key": "device_os",
+      "type": "string"
     }
   ],
   "segments": [
     {
       "key": "myAccount",
       "conditions": "[{\"attribute\":\"chapter\",\"operator\":\"equals\",\"value\":\"account\"}]"
+    },
+    {
+      "key": "OsIOS",
+      "conditions": "[{\"attribute\":\"device_os\",\"operator\":\"in\",\"value\":[\"iOS\",\"iPadOS\"]}]"
+    },
+    {
+      "key": "OsTvOS",
+      "conditions": "[{\"attribute\":\"device_os\",\"operator\":\"equals\",\"value\":\"tvOS\"}]"
     }
   ],
   "features": [
@@ -158,6 +170,41 @@
           "allocation": [
             
           ]
+        }
+      ]
+    },
+    {
+      "key": "f_safe_mode_gcp",
+      "bucketBy": "userId",
+      "traffic": [
+        {
+          "key": "0",
+          "segments": "[{\"or\":[\"OsIOS\",\"OsAndroid\",\"OsTvOS\"]}]",
+          "percentage": 100000,
+          "allocation": [
+
+          ],
+          "variables": {
+            "version": 4
+          }
+        },
+        {
+          "key": "1",
+          "segments": "PlatformWeb",
+          "percentage": 100000,
+          "allocation": [
+
+          ],
+          "variables": {
+            "version": 1
+          }
+        }
+      ],
+      "variablesSchema": [
+        {
+          "key": "version",
+          "type": "integer",
+          "defaultValue": 1
         }
       ]
     }

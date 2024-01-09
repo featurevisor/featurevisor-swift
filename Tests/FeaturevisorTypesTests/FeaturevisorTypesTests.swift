@@ -20,9 +20,9 @@ final class FeaturevisorTypesTests: XCTestCase {
         // THEN
         XCTAssertEqual(result.revision, "0.0.13")
         XCTAssertEqual(result.schemaVersion, "1")
-        XCTAssertEqual(result.attributes.count, 3)
-        XCTAssertEqual(result.features.count, 2)
-        XCTAssertEqual(result.segments.count, 1)
+        XCTAssertEqual(result.attributes.count, 4)
+        XCTAssertEqual(result.features.count, 3)
+        XCTAssertEqual(result.segments.count, 3)
 
         let segment = result.segments[0]
         XCTAssertEqual(segment.key, "myAccount")
@@ -198,6 +198,35 @@ final class FeaturevisorTypesTests: XCTestCase {
         XCTAssertEqual(traffic22.segments, .plain("*"))
         XCTAssertNil(traffic22.variables)
         XCTAssertEqual(traffic22.allocation.count, 0)
+
+        let feature3 = result.features[2]
+        XCTAssertEqual(feature3.key, "f_safe_mode_gcp")
+        XCTAssertNil(feature3.deprecated)
+        XCTAssertEqual(feature3.bucketBy, .single("userId"))
+        XCTAssertEqual(feature3.ranges.count, 0)
+        XCTAssertEqual(feature3.variations.count, 0)
+        XCTAssertEqual(feature3.traffic.count, 2)
+
+        let traffic31 = feature3.traffic[0]
+        XCTAssertEqual(traffic31.key, "0")
+        XCTAssertNil(traffic31.enabled)
+        XCTAssertEqual(traffic31.percentage, 100000)
+        XCTAssertEqual(traffic31.variation, nil)
+        XCTAssertEqual(
+            traffic31.segments,
+            .multiple([.or(.init(or: [.plain("OsIOS"), .plain("OsAndroid"), .plain("OsTvOS")]))])
+        )
+        XCTAssertEqual(traffic31.variables?.count, 1)
+        XCTAssertEqual(traffic31.allocation.count, 0)
+
+        let traffic32 = feature3.traffic[1]
+        XCTAssertEqual(traffic32.key, "1")
+        XCTAssertNil(traffic32.enabled)
+        XCTAssertEqual(traffic32.percentage, 100000)
+        XCTAssertEqual(traffic32.variation, nil)
+        XCTAssertEqual(traffic32.segments, .plain("PlatformWeb"))
+        XCTAssertEqual(traffic32.variables?.count, 1)
+        XCTAssertEqual(traffic32.allocation.count, 0)
 
         let attribute1 = result.attributes[0]
         XCTAssertEqual(attribute1.key, "chapter")
