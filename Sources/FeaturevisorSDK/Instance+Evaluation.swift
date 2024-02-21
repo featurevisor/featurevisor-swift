@@ -342,8 +342,7 @@ extension FeaturevisorInstance {
             }
 
             // treated as enabled because of matched traffic
-            if bucketValue < matchedTraffic.percentage {
-                // @TODO: verify if range check should be inclusive or not
+            if bucketValue <= matchedTraffic.percentage {
                 evaluation = Evaluation(
                     featureKey: feature.key,
                     reason: .rule,
