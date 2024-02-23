@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.0](https://github.com/featurevisor/featurevisor-swift/compare/0.5.0...0.6.0) (2024-02-23)
+
+### Bugfixs
+
+* Wrong negation under allGroupSegmentsAreMatched for 'not' operator ([785984e](https://github.com/featurevisor/featurevisor-swift/commit/785984e9583b7b04eed10ad55c9687ae29ab4bb4))
+* Rule percentage checks are now inclusive of end range ([7be4657](https://github.com/featurevisor/featurevisor-swift/commit/7be4657674a960ca252ce32b72930398cbf91028))
+
 ## [0.5.0](https://github.com/featurevisor/featurevisor-swift/compare/0.4.0...0.5.0) (2024-01-09)
 
 ### Bugfixs
