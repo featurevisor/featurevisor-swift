@@ -72,8 +72,8 @@ extension FeaturevisorInstance {
                 }
 
             case .not(let notGroupSegment):
-                return !notGroupSegment.not.allSatisfy { groupSegment in
-                    allGroupSegmentsAreMatched(
+                return notGroupSegment.not.allSatisfy { groupSegment in
+                    !allGroupSegmentsAreMatched(
                         groupSegments: groupSegment,
                         context: context,
                         datafileReader: datafileReader
