@@ -1,8 +1,8 @@
+import Commands
 import FeaturevisorSDK
 import FeaturevisorTypes
 import Files
 import Foundation
-import Commands
 import Yams
 
 @main
@@ -17,7 +17,7 @@ struct FeaturevisorTestRunner {
         let featuresTestDirectoryPath = CommandLine.arguments[1]  // TODO Handle command line parameters better
 
         // Run Featurevisor CLI to build the datafiles
-        Commands.Task.run("bash -c cd \(featuresTestDirectoryPath) && featurevisor build") // TODO: Handle better
+        Commands.Task.run("bash -c cd \(featuresTestDirectoryPath) && featurevisor build")  // TODO: Handle better
 
         let testSuits = try loadAllFeatureTestSuits(
             featuresTestDirectoryPath: featuresTestDirectoryPath
@@ -34,7 +34,8 @@ struct FeaturevisorTestRunner {
         try testSuits.forEach({ testSuit in
 
             // skip features which are not supported by ios, tvos
-            guard isFeatureSupported(by: [.ios, .tvos], featureKey: testSuit.feature, in: features) else {
+            guard isFeatureSupported(by: [.ios, .tvos], featureKey: testSuit.feature, in: features)
+            else {
                 return
             }
 
@@ -47,28 +48,29 @@ struct FeaturevisorTestRunner {
             var isTestSpecFailing = false
 
             for (index, testCase) in testSuit.assertions.enumerated() {
-                
+
                 var sdks: [Feature.Tag: [Environment: FeaturevisorInstance]] = [:]
-                
-                try [Feature.Tag.ios, Feature.Tag.tvos].forEach({ tag in
-                    let sdkProduction = try SDKProvider.provide(
-                        for: tag,
-                        under: .production,
-                        using: featuresTestDirectoryPath,
-                        assertionAt: testCase.at
-                    )
-                    let sdkStaging = try SDKProvider.provide(
-                        for: tag,
-                        under: .staging,
-                        using: featuresTestDirectoryPath,
-                        assertionAt: testCase.at
-                    )
-                    
-                    sdks[tag] = [
-                        .staging: sdkStaging,
-                        .production: sdkProduction
-                    ]
-                })
+
+                try [Feature.Tag.ios, Feature.Tag.tvos]
+                    .forEach({ tag in
+                        let sdkProduction = try SDKProvider.provide(
+                            for: tag,
+                            under: .production,
+                            using: featuresTestDirectoryPath,
+                            assertionAt: testCase.at
+                        )
+                        let sdkStaging = try SDKProvider.provide(
+                            for: tag,
+                            under: .staging,
+                            using: featuresTestDirectoryPath,
+                            assertionAt: testCase.at
+                        )
+
+                        sdks[tag] = [
+                            .staging: sdkStaging,
+                            .production: sdkProduction,
+                        ]
+                    })
 
                 let isFeatureEnabledResult: Bool
 
@@ -88,26 +90,29 @@ struct FeaturevisorTestRunner {
                         else {
                             break
                         }
-                    
-                    let tag = firstTagToVerifyAgainst(
-                        tags: [.ios, .tvos],
-                        environment: .staging,
-                        featureKey: testSuit.feature,
-                        in: features)
+
+                        let tag = firstTagToVerifyAgainst(
+                            tags: [.ios, .tvos],
+                            environment: .staging,
+                            featureKey: testSuit.feature,
+                            in: features
+                        )
 
                         isFeatureEnabledResult =
-                    sdks[tag]![.staging]!.isEnabled(
+                            sdks[tag]![.staging]!
+                            .isEnabled(
                                 featureKey: testSuit.feature,
                                 context: testCase.context ?? [:]
                             ) == testCase.expectedToBeEnabled
 
                         testCase.expectedVariables?
                             .forEach({ (variableKey, variableExpectedValue) in
-                                let variable = sdks[tag]![.staging]!.getVariable(
-                                    featureKey: testSuit.feature,
-                                    variableKey: variableKey,
-                                    context: testCase.context ?? [:]
-                                )
+                                let variable = sdks[tag]![.staging]!
+                                    .getVariable(
+                                        featureKey: testSuit.feature,
+                                        variableKey: variableKey,
+                                        context: testCase.context ?? [:]
+                                    )
 
                                 if variable != variableExpectedValue {
                                     expectedValuesFalses[variableKey] = (
@@ -155,26 +160,29 @@ struct FeaturevisorTestRunner {
                         else {
                             break
                         }
-                    
-                    let tag = firstTagToVerifyAgainst(
-                        tags: [.ios, .tvos],
-                        environment: .production,
-                        featureKey: testSuit.feature,
-                        in: features)
+
+                        let tag = firstTagToVerifyAgainst(
+                            tags: [.ios, .tvos],
+                            environment: .production,
+                            featureKey: testSuit.feature,
+                            in: features
+                        )
 
                         isFeatureEnabledResult =
-                            sdks[tag]![.production]!.isEnabled(
+                            sdks[tag]![.production]!
+                            .isEnabled(
                                 featureKey: testSuit.feature,
                                 context: testCase.context ?? [:]
                             ) == testCase.expectedToBeEnabled
 
                         testCase.expectedVariables?
                             .forEach({ (variableKey, variableExpectedValue) in
-                                let variable = sdks[tag]![.production]!.getVariable(
-                                    featureKey: testSuit.feature,
-                                    variableKey: variableKey,
-                                    context: testCase.context ?? [:]
-                                )
+                                let variable = sdks[tag]![.production]!
+                                    .getVariable(
+                                        featureKey: testSuit.feature,
+                                        variableKey: variableKey,
+                                        context: testCase.context ?? [:]
+                                    )
 
                                 if variable != variableExpectedValue {
                                     expectedValuesFalses[variableKey] = (
@@ -275,15 +283,24 @@ extension FeaturevisorTestRunner {
 
         return feature.tags.contains(where: tags.contains)
     }
-    
+
     // If feature is exposed for iOS or tvOS then it doesn't matter which datafile e.g. ios or tvos we use
     func firstTagToVerifyAgainst(
         tags: [Feature.Tag],
         environment: Environment,
         featureKey: String,
-        in features: [Feature]) -> Feature.Tag {
-            
-            return tags.first(where: { isFeatureSupported(by: [$0], featureKey: featureKey, in: features) && isFeatureExposed(for: [$0], under: environment.rawValue, featureKey: featureKey, in: features)})! // TODO: Deal with force unwrap, redesign the way how we iterate the test suit
+        in features: [Feature]
+    ) -> Feature.Tag {
+
+        return tags.first(where: {
+            isFeatureSupported(by: [$0], featureKey: featureKey, in: features)
+                && isFeatureExposed(
+                    for: [$0],
+                    under: environment.rawValue,
+                    featureKey: featureKey,
+                    in: features
+                )
+        })!  // TODO: Deal with force unwrap, redesign the way how we iterate the test suit
     }
 
     func isFeatureExposed(
@@ -296,11 +313,11 @@ extension FeaturevisorTestRunner {
         guard let feature = features.first(where: { $0.key == "\(featureKey).yml" }) else {  // TODO: We need to cut off the extension
             return false
         }
-        
+
         let supportedTag = tags.first(where: { tag in
             feature.environments[environment]?.isExposed(for: tag) ?? false  // TODO: Handle it
         })
-        
+
         return supportedTag != nil
     }
 }

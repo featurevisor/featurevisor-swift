@@ -329,7 +329,7 @@ First you need to install the Swift Test Runner using above steps (until we rele
 $ cd path/to/featurevisor-swift-sdk
 $ swift build -c release
 $ cd .build/release
-$ cp -f Featurevisor-swift-test /usr/local/bin/featurevisor-swift-test-runner
+$ cp -f FeaturevisorSwiftTestRunner /usr/local/bin/featurevisor-swift-test-runner
 ```
 
 Now you can usage like below:

@@ -51,9 +51,7 @@ enum ExpectedVariableValue: Codable {
                 codingPath: decoder.codingPath,
                 debugDescription: "\(VariableValue.self) unknown"
             )
-            
-            debugPrint("ERROR: \(decoder.codingPath)") // TODO
-            
+
             throw DecodingError.dataCorrupted(context)
         }
     }

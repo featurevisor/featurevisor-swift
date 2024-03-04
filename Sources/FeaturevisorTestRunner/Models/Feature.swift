@@ -1,7 +1,7 @@
 import Foundation
 
 struct Feature: Decodable {
-    
+
     enum Tag: String, Decodable {
         case android
         case androidtv

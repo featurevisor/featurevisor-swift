@@ -16,7 +16,7 @@ let package = Package(
             targets: ["FeaturevisorTypes"]
         ),
         .executable(
-            name: "Featurevisor-swift-test",
+            name: "FeaturevisorSwiftTestRunner",
             targets: ["FeaturevisorTestRunner"]
         ),
     ],
@@ -24,7 +24,7 @@ let package = Package(
         .package(url: "https://github.com/daisuke-t-jp/MurmurHash-Swift.git", from: "1.1.1"),
         .package(url: "https://github.com/JohnSundell/Files", from: "4.0.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "5.0.6"),
-        .package(url: "https://github.com/qiuzhifei/swift-commands", from: "0.6.0")
+        .package(url: "https://github.com/qiuzhifei/swift-commands", from: "0.6.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -47,7 +47,7 @@ let package = Package(
                 "FeaturevisorTypes",
                 "Files",
                 "Yams",
-                .product(name: "Commands", package: "swift-commands")
+                .product(name: "Commands", package: "swift-commands"),
             ],
             path: "Sources/FeaturevisorTestRunner"
         ),
