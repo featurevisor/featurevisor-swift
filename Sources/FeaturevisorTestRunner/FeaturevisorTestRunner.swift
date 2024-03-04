@@ -2,6 +2,7 @@ import FeaturevisorSDK
 import FeaturevisorTypes
 import Files
 import Foundation
+import Commands
 import Yams
 
 @main
@@ -14,6 +15,9 @@ struct FeaturevisorTestRunner {
     func run() throws {
 
         let featuresTestDirectoryPath = CommandLine.arguments[1]  // TODO Handle command line parameters better
+
+        // Run Featurevisor CLI to build the datafiles
+        Commands.Task.run("bash -c cd \(featuresTestDirectoryPath) && featurevisor build") // TODO: Handle better
 
         let testSuits = try loadAllFeatureTestSuits(
             featuresTestDirectoryPath: featuresTestDirectoryPath
