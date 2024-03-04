@@ -317,7 +317,15 @@ public enum VariableValue: Codable {
         else if let integer = try? container.decode(Int.self) {
             self = .integer(integer)
         }
+        // To convert int value defined as string into int e.g. "1"
+        else if let integerString = try? container.decode(String.self), let integer = Int(integerString) {
+            self = .integer(integer)
+        }
         else if let double = try? container.decode(Double.self) {
+            self = .double(double)
+        }
+        // To convert double value defined as string into double e.g. "1.0"
+        else if let doubleString = try? container.decode(String.self), let double = Double(doubleString) {
             self = .double(double)
         }
         else if let array = try? container.decodeStringified([String].self) {
@@ -395,13 +403,16 @@ extension VariableValue: Equatable {
             case (.boolean(let bLhs), .boolean(let bRhs)):
                 return bLhs == bRhs
             case (.string(let sLhs), .string(let sRhs)):
-                return sLhs == sRhs
+            return sLhs == sRhs
             case (.double(let dLhs), .double(let dRhs)):
                 return dLhs == dRhs
             case (.integer(let iLhs), .integer(let iRhs)):
                 return iLhs == iRhs
             case (.json(let jLhs), .json(let jRhs)):
-                return jLhs == jRhs
+            guard jLhs != jRhs else {
+                return true
+            }
+                return jLhs.removeAllWhitespaces() == jRhs.removeAllWhitespaces()
             case (.object(let oLhs), .object(let oRhs)):
                 return oLhs == oRhs
             case (.array(let aLhs), .array(let aRhs)):

@@ -19,15 +19,6 @@ struct FeaturevisorTestRunner {
             featuresTestDirectoryPath: featuresTestDirectoryPath
         )
 
-        let sdkProduction = try SDKProvider.provide(
-            for: .production,
-            using: featuresTestDirectoryPath
-        )
-        let sdkStaging = try SDKProvider.provide(
-            for: .staging,
-            using: featuresTestDirectoryPath
-        )
-
         let features = try loadAllFeatures(featuresTestDirectoryPath: featuresTestDirectoryPath)
 
         var totalTestSpecs = 0
@@ -36,7 +27,7 @@ struct FeaturevisorTestRunner {
         var totalAssertionsCount = 0
         var failedAssertionsCount = 0
 
-        testSuits.forEach({ testSuit in
+        try testSuits.forEach({ testSuit in
 
             // skip features which are not supported by iOS
             guard isFeatureSupported(by: "ios", featureKey: testSuit.feature, in: features) else {
@@ -52,6 +43,17 @@ struct FeaturevisorTestRunner {
             var isTestSpecFailing = false
 
             for (index, testCase) in testSuit.assertions.enumerated() {
+                
+                let sdkProduction = try SDKProvider.provide(
+                    for: .production,
+                    using: featuresTestDirectoryPath,
+                    assertionAt: testCase.at
+                )
+                let sdkStaging = try SDKProvider.provide(
+                    for: .staging,
+                    using: featuresTestDirectoryPath,
+                    assertionAt: testCase.at
+                )
 
                 let isFeatureEnabledResult: Bool
 
@@ -113,7 +115,7 @@ struct FeaturevisorTestRunner {
                             print("   => variable key: \(key)")
                             print("          => expected: \(value.expected)")
                             if let got = value.got {
-                                print("          => variable key: \(got)")
+                                print("          => received: \(got)")
                             }
                             else {
                                 print("          => received: nil")
@@ -174,7 +176,7 @@ struct FeaturevisorTestRunner {
                             print("   => variable key: \(key)")
                             print("          => expected: \(value.expected)")
                             if let got = value.got {
-                                print("          => variable key: \(got)")
+                                print("          => received: \(got)")
                             }
                             else {
                                 print("          => received: nil")
