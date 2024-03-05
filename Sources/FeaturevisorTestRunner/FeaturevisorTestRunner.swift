@@ -14,10 +14,12 @@ struct FeaturevisorTestRunner {
 
     func run() throws {
 
-        let featuresTestDirectoryPath = CommandLine.arguments[1]  // TODO Handle command line parameters better
+        // TODO Handle command line parameters better
+        let featuresTestDirectoryPath = CommandLine.arguments[1]
 
         // Run Featurevisor CLI to build the datafiles
-        Commands.Task.run("bash -c cd \(featuresTestDirectoryPath) && featurevisor build")  // TODO: Handle better
+        // TODO: Handle better, react on errors etc.
+        Commands.Task.run("bash -c cd \(featuresTestDirectoryPath) && featurevisor build")
 
         let testSuits = try loadAllFeatureTestSuits(
             featuresTestDirectoryPath: featuresTestDirectoryPath
@@ -277,7 +279,8 @@ extension FeaturevisorTestRunner {
         in features: [Feature]
     ) -> Bool {
 
-        guard let feature = features.first(where: { $0.key == "\(featureKey).yml" }) else {  // TODO: We need to cut off the extension
+        // TODO: We need to cut off the extension
+        guard let feature = features.first(where: { $0.key == "\(featureKey).yml" }) else {
             return false
         }
 
@@ -310,7 +313,8 @@ extension FeaturevisorTestRunner {
         in features: [Feature]
     ) -> Bool {
 
-        guard let feature = features.first(where: { $0.key == "\(featureKey).yml" }) else {  // TODO: We need to cut off the extension
+        // TODO: We need to cut off the extension
+        guard let feature = features.first(where: { $0.key == "\(featureKey).yml" }) else {
             return false
         }
 
