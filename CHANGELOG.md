@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.0](https://github.com/featurevisor/featurevisor-swift/compare/0.6.0...0.7.0) (2024-03-05)
+
+### Features
+
+* Featurevisor Swift Test Runner ([4d91882](https://github.com/featurevisor/featurevisor-swift/commit/4d918822e52a83a40efb6c086900de87bb918a0e))
+
 ## [0.6.0](https://github.com/featurevisor/featurevisor-swift/compare/0.5.0...0.6.0) (2024-02-23)
 
 ### Bugfixs
