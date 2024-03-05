@@ -2,13 +2,40 @@ import Foundation
 
 public typealias AttributeKey = String
 
-public enum AttributeValue {
+public enum AttributeValue: Decodable {
     case string(String)
     case integer(Int)
     case double(Double)
     case boolean(Bool)
     case date(Date)
-    // @TODO: add `null` and `undefined` somehow
+    case unknown
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+
+        if let boolean = try? container.decode(Bool.self) {
+            self = .boolean(boolean)
+        }
+        else if let integer = try? container.decode(Int.self) {
+            self = .integer(integer)
+        }
+        else if let double = try? container.decode(Double.self) {
+            self = .double(double)
+        }
+        else if let date = try? container.decode(Date.self) {
+            self = .date(date)
+        }
+        else if let string = try? container.decode(String.self) {
+            self = .string(string)
+        }
+        else {
+            let context = DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "\(AttributeValue.self) unknown"
+            )
+            throw DecodingError.dataCorrupted(context)
+        }
+    }
 }
 extension AttributeValue {
     public var stringValue: String {
@@ -23,6 +50,8 @@ extension AttributeValue {
                 return String(value)
             case .date(let value):
                 return String(describing: value)
+            case .unknown:
+                return ""
         }
     }
 }
@@ -267,7 +296,7 @@ public enum VariableType: String, Codable {
     case json = "json"
 }
 
-public typealias VariableObjectValue = [String: VariableValue]
+public typealias VariableObjectValue = [VariableKey: VariableValue]
 
 public enum VariableValue: Codable {
     case boolean(Bool)
@@ -282,7 +311,31 @@ public enum VariableValue: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
 
-        if let string = try? container.decode(String.self) {
+        if let boolean = try? container.decode(Bool.self) {
+            self = .boolean(boolean)
+        }
+        else if let integer = try? container.decode(Int.self) {
+            self = .integer(integer)
+        }
+        // To convert int value defined as string into int e.g. "1"
+        else if let integerString = try? container.decode(String.self),
+            let integer = Int(integerString)
+        {
+            self = .integer(integer)
+        }
+        else if let double = try? container.decode(Double.self) {
+            self = .double(double)
+        }
+        // To convert double value defined as string into double e.g. "1.0"
+        else if let doubleString = try? container.decode(String.self),
+            let double = Double(doubleString)
+        {
+            self = .double(double)
+        }
+        else if let array = try? container.decodeStringified([String].self) {
+            self = .array(array)
+        }
+        else if let string = try? container.decodeStringified(String.self) {
 
             guard let data = string.data(using: .utf8),
                 let _ = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
@@ -293,18 +346,6 @@ public enum VariableValue: Codable {
 
             self = .json(string)
         }
-        else if let integer = try? container.decode(Int.self) {
-            self = .integer(integer)
-        }
-        else if let double = try? container.decode(Double.self) {
-            self = .double(double)
-        }
-        else if let boolean = try? container.decode(Bool.self) {
-            self = .boolean(boolean)
-        }
-        else if let array = try? container.decode([String].self) {
-            self = .array(array)
-        }
         else if let object = try? container.decode(VariableObjectValue.self) {
             self = .object(object)
         }
@@ -313,6 +354,7 @@ public enum VariableValue: Codable {
                 codingPath: decoder.codingPath,
                 debugDescription: "\(VariableValue.self) unknown"
             )
+
             throw DecodingError.dataCorrupted(context)
         }
     }
@@ -354,6 +396,33 @@ public enum VariableValue: Codable {
                 return object
             case .json(let json):
                 return json
+        }
+    }
+}
+
+extension VariableValue: Equatable {
+
+    public static func == (lhs: VariableValue, rhs: VariableValue) -> Bool {
+        switch (lhs, rhs) {
+            case (.boolean(let bLhs), .boolean(let bRhs)):
+                return bLhs == bRhs
+            case (.string(let sLhs), .string(let sRhs)):
+                return sLhs == sRhs
+            case (.double(let dLhs), .double(let dRhs)):
+                return dLhs == dRhs
+            case (.integer(let iLhs), .integer(let iRhs)):
+                return iLhs == iRhs
+            case (.json(let jLhs), .json(let jRhs)):
+                guard jLhs != jRhs else {
+                    return true
+                }
+                return jLhs.removeAllWhitespaces() == jRhs.removeAllWhitespaces()
+            case (.object(let oLhs), .object(let oRhs)):
+                return oLhs == oRhs
+            case (.array(let aLhs), .array(let aRhs)):
+                return aLhs == aRhs
+            default:
+                return false
         }
     }
 }
@@ -407,6 +476,29 @@ public struct VariableSchema: Codable {
     public let key: VariableKey
     public let type: VariableType
     public let defaultValue: VariableValue
+
+    init(
+        key: VariableKey,
+        type: VariableType,
+        defaultValue: VariableValue
+    ) {
+        self.key = key
+        self.type = type
+        self.defaultValue = defaultValue
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        key = try container.decode(VariableKey.self, forKey: .key)
+        type = try container.decode(VariableType.self, forKey: .type)
+        defaultValue = try container.decode(VariableValue.self, forKey: .defaultValue)
+    }
+
+    enum CodingKeys: CodingKey {
+        case key
+        case type
+        case defaultValue
+    }
 }
 
 public typealias FeatureKey = String

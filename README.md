@@ -320,15 +320,22 @@ let f = try createInstance(options: options)
 
 ### Test runner
 
-@TODO: ...
-
-We should also have an executable as an output of this repository that can be used to run the test specs against the Swift SDK: https://featurevisor.com/docs/testing/
+@TODO: Work still in progress. Currently we have an early POC.
 
 Example command:
 
+First you need to install the Swift Test Runner using above steps (until we release official version)
+```
+$ cd path/to/featurevisor-swift-sdk
+$ swift build -c release
+$ cd .build/release
+$ cp -f FeaturevisorSwiftTestRunner /usr/local/bin/featurevisor-swift-test-runner
+```
+
+Now you can usage like below:
 ```
 $ cd path/to/featurevisor-project-with-yamls
-$ featurevisor-swift test
+$ featurevisor-swift-test-runner .
 ```
 
 ## License
