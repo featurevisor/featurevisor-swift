@@ -1,3 +1,4 @@
+import ArgumentParser
 import Commands
 import FeaturevisorSDK
 import FeaturevisorTypes
@@ -6,16 +7,20 @@ import Foundation
 import Yams
 
 @main
-struct FeaturevisorTestRunner {
+struct FeaturevisorTestRunner: ParsableCommand {
 
-    public static func main() throws {
-        try FeaturevisorTestRunner().run()
-    }
+    static let configuration = CommandConfiguration(
+        abstract:
+            "We can write test specs in the same expressive way as we defined our features to test against Featurevisor Swift SDK."
+    )
 
-    func run() throws {
+    @Argument(help: "The path to features test directory.")
+    var featuresTestDirectoryPath: String
 
-        // TODO Handle command line parameters better
-        let featuresTestDirectoryPath = CommandLine.arguments[1]
+    @Flag(help: "If you are interested to see only the test specs that fail.")
+    var onlyFailures = false
+
+    mutating func run() throws {
 
         // Run Featurevisor CLI to build the datafiles
         // TODO: Handle better, react on errors etc.
@@ -43,9 +48,6 @@ struct FeaturevisorTestRunner {
 
             totalTestSpecs += 1
             totalAssertionsCount += testSuit.assertions.count
-
-            print("\nTesting: \(testSuit.feature).feature.yml")
-            print(" \(testSuit.feature).feature.yml")
 
             var isTestSpecFailing = false
 
@@ -76,7 +78,7 @@ struct FeaturevisorTestRunner {
 
                 let isFeatureEnabledResult: Bool
 
-                var expectedValuesFalses:
+                var expectedValueFailures:
                     [VariableKey: (expected: VariableValue, got: VariableValue?)] = [:]
 
                 switch testCase.environment {
@@ -117,38 +119,28 @@ struct FeaturevisorTestRunner {
                                     )
 
                                 if variable != variableExpectedValue {
-                                    expectedValuesFalses[variableKey] = (
+                                    expectedValueFailures[variableKey] = (
                                         variableExpectedValue, variable
                                     )
                                 }
                             })
 
                         let finalAssertionResult =
-                            isFeatureEnabledResult && expectedValuesFalses.isEmpty
-
-                        let resultMark = finalAssertionResult ? "✔" : "✘"
+                            isFeatureEnabledResult && expectedValueFailures.isEmpty
 
                         isTestSpecFailing = isTestSpecFailing || !finalAssertionResult
                         failedAssertionsCount =
                             finalAssertionResult ? failedAssertionsCount : failedAssertionsCount + 1
 
-                        //                    guard !result else { // Skip passing assertion
-                        //                        break
-                        //                    }
-
-                        print(
-                            " \(resultMark) Assertion #\(index): (staging) \(testCase.description)"
+                        printAssertionResult(
+                            environment: testCase.environment,
+                            index: index,
+                            feature: testSuit.feature,
+                            assertionResult: finalAssertionResult,
+                            expectedValueFailures: expectedValueFailures,
+                            description: testCase.description,
+                            onlyFailures: onlyFailures
                         )
-                        expectedValuesFalses.forEach({ (key, value) in
-                            print("   => variable key: \(key)")
-                            print("          => expected: \(value.expected)")
-                            if let got = value.got {
-                                print("          => received: \(got)")
-                            }
-                            else {
-                                print("          => received: nil")
-                            }
-                        })
 
                     case .production:
 
@@ -187,38 +179,28 @@ struct FeaturevisorTestRunner {
                                     )
 
                                 if variable != variableExpectedValue {
-                                    expectedValuesFalses[variableKey] = (
+                                    expectedValueFailures[variableKey] = (
                                         variableExpectedValue, variable
                                     )
                                 }
                             })
 
                         let finalAssertionResult =
-                            isFeatureEnabledResult && expectedValuesFalses.isEmpty
-
-                        let resultMark = finalAssertionResult ? "✔" : "✘"
+                            isFeatureEnabledResult && expectedValueFailures.isEmpty
 
                         isTestSpecFailing = isTestSpecFailing || !finalAssertionResult
                         failedAssertionsCount =
                             finalAssertionResult ? failedAssertionsCount : failedAssertionsCount + 1
 
-                        //                    guard !result else { // Skip passing assertion
-                        //                        break
-                        //                    }
-
-                        print(
-                            " \(resultMark) Assertion #\(index): (production) \(testCase.description)"
+                        printAssertionResult(
+                            environment: testCase.environment,
+                            index: index,
+                            feature: testSuit.feature,
+                            assertionResult: finalAssertionResult,
+                            expectedValueFailures: expectedValueFailures,
+                            description: testCase.description,
+                            onlyFailures: onlyFailures
                         )
-                        expectedValuesFalses.forEach({ (key, value) in
-                            print("   => variable key: \(key)")
-                            print("          => expected: \(value.expected)")
-                            if let got = value.got {
-                                print("          => received: \(got)")
-                            }
-                            else {
-                                print("          => received: nil")
-                            }
-                        })
                 }
             }
 
