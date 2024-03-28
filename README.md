@@ -322,6 +322,14 @@ let f = try createInstance(options: options)
 
 @TODO: Work still in progress. Currently we have an early POC.
 
+### Options
+
+```bash
+'only-failures'
+```
+
+If you are interested to see only the test specs that fail:
+
 Example command:
 
 First you need to install the Swift Test Runner using above steps (until we release official version)
