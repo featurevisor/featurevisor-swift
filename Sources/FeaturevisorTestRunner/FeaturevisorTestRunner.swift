@@ -32,6 +32,8 @@ struct FeaturevisorTestRunner: ParsableCommand {
 
         let features = try loadAllFeatures(featuresTestDirectoryPath: featuresTestDirectoryPath)
 
+        var totalElapsedDurationInMilliseconds: UInt64 = 0
+
         var totalTestSpecs = 0
         var failedTestSpecs = 0
 
@@ -45,6 +47,11 @@ struct FeaturevisorTestRunner: ParsableCommand {
             else {
                 return
             }
+
+            let output = FeatureResultOutputBuilder(
+                feature: testSuit.feature,
+                onlyFailures: onlyFailures
+            )
 
             totalTestSpecs += 1
             totalAssertionsCount += testSuit.assertions.count
@@ -63,6 +70,7 @@ struct FeaturevisorTestRunner: ParsableCommand {
                             using: featuresTestDirectoryPath,
                             assertionAt: testCase.at
                         )
+
                         let sdkStaging = try SDKProvider.provide(
                             for: tag,
                             under: .staging,
@@ -102,6 +110,8 @@ struct FeaturevisorTestRunner: ParsableCommand {
                             in: features
                         )
 
+                        let startTime = DispatchTime.now()
+
                         isFeatureEnabledResult =
                             sdks[tag]![.staging]!
                             .isEnabled(
@@ -125,6 +135,8 @@ struct FeaturevisorTestRunner: ParsableCommand {
                                 }
                             })
 
+                        let endTime = DispatchTime.now()
+
                         let finalAssertionResult =
                             isFeatureEnabledResult && expectedValueFailures.isEmpty
 
@@ -132,14 +144,16 @@ struct FeaturevisorTestRunner: ParsableCommand {
                         failedAssertionsCount =
                             finalAssertionResult ? failedAssertionsCount : failedAssertionsCount + 1
 
-                        printAssertionResult(
+                        let elapsedTime = endTime.uptimeNanoseconds - startTime.uptimeNanoseconds
+                        totalElapsedDurationInMilliseconds += elapsedTime
+
+                        output.addAssertion(
                             environment: testCase.environment,
                             index: index,
-                            feature: testSuit.feature,
                             assertionResult: finalAssertionResult,
                             expectedValueFailures: expectedValueFailures,
                             description: testCase.description,
-                            onlyFailures: onlyFailures
+                            elapsedTime: elapsedTime
                         )
 
                     case .production:
@@ -161,6 +175,8 @@ struct FeaturevisorTestRunner: ParsableCommand {
                             featureKey: testSuit.feature,
                             in: features
                         )
+
+                        let startTime = DispatchTime.now()
 
                         isFeatureEnabledResult =
                             sdks[tag]![.production]!
@@ -185,6 +201,8 @@ struct FeaturevisorTestRunner: ParsableCommand {
                                 }
                             })
 
+                        let endTime = DispatchTime.now()
+
                         let finalAssertionResult =
                             isFeatureEnabledResult && expectedValueFailures.isEmpty
 
@@ -192,16 +210,22 @@ struct FeaturevisorTestRunner: ParsableCommand {
                         failedAssertionsCount =
                             finalAssertionResult ? failedAssertionsCount : failedAssertionsCount + 1
 
-                        printAssertionResult(
+                        let elapsedTime = endTime.uptimeNanoseconds - startTime.uptimeNanoseconds
+                        totalElapsedDurationInMilliseconds += elapsedTime
+
+                        output.addAssertion(
                             environment: testCase.environment,
                             index: index,
-                            feature: testSuit.feature,
                             assertionResult: finalAssertionResult,
                             expectedValueFailures: expectedValueFailures,
                             description: testCase.description,
-                            onlyFailures: onlyFailures
+                            elapsedTime: elapsedTime
                         )
                 }
+            }
+
+            if let output = output.build() {
+                print(output)
             }
 
             failedTestSpecs = isTestSpecFailing ? failedTestSpecs + 1 : failedTestSpecs
@@ -211,6 +235,8 @@ struct FeaturevisorTestRunner: ParsableCommand {
         print(
             "Assertions: \(totalAssertionsCount - failedAssertionsCount) passed, \(failedAssertionsCount) failed"
         )
+
+        print("Assertions execution duration: \(totalElapsedDurationInMilliseconds.milliseconds)ms")
     }
 }
 
