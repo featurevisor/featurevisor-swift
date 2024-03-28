@@ -35,7 +35,7 @@ extension FeaturevisorTestRunner {
 
         let resultMark = ResultMark(result: assertionResult)
 
-        print(" \(resultMark) Assertion #\(index): \(environment.rawValue) \(description)")
+        print(" \(resultMark.mark) Assertion #\(index): \(environment.rawValue) \(description)")
 
         expectedValueFailures.forEach({ (key, value) in
             print("   => variable key: \(key)")
