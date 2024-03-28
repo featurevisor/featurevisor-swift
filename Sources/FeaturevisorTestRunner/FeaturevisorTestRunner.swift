@@ -32,7 +32,7 @@ struct FeaturevisorTestRunner: ParsableCommand {
 
         let features = try loadAllFeatures(featuresTestDirectoryPath: featuresTestDirectoryPath)
 
-        var totalElapsedDuration: UInt64 = 0
+        var totalElapsedDurationInMilliseconds: UInt64 = 0
 
         var totalTestSpecs = 0
         var failedTestSpecs = 0
@@ -145,7 +145,7 @@ struct FeaturevisorTestRunner: ParsableCommand {
                             finalAssertionResult ? failedAssertionsCount : failedAssertionsCount + 1
 
                         let elapsedTime = endTime.uptimeNanoseconds - startTime.uptimeNanoseconds
-                        totalElapsedDuration += elapsedTime
+                        totalElapsedDurationInMilliseconds += elapsedTime
 
                         output.addAssertion(
                             environment: testCase.environment,
@@ -211,7 +211,7 @@ struct FeaturevisorTestRunner: ParsableCommand {
                             finalAssertionResult ? failedAssertionsCount : failedAssertionsCount + 1
 
                         let elapsedTime = endTime.uptimeNanoseconds - startTime.uptimeNanoseconds
-                        totalElapsedDuration += elapsedTime
+                        totalElapsedDurationInMilliseconds += elapsedTime
 
                         output.addAssertion(
                             environment: testCase.environment,
@@ -236,7 +236,7 @@ struct FeaturevisorTestRunner: ParsableCommand {
             "Assertions: \(totalAssertionsCount - failedAssertionsCount) passed, \(failedAssertionsCount) failed"
         )
 
-        print("Aassertions execution duration: \(totalElapsedDuration.seconds)s")
+        print("Assertions execution duration: \(totalElapsedDurationInMilliseconds.milliseconds)ms")
     }
 }
 

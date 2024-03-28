@@ -59,13 +59,13 @@ class FeatureResultOutputBuilder {
             return nil
         }
 
-        let totallElapsedTimeInMilliSeconds = assertions.reduce(
+        let totalElapsedTimeInMilliSeconds = assertions.reduce(
             0.0,
-            { $0 + $1.elapsedTime.miliseconds }
+            { $0 + $1.elapsedTime.milliseconds }
         )
         var output: String = ""
 
-        output.append("\nTesting: \(feature).feature.yml (\(totallElapsedTimeInMilliSeconds)ms)")
+        output.append("\nTesting: \(feature).feature.yml (\(totalElapsedTimeInMilliSeconds)ms)")
         output.append("\n feature \"\(feature)\"")
 
         assertions.forEach({ assertion in
@@ -75,7 +75,7 @@ class FeatureResultOutputBuilder {
             let env = assertion.environment.rawValue
             let description = assertion.description
             let expectedValueFailures = assertion.expectedValueFailures
-            let elapsedTimeInMilliSeconds = assertion.elapsedTime.miliseconds
+            let elapsedTimeInMilliSeconds = assertion.elapsedTime.milliseconds
 
             output.append(
                 "\n \(mark.rawValue) Assertion #\(index): \(env) \(description) (\(elapsedTimeInMilliSeconds)ms)"
