@@ -73,26 +73,3 @@ extension GroupSegment: Equatable {
         }
     }
 }
-
-extension VariableValue: Equatable {
-    public static func == (lhs: VariableValue, rhs: VariableValue) -> Bool {
-        switch (lhs, rhs) {
-            case (.string(let lhsString), .string(let rhsString)):
-                return lhsString == rhsString
-            case (.double(let lhsDouble), .double(let rhsDouble)):
-                return lhsDouble == rhsDouble
-            case (.integer(let lhsInteger), .integer(let rhsInteger)):
-                return lhsInteger == rhsInteger
-            case (.array(let lhsArray), .array(let rhsArray)):
-                return lhsArray == rhsArray
-            case (.object(let lhsObject), .object(let rhsObject)):
-                return lhsObject == rhsObject
-            case (.json(let lhsJson), .json(let rhsJson)):
-                return lhsJson == rhsJson
-            case (.boolean(let lhsBoolean), .boolean(let rhsBoolean)):
-                return lhsBoolean == rhsBoolean
-            default:
-                return false
-        }
-    }
-}
