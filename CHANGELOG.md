@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.0](https://github.com/featurevisor/featurevisor-swift/compare/0.7.0...0.8.0) (2024-04-03)
+### Features
+
+* extend test runner assertion output + simple duration execution ([db24373](https://github.com/featurevisor/featurevisor-swift/commit/db243731c715d92a70b9a92ccbae2f6f33aed5b4))
+* extend test runner with --only-failures option ([b81d4f9](https://github.com/featurevisor/featurevisor-swift/commit/b81d4f926fa0327f54e5996f578a165f5879041e))
+
+### Refactor
+* performance tweaks under DatafileReader ([c55bbbe](https://github.com/featurevisor/featurevisor-swift/commit/c55bbbe1721cd2bff1d813c2ada7b8e07a8dada4))
+* remove redundant 'equatable' for VariableValue under tests ([4930eff](https://github.com/featurevisor/featurevisor-swift/commit/4930effad385a77f1b9770f64ca32a820d157162))
+
+
 ## [0.7.0](https://github.com/featurevisor/featurevisor-swift/compare/0.6.0...0.7.0) (2024-03-05)
 
 ### Features
