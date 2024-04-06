@@ -19,6 +19,20 @@ extension FeaturevisorTestRunner {
 
     struct Benchmark: ParsableCommand {
 
+        struct Options {
+            let environment: Environment
+            let feature: FeatureKey
+            let n: Int
+            let context: [AttributeKey: AttributeValue]
+            let variation: Bool
+            let variable: String?
+        }
+
+        struct Output {
+            let value: Any?
+            let duration: TimeInterval
+        }
+
         static let configuration = CommandConfiguration(
             abstract:
                 "You can measure how fast or slow your SDK evaluations are for particular features."
@@ -48,11 +62,35 @@ extension FeaturevisorTestRunner {
         )
         var numberOfIterations: Int
 
+        @Option(
+            help: "To benchmark evaluating a feature's variable via SDK's `.getVariable()` method."
+        )
+        var variable: String? = nil
+
+        @Flag(
+            help:
+                "To benchmark evaluating a feature's variation via SDK's `.getVariation()` method."
+        )
+        var variation: Bool = false
+
         mutating func run() throws {
-            print("numberOfIterations: \(numberOfIterations)")
-            print("environment: \(environment)")
-            print("feature: \(feature)")
-            print("context: \(context)")
+
+            let _context = try JSONDecoder()
+                .decode(
+                    [AttributeKey: AttributeValue].self,
+                    from: context.data(using: .utf8)!
+                )
+
+            let options: Options = .init(
+                environment: .init(rawValue: environment)!,
+                feature: feature,
+                n: numberOfIterations,
+                context: _context,
+                variation: variation,
+                variable: variable
+            )
+
+            benchmarkFeature(options: options)
         }
     }
 }

@@ -343,7 +343,47 @@ $ cp -f FeaturevisorSwiftTestRunner /usr/local/bin/featurevisor-swift-test-runne
 Now you can usage like below:
 ```
 $ cd path/to/featurevisor-project-with-yamls
-$ featurevisor-swift-test-runner .
+$ featurevisor-swift-test-runner test .
+```
+
+### Benchmarking
+You can measure how fast or slow your SDK evaluations are for particular features.
+
+The `--n` option is used to specify the number of iterations to run the benchmark for.
+
+### Feature
+To benchmark evaluating a feature itself if it is enabled or disabled via SDK's `.isEnabled()` method:
+
+```bash
+ FeaturevisorTestRunner benchmark \
+  --environment staging \
+  --feature feature_key \
+  --context '{"user_id":"123"}' \
+  -n 100
+```
+
+### Variation
+To benchmark evaluating a feature's variation via SDKs's `.getVariation()` method:
+
+```bash
+ FeaturevisorTestRunner benchmark \
+  --environment staging \
+  --feature feature_key \
+  --context '{"user_id":"123"}' \
+  --variation \
+  -n 100
+```
+
+### Variable
+To benchmark evaluating a feature's variable via SDKs's `.getVariable()` method:
+
+```bash
+ FeaturevisorTestRunner benchmark \
+  --environment staging \
+  --feature feature_key \
+  --variable variable_key \
+  --context '{"user_id":"123"}' \
+  -n 100
 ```
 
 ## License
