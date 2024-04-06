@@ -7,7 +7,7 @@ extension FeaturevisorTestRunner.Benchmark {
 
     func benchmarkFeature(options: Options) {
 
-        print("Running benchmark for feature \(options.feature)...`)")
+        print("Running benchmark for feature \(options.feature)...")
 
         print("Building datafile containing all features for \(options.environment)...")
 
