@@ -22,9 +22,9 @@ enum AssertionMapper {
                 combinationPairs.append(newValues)
             })
 
-            let xxx = Combinations.combine(lists: combinationPairs)
+            let combinations = Combinations.combine(lists: combinationPairs)
 
-            xxx.forEach({ values in
+            combinations.forEach({ values in
 
                 var description = assertion.description
                 var at = "\(assertion.at)"
