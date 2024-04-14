@@ -28,7 +28,7 @@ extension FeaturevisorTestRunner.Benchmark {
         let f = try! SDKProvider.provide(
             for: .ios,
             under: options.environment,
-            using: "/Users/marcin.polak2/dev/workspace/featurevisor/features",
+            using: ".",
             assertionAt: 1
         )
 
