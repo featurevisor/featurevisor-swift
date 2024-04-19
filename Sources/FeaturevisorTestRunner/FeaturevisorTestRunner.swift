@@ -11,7 +11,7 @@ struct FeaturevisorTestRunner: ParsableCommand {
 
     static let configuration = CommandConfiguration(
         abstract: "Featurevisor SDK utilities.",
-        subcommands: [Test.self, Benchmark.self]
+        subcommands: [Benchmark.self, Evaluate.self, Test.self]
     )
 }
 
@@ -91,6 +91,63 @@ extension FeaturevisorTestRunner {
             )
 
             benchmarkFeature(options: options)
+        }
+    }
+}
+
+extension FeaturevisorTestRunner {
+
+    struct Evaluate: ParsableCommand {
+
+        struct Options {
+            let environment: Environment
+            let feature: FeatureKey
+            let context: [AttributeKey: AttributeValue]
+        }
+
+        struct Output {
+            let value: Any?
+            let duration: TimeInterval
+        }
+
+        static let configuration = CommandConfiguration(
+            abstract:
+                "To learn why certain values (like feature and its variation or variables) are evaluated as they are."
+        )
+
+        @Option(
+            help:
+                "The option is used to specify the environment which will be used for the evaluation run."
+        )
+        var environment: String
+
+        @Option(
+            help:
+                "The option is used to specify the feature key which will be used for the evaluation run."
+        )
+        var feature: String
+
+        @Option(
+            help:
+                "The option is used to specify the context which will be used for the benchmark run."
+        )
+        var context: String
+
+        mutating func run() throws {
+
+            let _context = try JSONDecoder()
+                .decode(
+                    [AttributeKey: AttributeValue].self,
+                    from: context.data(using: .utf8)!
+                )
+
+            let options: Options = .init(
+                environment: .init(rawValue: environment)!,
+                feature: feature,
+                context: _context
+            )
+
+            evaluateFeature(options: options)
         }
     }
 }

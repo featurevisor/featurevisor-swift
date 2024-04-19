@@ -79,11 +79,13 @@ extension FeaturevisorInstance {
         let finalContext = interceptContext != nil ? interceptContext!(context) : context
 
         // forced
-        if let force = findForceFromFeature(
+        let forceResult = findForceFromFeature(
             feature,
             context: context,
             datafileReader: datafileReader
-        ) {
+        )
+
+        if let force = forceResult.force {
             let variation = feature.variations.first(where: { variation in
                 return variation.value == force.variation
             })
@@ -102,12 +104,12 @@ extension FeaturevisorInstance {
         }
 
         // bucketing
-        let bucketValue = getBucketValue(feature: feature, context: finalContext)
+        let bucketResult = getBucketValue(feature: feature, context: finalContext)
 
         let matchedTrafficAndAllocation = getMatchedTrafficAndAllocation(
             traffic: feature.traffic,
             context: finalContext,
-            bucketValue: bucketValue,
+            bucketValue: bucketResult.bucketValue,
             datafileReader: datafileReader,
             logger: logger
         )
@@ -125,7 +127,8 @@ extension FeaturevisorInstance {
                     evaluation = Evaluation(
                         featureKey: feature.key,
                         reason: .rule,
-                        bucketValue: bucketValue,
+                        bucketKey: bucketResult.bucketKey,
+                        bucketValue: bucketResult.bucketValue,
                         ruleKey: matchedTraffic.key,
                         variation: variation
                     )
@@ -147,7 +150,10 @@ extension FeaturevisorInstance {
                     evaluation = Evaluation(
                         featureKey: feature.key,
                         reason: .allocated,
-                        bucketValue: bucketValue,
+                        bucketKey: bucketResult.bucketKey,
+                        bucketValue: bucketResult.bucketValue,
+                        ruleKey: matchedTraffic.key,
+                        traffic: matchedTraffic,
                         variation: variation
                     )
 
@@ -162,7 +168,8 @@ extension FeaturevisorInstance {
         evaluation = Evaluation(
             featureKey: feature.key,
             reason: .error,
-            bucketValue: bucketValue
+            bucketKey: bucketResult.bucketKey,
+            bucketValue: bucketResult.bucketValue
         )
 
         logger.debug("no matched variation", evaluation.toDictionary())
@@ -225,13 +232,19 @@ extension FeaturevisorInstance {
         let finalContext = interceptContext != nil ? interceptContext!(context) : context
 
         // forced
-        let force = findForceFromFeature(feature, context: context, datafileReader: datafileReader)
+        let forceResult = findForceFromFeature(
+            feature,
+            context: context,
+            datafileReader: datafileReader
+        )
 
-        if let force, force.enabled != nil {
+        if let force = forceResult.force, force.enabled != nil {
             evaluation = Evaluation(
                 featureKey: featureKey,
                 reason: .forced,
-                enabled: force.enabled
+                enabled: force.enabled,
+                forceIndex: forceResult.forceIndex,
+                force: force
             )
 
             logger.debug("forced enabled found", evaluation.toDictionary())
@@ -284,7 +297,7 @@ extension FeaturevisorInstance {
         }
 
         // bucketing
-        let bucketValue = getBucketValue(feature: feature, context: finalContext)
+        let bucketResult = getBucketValue(feature: feature, context: finalContext)
 
         let matchedTraffic = getMatchedTraffic(
             traffic: feature.traffic,
@@ -297,7 +310,8 @@ extension FeaturevisorInstance {
             if !feature.ranges.isEmpty {
 
                 let matchedRange = feature.ranges.first(where: { range in
-                    return bucketValue >= range.start && bucketValue < range.end
+                    return bucketResult.bucketValue >= range.start
+                        && bucketResult.bucketValue < range.end
                 })
 
                 // matched
@@ -305,7 +319,8 @@ extension FeaturevisorInstance {
                     evaluation = Evaluation(
                         featureKey: feature.key,
                         reason: .allocated,
-                        bucketValue: bucketValue,
+                        bucketKey: bucketResult.bucketKey,
+                        bucketValue: bucketResult.bucketValue,
                         enabled: matchedTraffic.enabled ?? true
                     )
 
@@ -316,7 +331,8 @@ extension FeaturevisorInstance {
                 evaluation = Evaluation(
                     featureKey: feature.key,
                     reason: .outOfRange,
-                    bucketValue: bucketValue,
+                    bucketKey: bucketResult.bucketKey,
+                    bucketValue: bucketResult.bucketValue,
                     enabled: false
                 )
 
@@ -330,7 +346,8 @@ extension FeaturevisorInstance {
                 evaluation = Evaluation(
                     featureKey: feature.key,
                     reason: .override,
-                    bucketValue: bucketValue,
+                    bucketKey: bucketResult.bucketKey,
+                    bucketValue: bucketResult.bucketValue,
                     ruleKey: matchedTraffic.key,
                     enabled: matchedTrafficEnabled,
                     traffic: matchedTraffic
@@ -342,11 +359,12 @@ extension FeaturevisorInstance {
             }
 
             // treated as enabled because of matched traffic
-            if bucketValue <= matchedTraffic.percentage {
+            if bucketResult.bucketValue <= matchedTraffic.percentage {
                 evaluation = Evaluation(
                     featureKey: feature.key,
                     reason: .rule,
-                    bucketValue: bucketValue,
+                    bucketKey: bucketResult.bucketKey,
+                    bucketValue: bucketResult.bucketValue,
                     ruleKey: matchedTraffic.key,
                     enabled: true,
                     traffic: matchedTraffic
@@ -360,7 +378,8 @@ extension FeaturevisorInstance {
         evaluation = Evaluation(
             featureKey: feature.key,
             reason: .error,
-            bucketValue: bucketValue,
+            bucketKey: bucketResult.bucketKey,
+            bucketValue: bucketResult.bucketValue,
             enabled: false
         )
 
@@ -451,12 +470,18 @@ extension FeaturevisorInstance {
         let finalContext = interceptContext != nil ? interceptContext!(context) : context
 
         // forced
-        let force = findForceFromFeature(feature, context: context, datafileReader: datafileReader)
+        let forceResult = findForceFromFeature(
+            feature,
+            context: context,
+            datafileReader: datafileReader
+        )
 
-        if let force, let variableValue = force.variables?[variableKey] {
+        if let force = forceResult.force, let variableValue = force.variables?[variableKey] {
             evaluation = Evaluation(
                 featureKey: feature.key,
                 reason: .forced,
+                forceIndex: forceResult.forceIndex,
+                force: force,
                 variableKey: variableKey,
                 variableValue: variableValue,
                 variableSchema: variableSchema
@@ -468,12 +493,12 @@ extension FeaturevisorInstance {
         }
 
         // bucketing
-        let bucketValue = getBucketValue(feature: feature, context: finalContext)
+        let bucketResult = getBucketValue(feature: feature, context: finalContext)
 
         let matchedTrafficAndAllocation = getMatchedTrafficAndAllocation(
             traffic: feature.traffic,
             context: finalContext,
-            bucketValue: bucketValue,
+            bucketValue: bucketResult.bucketValue,
             datafileReader: datafileReader,
             logger: logger
         )
@@ -484,8 +509,10 @@ extension FeaturevisorInstance {
                 evaluation = Evaluation(
                     featureKey: feature.key,
                     reason: .rule,
-                    bucketValue: bucketValue,
+                    bucketKey: bucketResult.bucketKey,
+                    bucketValue: bucketResult.bucketValue,
                     ruleKey: matchedTraffic.key,
+                    traffic: matchedTraffic,
                     variableKey: variableKey,
                     variableValue: variableValue,
                     variableSchema: variableSchema
@@ -499,7 +526,7 @@ extension FeaturevisorInstance {
             // regular allocation
             var variationValue: VariationValue? = nil
 
-            if let forceVariation = force?.variation {
+            if let forceVariation = forceResult.force?.variation {
                 variationValue = forceVariation
             }
             else if let matchedAllocationVariation = matchedTrafficAndAllocation.matchedAllocation?
@@ -543,8 +570,10 @@ extension FeaturevisorInstance {
                             evaluation = Evaluation(
                                 featureKey: feature.key,
                                 reason: .override,
-                                bucketValue: bucketValue,
+                                bucketKey: bucketResult.bucketKey,
+                                bucketValue: bucketResult.bucketValue,
                                 ruleKey: matchedTraffic.key,
+                                traffic: matchedTraffic,
                                 variableKey: variableKey,
                                 variableValue: override.value,
                                 variableSchema: variableSchema
@@ -560,8 +589,10 @@ extension FeaturevisorInstance {
                         evaluation = Evaluation(
                             featureKey: feature.key,
                             reason: .allocated,
-                            bucketValue: bucketValue,
+                            bucketKey: bucketResult.bucketKey,
+                            bucketValue: bucketResult.bucketValue,
                             ruleKey: matchedTraffic.key,
+                            traffic: matchedTraffic,
                             variableKey: variableKey,
                             variableValue: variableFromVariationValue,
                             variableSchema: variableSchema
@@ -579,7 +610,8 @@ extension FeaturevisorInstance {
         evaluation = Evaluation(
             featureKey: feature.key,
             reason: .defaulted,
-            bucketValue: bucketValue,
+            bucketKey: bucketResult.bucketKey,
+            bucketValue: bucketResult.bucketValue,
             variableKey: variableKey,
             variableValue: variableSchema.defaultValue,
             variableSchema: variableSchema
@@ -645,15 +677,18 @@ extension FeaturevisorInstance {
         return result
     }
 
-    fileprivate func getBucketValue(feature: Feature, context: Context) -> BucketValue {
+    public typealias BucketResult = (bucketKey: BucketKey, bucketValue: BucketValue)
+
+    fileprivate func getBucketValue(feature: Feature, context: Context) -> BucketResult {
 
         let bucketKey = getBucketKey(feature: feature, context: context)
         let value = Bucket.resolveNumber(forKey: bucketKey)
 
         if let configureBucketValue = self.configureBucketValue {
-            return configureBucketValue(feature, context, value)
+            let configuredValue = configureBucketValue(feature, context, value)
+            return (bucketKey: bucketKey, bucketValue: configuredValue)
         }
 
-        return value
+        return (bucketKey: bucketKey, bucketValue: value)
     }
 }

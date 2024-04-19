@@ -32,9 +32,13 @@ public struct Evaluation: Codable {
     private enum CodingKeys: String, CodingKey {
         case featureKey
         case reason
+        case bucketKey
         case bucketValue
         case ruleKey
+        case error
         case enabled
+        case forceIndex
+        case force
         case traffic
         case sticky
         case initial
@@ -50,10 +54,13 @@ public struct Evaluation: Codable {
     public let reason: EvaluationReason
 
     // common
+    public let bucketKey: BucketKey?
     public let bucketValue: BucketValue?
     public let ruleKey: RuleKey?
     public let enabled: Bool?
     public let traffic: Traffic?
+    public let forceIndex: Int?
+    public let force: Force?
     public let sticky: OverrideFeature?
     public let initial: OverrideFeature?
 
@@ -69,10 +76,13 @@ public struct Evaluation: Codable {
     public init(
         featureKey: FeatureKey,
         reason: EvaluationReason,
+        bucketKey: BucketKey? = nil,
         bucketValue: BucketValue? = nil,
         ruleKey: RuleKey? = nil,
         enabled: Bool? = nil,
         traffic: Traffic? = nil,
+        forceIndex: Int? = nil,
+        force: Force? = nil,
         sticky: OverrideFeature? = nil,
         initial: OverrideFeature? = nil,
         variation: Variation? = nil,
@@ -83,10 +93,13 @@ public struct Evaluation: Codable {
     ) {
         self.featureKey = featureKey
         self.reason = reason
+        self.bucketKey = bucketKey
         self.bucketValue = bucketValue
         self.ruleKey = ruleKey
         self.enabled = enabled
         self.traffic = traffic
+        self.forceIndex = forceIndex
+        self.force = force
         self.sticky = sticky
         self.initial = initial
         self.variation = variation
@@ -101,9 +114,12 @@ public struct Evaluation: Codable {
 
         try container.encode(featureKey, forKey: .featureKey)
         try container.encode(reason.rawValue, forKey: .reason)
+        try container.encodeIfPresent(bucketKey, forKey: .bucketKey)
         try container.encodeIfPresent(bucketValue, forKey: .bucketValue)
         try container.encodeIfPresent(ruleKey, forKey: .ruleKey)
         try container.encodeIfPresent(enabled, forKey: .enabled)
+        try container.encodeIfPresent(forceIndex, forKey: .forceIndex)
+        try container.encodeIfPresent(force, forKey: .force)
         try container.encodeIfPresent(traffic, forKey: .traffic)
         try container.encodeIfPresent(sticky, forKey: .sticky)
         try container.encodeIfPresent(initial, forKey: .initial)
@@ -120,9 +136,12 @@ public struct Evaluation: Codable {
         featureKey = try container.decode(FeatureKey.self, forKey: .featureKey)
         reason =
             try EvaluationReason(rawValue: container.decode(String.self, forKey: .reason)) ?? .error
+        bucketKey = try container.decodeIfPresent(BucketKey.self, forKey: .bucketKey)
         bucketValue = try container.decodeIfPresent(BucketValue.self, forKey: .bucketValue)
         ruleKey = try? container.decodeIfPresent(RuleKey.self, forKey: .ruleKey)
         enabled = try? container.decodeIfPresent(Bool.self, forKey: .enabled)
+        forceIndex = try? container.decodeIfPresent(Int.self, forKey: .forceIndex)
+        force = try? container.decodeIfPresent(Force.self, forKey: .force)
         traffic = try? container.decodeIfPresent(Traffic.self, forKey: .traffic)
         sticky = try? container.decodeIfPresent(OverrideFeature.self, forKey: .sticky)
         initial = try? container.decodeIfPresent(OverrideFeature.self, forKey: .initial)

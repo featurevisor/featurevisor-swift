@@ -46,6 +46,8 @@ enum SDKProvider {
         options.configureBucketValue = { _, _, _ -> BucketValue in
             return Int(assertionAt * (maxBucketedNumber / 100.0))
         }
+        options.logger = Logger(levels: []) { _, _, _ in
+        }
 
         return try FeaturevisorSDK.createInstance(options: options)
     }

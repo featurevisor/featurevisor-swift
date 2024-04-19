@@ -505,7 +505,17 @@ public typealias FeatureKey = String
 
 public typealias VariableValues = [VariableKey: VariableValue]
 
-public struct Force: Decodable {
+public struct ForceResult {
+    public let force: Force?
+    public let forceIndex: Int?
+
+    public init(force: Force?, forceIndex: Int?) {
+        self.force = force
+        self.forceIndex = forceIndex
+    }
+}
+
+public struct Force: Codable {
     public let variation: VariationValue?
     public let variables: VariableValues?
 
