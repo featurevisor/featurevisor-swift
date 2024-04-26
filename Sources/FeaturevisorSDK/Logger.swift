@@ -24,7 +24,7 @@ public class Logger {
     var levels: [LogLevel]
     let handle: LogHandler
 
-    init(levels: [LogLevel], handle: @escaping LogHandler) {
+    public init(levels: [LogLevel], handle: @escaping LogHandler) {
         self.levels = levels
         self.handle = handle
     }

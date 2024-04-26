@@ -13,23 +13,35 @@ extension FeaturevisorInstance {
         _ feature: Feature,
         context: Context,
         datafileReader: DatafileReader
-    ) -> Force? {
+    ) -> ForceResult {
 
-        return feature.force.first(where: { force in
-            if let conditions = force.conditions {
-                return allConditionsAreMatched(condition: conditions, context: context)
+        var force: Force?
+        var forceIndex: Int?
+
+        for (index, currentForce) in feature.force.enumerated() {
+            if let condition = currentForce.conditions,
+                allConditionsAreMatched(condition: condition, context: context)
+            {
+
+                force = currentForce
+                forceIndex = index
+                break
             }
 
-            if let segments = force.segments {
-                return allGroupSegmentsAreMatched(
+            if let segments = currentForce.segments,
+                allGroupSegmentsAreMatched(
                     groupSegments: segments,
                     context: context,
                     datafileReader: datafileReader
                 )
+            {
+                force = currentForce
+                forceIndex = index
+                break
             }
+        }
 
-            return false
-        })
+        return .init(force: force, forceIndex: forceIndex)
     }
 
     func getMatchedTraffic(

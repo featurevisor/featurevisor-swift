@@ -386,6 +386,18 @@ To benchmark evaluating a feature's variable via SDKs's `.getVariable()` method:
   -n 100
 ```
 
+### Evaluate
+To learn why certain values (like feature and its variation or variables) are evaluated as they are against provided [context](https://featurevisor.com/docs/sdks/javascript/#context):
+
+```bash
+ FeaturevisorTestRunner evaluate \
+  --environment staging \
+  --feature feature_key \
+  --context '{"user_id":"123"}' \
+```
+This will show you full [evaluation details](https://featurevisor.com/docs/sdks/javascript/#evaluation-details) helping you debug better in case of any confusion.
+It is similar to logging in SDKs with debug level. But here instead, we are doing it at CLI directly in our Featurevisor project without having to involve our application(s).
+
 ## License
 
 [MIT](./LICENSE)
