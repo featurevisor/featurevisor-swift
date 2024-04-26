@@ -393,7 +393,6 @@ To learn why certain values (like feature and its variation or variables) are ev
  FeaturevisorTestRunner evaluate \
   --environment staging \
   --feature feature_key \
-  --feature variable_key \
   --context '{"user_id":"123"}' \
 ```
 This will show you full [evaluation details](https://featurevisor.com/docs/sdks/javascript/#evaluation-details) helping you debug better in case of any confusion.
