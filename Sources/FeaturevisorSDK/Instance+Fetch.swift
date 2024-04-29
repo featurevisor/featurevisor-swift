@@ -11,17 +11,17 @@ extension FeaturevisorInstance {
         completion: @escaping (Result<DatafileContent, Error>) -> Void
     ) throws {
 
-        guard let datafileUrl = URL(string: url) else {
+        guard let datafileURL = URL(string: url) else {
             throw FeaturevisorError.invalidURL(string: url)
         }
 
         guard let handleDatafileFetch else {
-            fetch(from: datafileUrl, completion: completion)
+            fetch(from: datafileURL, completion: completion)
             return
         }
 
         Task {
-            completion(await handleDatafileFetch(datafileUrl))
+            completion(await handleDatafileFetch(datafileURL))
         }
     }
 }
