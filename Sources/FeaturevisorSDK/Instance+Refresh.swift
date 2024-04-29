@@ -19,35 +19,38 @@ extension FeaturevisorInstance {
 
         statuses.refreshInProgress = true
 
-        try? fetchDatafileContent(
-            from: datafileUrl,
-            handleDatafileFetch: handleDatafileFetch
-        ) { [weak self] result in
-            guard let self else {
-                return
-            }
-
-            switch result {
-                case .success(let datafileContent):
-                    let currentRevision = self.getRevision()
-                    let newRevision = datafileContent.revision
-                    let isNotSameRevision = currentRevision != newRevision
-
-                    self.datafileReader = DatafileReader(datafileContent: datafileContent)
-                    logger.info("refreshed datafile")
-
-                    self.emitter.emit(.refresh)
-
-                    if isNotSameRevision {
-                        self.emitter.emit(.update)
+        Task { [weak self] in
+            try? await self?
+                .fetchDatafileContent(
+                    from: datafileUrl,
+                    handleDatafileFetch: handleDatafileFetch
+                ) { [weak self] result in
+                    guard let self else {
+                        return
                     }
 
-                    self.statuses.refreshInProgress = false
+                    switch result {
+                        case .success(let datafileContent):
+                            let currentRevision = self.getRevision()
+                            let newRevision = datafileContent.revision
+                            let isNotSameRevision = currentRevision != newRevision
 
-                case .failure(let error):
-                    self.logger.error("failed to refresh datafile", ["error": error])
-                    self.statuses.refreshInProgress = false
-            }
+                            self.datafileReader = DatafileReader(datafileContent: datafileContent)
+                            logger.info("refreshed datafile")
+
+                            self.emitter.emit(.refresh)
+
+                            if isNotSameRevision {
+                                self.emitter.emit(.update)
+                            }
+
+                            self.statuses.refreshInProgress = false
+
+                        case .failure(let error):
+                            self.logger.error("failed to refresh datafile", ["error": error])
+                            self.statuses.refreshInProgress = false
+                    }
+                }
         }
     }
 

@@ -4,7 +4,7 @@ import Foundation
 public typealias ConfigureBucketKey = (Feature, Context, BucketKey) -> BucketKey
 public typealias ConfigureBucketValue = (Feature, Context, BucketValue) -> BucketValue
 public typealias InterceptContext = (Context) -> Context
-public typealias DatafileFetchHandler = (_ datafileUrl: String) -> Result<DatafileContent, Error>
+public typealias DatafileFetchHandler = (_ datafileURL: URL) async -> Result<DatafileContent, Error>
 
 public struct Statuses {
     public var ready: Bool
