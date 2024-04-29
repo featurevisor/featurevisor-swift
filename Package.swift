@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "FeaturevisorSDK",
-        platforms: [.macOS(.v10_15)],
+        platforms: [.iOS(.v13), .tvOS(.v13), .macOS(.v10_15), .watchOS(.v6), .macCatalyst(.v13), .visionOS(.v1)],
         products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
