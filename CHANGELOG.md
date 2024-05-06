@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.9.0](https://github.com/featurevisor/featurevisor-swift/compare/0.8.0...0.9.0) (2024-05-06)
+### Features
+* evaluate features in CLI ([69fdb0e](https://github.com/featurevisor/featurevisor-swift/commit/69fdb0ec3fd8b029d689669553e18558b1f7e0f7))
+* benchmarking option in CLI ([3d6eb94](https://github.com/featurevisor/featurevisor-swift/commit/3d6eb941f5d5d7ce0845d32b6ada23cde2274d83))
+
+### Refactor
+* make datafile handler async ([9886301](https://github.com/featurevisor/featurevisor-swift/commit/988630114365303c1e16f1f06853ed8ca4d9df2e))
+
 ## [0.8.0](https://github.com/featurevisor/featurevisor-swift/compare/0.7.0...0.8.0) (2024-04-03)
 ### Features
 
