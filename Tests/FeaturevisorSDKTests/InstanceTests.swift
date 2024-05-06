@@ -1111,8 +1111,12 @@ class FeaturevisorInstanceTests: XCTestCase {
     func testHandleDatafileFetchReturnsValidResponse() {
 
         // GIVEN
+        let expectation = expectation(description: "datafile_error_response_expectation")
         var options = InstanceOptions.default
-        options.datafileUrl = "https://dazn.featurevisor.datafilecontent.com"
+        options.datafileUrl = "https://featurevisor.datafilecontent.com"
+        options.onReady = { _ in
+            expectation.fulfill()
+        }
         options.handleDatafileFetch = { _ in
             let datafileContent = DatafileContent(
                 schemaVersion: "2",
@@ -1136,15 +1140,17 @@ class FeaturevisorInstanceTests: XCTestCase {
         let sdk = try! createInstance(options: options)
 
         // THEN
+        waitForExpectations(timeout: 1)
         XCTAssertEqual(sdk.getRevision(), "6.6.6")
     }
 
     func testHandleDatafileFetchReturnErrorResponse() {
 
         // GIVEN
+        let expectation = expectation(description: "datafile_error_response_expectation")
         var wasDatafileContentFetchErrorThrown = false
         var options = InstanceOptions.default
-        options.datafileUrl = "https://dazn.featurevisor.datafilecontent.com"
+        options.datafileUrl = "https://featurevisor.datafilecontent.com"
         options.handleDatafileFetch = { _ in
             return .failure(FeaturevisorError.unparseableJSON(data: nil, errorMessage: "Error :("))
         }
@@ -1156,6 +1162,8 @@ class FeaturevisorInstanceTests: XCTestCase {
             if message.contains("Failed to fetch datafile") {
                 wasDatafileContentFetchErrorThrown = true
             }
+
+            expectation.fulfill()
         }
         options.datafile = DatafileContent(
             schemaVersion: "1",
@@ -1166,9 +1174,10 @@ class FeaturevisorInstanceTests: XCTestCase {
         )
 
         // WHEN
-        _ = try! createInstance(options: options)
+        let sdk = try! createInstance(options: options)
 
         // THEN
+        waitForExpectations(timeout: 1)
         XCTAssertTrue(wasDatafileContentFetchErrorThrown)
     }
 

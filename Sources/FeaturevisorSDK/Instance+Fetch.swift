@@ -11,37 +11,31 @@ extension FeaturevisorInstance {
         completion: @escaping (Result<DatafileContent, Error>) -> Void
     ) throws {
 
+        guard let datafileURL = URL(string: url) else {
+            throw FeaturevisorError.invalidURL(string: url)
+        }
+
         guard let handleDatafileFetch else {
-            try fetchDatafileContent(from: url, completion: completion)
+            fetch(from: datafileURL, completion: completion)
             return
         }
 
-        completion(handleDatafileFetch(url))
+        Task {
+            completion(await handleDatafileFetch(datafileURL))
+        }
     }
 }
 
 extension FeaturevisorInstance {
 
-    fileprivate func fetchDatafileContent(
-        from url: String,
-        completion: @escaping (Result<DatafileContent, Error>) -> Void
-    ) throws {
-
-        guard let datafileUrl = URL(string: url) else {
-            throw FeaturevisorError.invalidURL(string: url)
-        }
-
-        var request = URLRequest(url: datafileUrl)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
-
-        fetch(using: request, completion: completion)
-    }
-
     fileprivate func fetch<T>(
-        using request: URLRequest,
+        from url: URL,
         completion: @escaping (Result<T, Error>) -> Void
     ) where T: Decodable {
+
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
 
         let task = urlSession.dataTask(with: request) { (data, response, error) in
 

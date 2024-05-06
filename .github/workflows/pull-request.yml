@@ -14,9 +14,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - uses: swift-actions/setup-swift@65540b95f51493d65f5e59e97dcef9629ddf11bf
+    - uses: swift-actions/setup-swift@v2
       with:
-        swift-version: "5.8"
+        swift-version: "5.9.2"
     - name: Install swift-format tool
       run: brew install swift-format
     - name: Swift-format linting Sources directory
