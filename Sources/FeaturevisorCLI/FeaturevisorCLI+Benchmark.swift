@@ -3,7 +3,7 @@ import FeaturevisorSDK
 import FeaturevisorTypes
 import Foundation
 
-extension FeaturevisorTestRunner.Benchmark {
+extension FeaturevisorCLI.Benchmark {
 
     func benchmarkFeature(options: Options) {
 
@@ -76,7 +76,7 @@ extension FeaturevisorTestRunner.Benchmark {
     }
 }
 
-extension FeaturevisorTestRunner.Benchmark {
+extension FeaturevisorCLI.Benchmark {
 
     func benchmarkFeatureFlag(
         _ f: FeaturevisorInstance,
