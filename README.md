@@ -343,7 +343,7 @@ $ cp -f FeaturevisorSwiftTestRunner /usr/local/bin/featurevisor-swift-test-runne
 Now you can usage like below:
 ```
 $ cd path/to/featurevisor-project-with-yamls
-$ featurevisor-swift-test-runner test .
+$ featurevisor-swift-cli test .
 ```
 
 ### Benchmarking
@@ -355,7 +355,7 @@ The `--n` option is used to specify the number of iterations to run the benchmar
 To benchmark evaluating a feature itself if it is enabled or disabled via SDK's `.isEnabled()` method:
 
 ```bash
- FeaturevisorTestRunner benchmark \
+ featurevisor-swift-cli benchmark \
   --environment staging \
   --feature feature_key \
   --context '{"user_id":"123"}' \
@@ -366,7 +366,7 @@ To benchmark evaluating a feature itself if it is enabled or disabled via SDK's 
 To benchmark evaluating a feature's variation via SDKs's `.getVariation()` method:
 
 ```bash
- FeaturevisorTestRunner benchmark \
+ featurevisor-swift-cli benchmark \
   --environment staging \
   --feature feature_key \
   --context '{"user_id":"123"}' \
@@ -378,7 +378,7 @@ To benchmark evaluating a feature's variation via SDKs's `.getVariation()` metho
 To benchmark evaluating a feature's variable via SDKs's `.getVariable()` method:
 
 ```bash
- FeaturevisorTestRunner benchmark \
+ featurevisor-swift-cli benchmark \
   --environment staging \
   --feature feature_key \
   --variable variable_key \
@@ -390,7 +390,7 @@ To benchmark evaluating a feature's variable via SDKs's `.getVariable()` method:
 To learn why certain values (like feature and its variation or variables) are evaluated as they are against provided [context](https://featurevisor.com/docs/sdks/javascript/#context):
 
 ```bash
- FeaturevisorTestRunner evaluate \
+ featurevisor-swift-cli evaluate \
   --environment staging \
   --feature feature_key \
   --context '{"user_id":"123"}' \
