@@ -17,8 +17,8 @@ let package = Package(
             targets: ["FeaturevisorTypes"]
         ),
         .executable(
-            name: "FeaturevisorSwiftTestRunner",
-            targets: ["FeaturevisorTestRunner"]
+            name: "FeaturevisorCLI",
+            targets: ["FeaturevisorCLI"]
         ),
     ],
     dependencies: [
@@ -43,7 +43,7 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "FeaturevisorTestRunner",
+            name: "FeaturevisorCLI",
             dependencies: [
                 "FeaturevisorSDK",
                 "FeaturevisorTypes",
@@ -52,7 +52,7 @@ let package = Package(
                 .product(name: "Commands", package: "swift-commands"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
-            path: "Sources/FeaturevisorTestRunner"
+            path: "Sources/FeaturevisorCLI"
         ),
         .testTarget(
             name: "FeaturevisorSDKTests",
