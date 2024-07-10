@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0](https://github.com/featurevisor/featurevisor-swift/compare/0.9.0...1.0.0) (2024-07-10)
+### Refactor
+* refactor: Rename FeaturevisorTestRunner to FeaturevisorCLI[134835b](https://github.com/featurevisor/featurevisor-swift/pull/73/commits/134835b1c3e457f0fca4bfcd4fd476578e1707f7)
+
 ## [0.9.0](https://github.com/featurevisor/featurevisor-swift/compare/0.8.0...0.9.0) (2024-05-06)
 ### Features
 * evaluate features in CLI ([69fdb0e](https://github.com/featurevisor/featurevisor-swift/commit/69fdb0ec3fd8b029d689669553e18558b1f7e0f7))
