@@ -1181,7 +1181,10 @@ class FeaturevisorInstanceTests: XCTestCase {
         // THEN
         waitForExpectations(timeout: 1)
         XCTAssertTrue(wasDatafileContentFetchErrorThrown)
-        XCTAssertEqual(errorThrownDetails, "[\"error\": FeaturevisorSDK.FeaturevisorError.unparseableJSON(data: nil, errorMessage: \"Error :(\")]")
+        XCTAssertEqual(
+            errorThrownDetails,
+            "[\"error\": FeaturevisorSDK.FeaturevisorError.unparseableJSON(data: nil, errorMessage: \"Error :(\")]"
+        )
     }
 
     func testShouldGetVariable() {
