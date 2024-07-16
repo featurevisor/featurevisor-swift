@@ -261,7 +261,7 @@ public class FeaturevisorInstance {
                             self?.startRefreshing()
                         }
                     case .failure(let error):
-                        self?.logger.error("Failed to fetch datafile: \(error)")
+                        self?.logger.error("failed to fetch datafile", ["error": error])
                 }
             }
         }
