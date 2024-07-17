@@ -1149,6 +1149,7 @@ class FeaturevisorInstanceTests: XCTestCase {
         // GIVEN
         let expectation = expectation(description: "datafile_error_response_expectation")
         var wasDatafileContentFetchErrorThrown = false
+        var errorThrownDetails: String?
         var options = InstanceOptions.default
         options.datafileUrl = "https://featurevisor.datafilecontent.com"
         options.handleDatafileFetch = { _ in
@@ -1159,8 +1160,9 @@ class FeaturevisorInstanceTests: XCTestCase {
                 return
             }
 
-            if message.contains("Failed to fetch datafile") {
+            if message.contains("failed to fetch datafile") {
                 wasDatafileContentFetchErrorThrown = true
+                errorThrownDetails = details?.description
             }
 
             expectation.fulfill()
@@ -1179,6 +1181,10 @@ class FeaturevisorInstanceTests: XCTestCase {
         // THEN
         waitForExpectations(timeout: 1)
         XCTAssertTrue(wasDatafileContentFetchErrorThrown)
+        XCTAssertEqual(
+            errorThrownDetails,
+            "[\"error\": FeaturevisorSDK.FeaturevisorError.unparseableJSON(data: nil, errorMessage: \"Error :(\")]"
+        )
     }
 
     func testShouldGetVariable() {
