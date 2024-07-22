@@ -3,7 +3,7 @@ import FeaturevisorSDK
 import FeaturevisorTypes
 import Foundation
 
-extension FeaturevisorCLI.Evaluate {
+extension Featurevisor.Evaluate {
 
     func evaluateFeature(options: Options) {
 
@@ -88,7 +88,7 @@ extension FeaturevisorCLI.Evaluate {
     }
 }
 
-extension FeaturevisorCLI.Evaluate {
+extension Featurevisor.Evaluate {
 
     fileprivate func printHeader(_ message: String) {
         print("\n\n###############")

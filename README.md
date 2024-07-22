@@ -320,8 +320,6 @@ let f = try createInstance(options: options)
 
 ### Test runner
 
-@TODO: Work still in progress. Currently we have an early POC.
-
 ### Options
 
 ```bash
@@ -332,18 +330,23 @@ If you are interested to see only the test specs that fail:
 
 Example command:
 
-First you need to install the Swift Test Runner using above steps (until we release official version)
+```
+$ swift run featurevisor test .
+```
+
+You can also install it locally using below commands. Note, we use featurevisor-swift to avoid conflicts with other Featurevisor CLIs
+
 ```
 $ cd path/to/featurevisor-swift-sdk
 $ swift build -c release
 $ cd .build/release
-$ cp -f FeaturevisorSwiftTestRunner /usr/local/bin/featurevisor-swift-test-runner
+$ cp -f Featurevisor /usr/local/bin/featurevisor-swift
 ```
 
 Now you can usage like below:
 ```
 $ cd path/to/featurevisor-project-with-yamls
-$ featurevisor-swift-cli test .
+$ featurevisor-swift test .
 ```
 
 ### Benchmarking
@@ -355,7 +358,7 @@ The `--n` option is used to specify the number of iterations to run the benchmar
 To benchmark evaluating a feature itself if it is enabled or disabled via SDK's `.isEnabled()` method:
 
 ```bash
- featurevisor-swift-cli benchmark \
+ featurevisor-swift benchmark \
   --environment staging \
   --feature feature_key \
   --context '{"user_id":"123"}' \
@@ -366,7 +369,7 @@ To benchmark evaluating a feature itself if it is enabled or disabled via SDK's 
 To benchmark evaluating a feature's variation via SDKs's `.getVariation()` method:
 
 ```bash
- featurevisor-swift-cli benchmark \
+ featurevisor-swift benchmark \
   --environment staging \
   --feature feature_key \
   --context '{"user_id":"123"}' \
@@ -378,7 +381,7 @@ To benchmark evaluating a feature's variation via SDKs's `.getVariation()` metho
 To benchmark evaluating a feature's variable via SDKs's `.getVariable()` method:
 
 ```bash
- featurevisor-swift-cli benchmark \
+ featurevisor-swift benchmark \
   --environment staging \
   --feature feature_key \
   --variable variable_key \
@@ -390,7 +393,7 @@ To benchmark evaluating a feature's variable via SDKs's `.getVariable()` method:
 To learn why certain values (like feature and its variation or variables) are evaluated as they are against provided [context](https://featurevisor.com/docs/sdks/javascript/#context):
 
 ```bash
- featurevisor-swift-cli evaluate \
+ featurevisor-swift evaluate \
   --environment staging \
   --feature feature_key \
   --context '{"user_id":"123"}' \
