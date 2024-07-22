@@ -7,7 +7,7 @@ import Foundation
 import Yams
 
 @main
-struct FeaturevisorCLI: ParsableCommand {
+struct Featurevisor: ParsableCommand {
 
     static let configuration = CommandConfiguration(
         abstract: "Featurevisor CLI.",
@@ -15,7 +15,7 @@ struct FeaturevisorCLI: ParsableCommand {
     )
 }
 
-extension FeaturevisorCLI {
+extension Featurevisor {
 
     struct Benchmark: ParsableCommand {
 
@@ -95,7 +95,7 @@ extension FeaturevisorCLI {
     }
 }
 
-extension FeaturevisorCLI {
+extension Featurevisor {
 
     struct Evaluate: ParsableCommand {
 
@@ -152,7 +152,7 @@ extension FeaturevisorCLI {
     }
 }
 
-extension FeaturevisorCLI {
+extension Featurevisor {
 
     struct Test: ParsableCommand {
 
@@ -402,7 +402,7 @@ extension FeaturevisorCLI {
     }
 }
 
-extension FeaturevisorCLI.Test {
+extension Featurevisor.Test {
 
     func loadAllFeatures(featuresTestDirectoryPath: String) throws -> [Feature] {
 
