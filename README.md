@@ -318,9 +318,55 @@ options.onActivation = { ... }
 let f = try createInstance(options: options)
 ```
 
-### Test runner
+### CLI
 
-### Options
+To install it locally use below commands. Note, we use featurevisor-swift to avoid conflicts with other Featurevisor CLIs
+
+```bash
+$ cd path/to/featurevisor-swift-sdk
+$ swift build -c release
+$ cd .build/release
+$ cp -f Featurevisor /usr/local/bin/featurevisor-swift
+```
+
+Now you can usage like below:
+```bash
+$ cd path/to/featurevisor-project-with-yamls
+$ featurevisor-swift test .
+```
+
+To install via Swift Package Manager, you need to add it as a dependency under your `Package.swift` file , where `X.X.X` is the version which you want to use.
+
+```swift
+dependencies: [
+    .package(
+            url: "https://github.com/featurevisor/featurevisor-swift", 
+            exact: "X.X.X"
+    )
+]
+```
+
+To run use below command:
+
+```bash
+$ swift run featurevisor test .
+```
+
+To update the swift's featurevisor use below command:
+
+```bash
+$ swift package update
+```
+
+### Tests
+If you would like to test your feature/s setup against Swift SDK you can do this by invoking the below command.
+Currently, it takes all features which are being supported by `ios` and `tvos` and run tests for them.
+
+```bash
+$ swift run featurevisor test .
+```
+
+#### Options
 
 ```bash
 'only-failures'
@@ -331,22 +377,7 @@ If you are interested to see only the test specs that fail:
 Example command:
 
 ```
-$ swift run featurevisor test .
-```
-
-You can also install it locally using below commands. Note, we use featurevisor-swift to avoid conflicts with other Featurevisor CLIs
-
-```
-$ cd path/to/featurevisor-swift-sdk
-$ swift build -c release
-$ cd .build/release
-$ cp -f Featurevisor /usr/local/bin/featurevisor-swift
-```
-
-Now you can usage like below:
-```
-$ cd path/to/featurevisor-project-with-yamls
-$ featurevisor-swift test .
+$ swift run featurevisor test --only-failures .
 ```
 
 ### Benchmarking
