@@ -791,6 +791,7 @@ class FeaturevisorInstanceTests: XCTestCase {
     func testShouldEmitWarningsForDeprecatedFeature() {
 
         // GIVEN
+        let expectation: XCTestExpectation = expectation(description: "logger_log_exceptation")
         var deprecatedCount = 0
         var options: InstanceOptions = .default
         options.datafile = DatafileContent(
@@ -871,6 +872,7 @@ class FeaturevisorInstanceTests: XCTestCase {
 
             if message.contains("is deprecated") {
                 deprecatedCount += 1
+                expectation.fulfill()
             }
         }
 
@@ -884,6 +886,8 @@ class FeaturevisorInstanceTests: XCTestCase {
             featureKey: "deprecatedTest",
             context: ["userId": .string("123")]
         )
+
+        wait(for: [expectation], timeout: 1)
 
         // THEN
         XCTAssertEqual(testVariation, "control")

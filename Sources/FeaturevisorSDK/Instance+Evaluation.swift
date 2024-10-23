@@ -22,7 +22,7 @@ extension FeaturevisorInstance {
                 reason: .disabled
             )
 
-            logger.debug("feature is disabled", evaluation.toDictionary())
+            logger.debug("feature is disabled", evaluation)
 
             return evaluation
         }
@@ -35,7 +35,7 @@ extension FeaturevisorInstance {
                 variationValue: variationValue
             )
 
-            logger.debug("using sticky variation", evaluation.toDictionary())
+            logger.debug("using sticky variation", evaluation)
 
             return evaluation
         }
@@ -48,7 +48,7 @@ extension FeaturevisorInstance {
                 variationValue: variationValue
             )
 
-            logger.debug("using initial variation", evaluation.toDictionary())
+            logger.debug("using initial variation", evaluation)
 
             return evaluation
         }
@@ -60,7 +60,7 @@ extension FeaturevisorInstance {
                 reason: .notFound
             )
 
-            logger.warn("feature not found", evaluation.toDictionary())
+            logger.warn("feature not found", evaluation)
 
             return evaluation
         }
@@ -72,7 +72,7 @@ extension FeaturevisorInstance {
                 reason: .noVariations
             )
 
-            logger.warn("no variations", evaluation.toDictionary())
+            logger.warn("no variations", evaluation)
             return evaluation
         }
 
@@ -97,7 +97,7 @@ extension FeaturevisorInstance {
                     variation: variation
                 )
 
-                logger.debug("forced variation found", evaluation.toDictionary())
+                logger.debug("forced variation found", evaluation)
 
                 return evaluation
             }
@@ -133,7 +133,7 @@ extension FeaturevisorInstance {
                         variation: variation
                     )
 
-                    logger.debug("override from rule", evaluation.toDictionary())
+                    logger.debug("override from rule", evaluation)
 
                     return evaluation
                 }
@@ -157,7 +157,7 @@ extension FeaturevisorInstance {
                         variation: variation
                     )
 
-                    logger.debug("allocated variation", evaluation.toDictionary())
+                    logger.debug("allocated variation", evaluation)
 
                     return evaluation
                 }
@@ -172,7 +172,7 @@ extension FeaturevisorInstance {
             bucketValue: bucketResult.bucketValue
         )
 
-        logger.debug("no matched variation", evaluation.toDictionary())
+        logger.debug("no matched variation", evaluation)
 
         return evaluation
     }
@@ -191,7 +191,7 @@ extension FeaturevisorInstance {
                 sticky: stickyFeature
             )
 
-            logger.debug("using sticky enabled", evaluation.toDictionary())
+            logger.debug("using sticky enabled", evaluation)
 
             return evaluation
         }
@@ -205,7 +205,7 @@ extension FeaturevisorInstance {
                 initial: initialFeature
             )
 
-            logger.debug("using initial enabled", evaluation.toDictionary())
+            logger.debug("using initial enabled", evaluation)
 
             return evaluation
         }
@@ -219,7 +219,7 @@ extension FeaturevisorInstance {
                 reason: .notFound
             )
 
-            logger.warn("feature not found", evaluation.toDictionary())
+            logger.warn("feature not found", evaluation)
 
             return evaluation
         }
@@ -247,7 +247,7 @@ extension FeaturevisorInstance {
                 force: force
             )
 
-            logger.debug("forced enabled found", evaluation.toDictionary())
+            logger.debug("forced enabled found", evaluation)
 
             return evaluation
         }
@@ -336,7 +336,7 @@ extension FeaturevisorInstance {
                     enabled: false
                 )
 
-                logger.debug("not matched", evaluation.toDictionary())
+                logger.debug("not matched", evaluation)
 
                 return evaluation
             }
@@ -353,7 +353,7 @@ extension FeaturevisorInstance {
                     traffic: matchedTraffic
                 )
 
-                logger.debug("override from rule", evaluation.toDictionary())
+                logger.debug("override from rule", evaluation)
 
                 return evaluation
             }
@@ -401,7 +401,7 @@ extension FeaturevisorInstance {
         if flag.enabled == false {
             evaluation = Evaluation(featureKey: featureKey, reason: .disabled)
 
-            logger.debug("feature is disabled", evaluation.toDictionary())
+            logger.debug("feature is disabled", evaluation)
 
             return evaluation
         }
@@ -415,7 +415,7 @@ extension FeaturevisorInstance {
                 variableValue: variableValue
             )
 
-            logger.debug("using sticky variable", evaluation.toDictionary())
+            logger.debug("using sticky variable", evaluation)
 
             return evaluation
         }
@@ -431,7 +431,7 @@ extension FeaturevisorInstance {
                     variableValue: variableValue
                 )
 
-                logger.debug("using initial variable", evaluation.toDictionary())
+                logger.debug("using initial variable", evaluation)
 
                 return evaluation
             }
@@ -445,7 +445,7 @@ extension FeaturevisorInstance {
                 variableKey: variableKey
             )
 
-            logger.warn("feature not found in datafile", evaluation.toDictionary())
+            logger.warn("feature not found in datafile", evaluation)
 
             return evaluation
         }
@@ -462,7 +462,7 @@ extension FeaturevisorInstance {
                 variableKey: variableKey
             )
 
-            logger.warn("variable schema not found", evaluation.toDictionary())
+            logger.warn("variable schema not found", evaluation)
 
             return evaluation
         }
@@ -487,7 +487,7 @@ extension FeaturevisorInstance {
                 variableSchema: variableSchema
             )
 
-            logger.debug("forced variable", evaluation.toDictionary())
+            logger.debug("forced variable", evaluation)
 
             return evaluation
         }
@@ -518,7 +518,7 @@ extension FeaturevisorInstance {
                     variableSchema: variableSchema
                 )
 
-                logger.debug("override from rule", evaluation.toDictionary())
+                logger.debug("override from rule", evaluation)
 
                 return evaluation
             }
@@ -579,7 +579,7 @@ extension FeaturevisorInstance {
                                 variableSchema: variableSchema
                             )
 
-                            logger.debug("variable override", evaluation.toDictionary())
+                            logger.debug("variable override", evaluation)
 
                             return evaluation
                         }
@@ -598,7 +598,7 @@ extension FeaturevisorInstance {
                             variableSchema: variableSchema
                         )
 
-                        logger.debug("allocated variable", evaluation.toDictionary())
+                        logger.debug("allocated variable", evaluation)
 
                         return evaluation
                     }
@@ -617,7 +617,7 @@ extension FeaturevisorInstance {
             variableSchema: variableSchema
         )
 
-        logger.debug("using default value", evaluation.toDictionary())
+        logger.debug("using default value", evaluation)
 
         return evaluation
     }
