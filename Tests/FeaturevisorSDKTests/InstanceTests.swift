@@ -1115,7 +1115,7 @@ class FeaturevisorInstanceTests: XCTestCase {
     func testHandleDatafileFetchReturnsValidResponse() {
 
         // GIVEN
-        let expectation = expectation(description: "datafile_error_response_expectation")
+        let expectation = expectation(description: "datafile_success_response_expectation")
         var options = InstanceOptions.default
         options.datafileUrl = "https://featurevisor.datafilecontent.com"
         options.onReady = { _ in
@@ -1154,11 +1154,8 @@ class FeaturevisorInstanceTests: XCTestCase {
         let expectation = expectation(description: "datafile_error_response_expectation")
         var wasDatafileContentFetchErrorThrown = false
         var errorThrownDetails: String?
+
         var options = InstanceOptions.default
-        options.datafileUrl = "https://featurevisor.datafilecontent.com"
-        options.handleDatafileFetch = { _ in
-            return .failure(FeaturevisorError.unparseableJSON(data: nil, errorMessage: "Error :("))
-        }
         options.logger = createLogger { level, message, details in
             guard case .error = level else {
                 return
@@ -1171,6 +1168,10 @@ class FeaturevisorInstanceTests: XCTestCase {
 
             expectation.fulfill()
         }
+        options.datafileUrl = "https://featurevisor.datafilecontent.com"
+        options.handleDatafileFetch = { _ in
+            .failure(FeaturevisorError.unparseableJSON(data: nil, errorMessage: "Error :("))
+        }
         options.datafile = DatafileContent(
             schemaVersion: "1",
             revision: "0.0.1",
@@ -1181,9 +1182,10 @@ class FeaturevisorInstanceTests: XCTestCase {
 
         // WHEN
         let sdk = try! createInstance(options: options)
+        waitForExpectations(timeout: 1)
 
         // THEN
-        waitForExpectations(timeout: 1)
+        XCTAssertFalse(sdk.isReady())
         XCTAssertTrue(wasDatafileContentFetchErrorThrown)
         XCTAssertEqual(
             errorThrownDetails,
