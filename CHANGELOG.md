@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.3](https://github.com/featurevisor/featurevisor-swift/compare/1.0.2...1.0.3) (2024-10-23)
+
+### Refactor
+
+* refactor: Convert codables to directory under a separate thread [cd613b5](https://github.com/featurevisor/featurevisor-swift/commit/cd613b5e072c2359c636475b4efc4dffa07f2dd1)
+* refactor: Remove redundant async when refreshing[6ffc416](https://github.com/featurevisor/featurevisor-swift/commit/6ffc4167d05b3934a8f82f7a0a49c02d72eec7a8)
+
 ## [1.0.2](https://github.com/featurevisor/featurevisor-swift/compare/1.0.1...1.0.2) (2024-07-22)
 
 ### Refactor
