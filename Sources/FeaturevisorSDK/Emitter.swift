@@ -40,7 +40,7 @@ public class Emitter {
     public func emit(_ eventName: EventName, _ args: Any...) {
         if let listeners = self.listeners[eventName] {
             for listener in listeners {
-              listener(args)
+                listener(args)
             }
         }
     }
