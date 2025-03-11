@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.0.0](https://github.com/featurevisor/featurevisor-swift/compare/1.0.3...2.0.0) (2025-03-11)
+
+### Bugfixs
+
+* BREAKING CHANGE: Emitter doesn't pass the parameters(#79)
+* Update min macOS supported version to v11 because of Commands framework(#80)
+
+### BREAKING CHANGES
+* Emitter doesn't pass the parameters
+
 ## [1.0.3](https://github.com/featurevisor/featurevisor-swift/compare/1.0.2...1.0.3) (2024-10-23)
 
 ### Refactor
