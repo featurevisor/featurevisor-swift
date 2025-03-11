@@ -5,7 +5,7 @@ public enum EventName {
     case activation
 }
 
-public typealias Listener = (@escaping (Any...) -> Void) -> Void
+public typealias Listener = (Any...) -> Void
 
 public typealias Listeners = [EventName: [Listener]]
 
@@ -40,9 +40,7 @@ public class Emitter {
     public func emit(_ eventName: EventName, _ args: Any...) {
         if let listeners = self.listeners[eventName] {
             for listener in listeners {
-                listener({
-                    (args: Any...) -> Void in
-                })
+                listener(args)
             }
         }
     }
