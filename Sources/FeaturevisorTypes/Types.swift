@@ -28,6 +28,9 @@ public enum AttributeValue: Decodable {
         else if let string = try? container.decode(String.self) {
             self = .string(string)
         }
+        else if container.decodeNil() {
+            self = .unknown
+        }
         else {
             let context = DecodingError.Context(
                 codingPath: decoder.codingPath,
@@ -116,8 +119,8 @@ public enum ConditionValue: Codable {
     case double(Double)
     case boolean(Bool)
     case array([String])
+    case unknown
     // @TODO: add Date type?
-    // @TODO: add `null` and `undefined` somehow
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
@@ -136,6 +139,9 @@ public enum ConditionValue: Codable {
         }
         else if let array = try? container.decode([String].self) {
             self = .array(array)
+        }
+        else if container.decodeNil() {
+            self = .unknown
         }
         else {
             let context = DecodingError.Context(
@@ -306,7 +312,7 @@ public enum VariableValue: Codable {
     case array([String])
     case object(VariableObjectValue)
     case json(String)
-    // @TODO: handle null and undefined later
+    case unknown
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
@@ -349,6 +355,9 @@ public enum VariableValue: Codable {
         else if let object = try? container.decode(VariableObjectValue.self) {
             self = .object(object)
         }
+        else if container.decodeNil() {
+            self = .unknown
+        }
         else {
             let context = DecodingError.Context(
                 codingPath: decoder.codingPath,
@@ -377,10 +386,12 @@ public enum VariableValue: Codable {
                 try container.encode(object)
             case .json(let json):
                 try container.encode(json)
+            case .unknown:
+                try container.encodeNil()
         }
     }
 
-    public var value: Any {
+    public var value: Any? {
         switch self {
             case .boolean(let bool):
                 return bool
@@ -396,6 +407,8 @@ public enum VariableValue: Codable {
                 return object
             case .json(let json):
                 return json
+            case .unknown:
+                return nil
         }
     }
 }

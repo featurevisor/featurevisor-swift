@@ -170,6 +170,24 @@ public func conditionIsMatched(condition: PlainCondition, context: Context) -> B
                     return false
             }
 
+        // nil, nil
+        case (.none, .unknown), (.unknown, .unknown):
+            switch op {
+                case .equals:
+                    return true
+                default:
+                    return false
+            }
+
+        // some, nil
+        case (.some, .unknown):
+            switch op {
+                case .notEquals:
+                    return true
+                default:
+                    return false
+            }
+
         // default
         default:
             return false

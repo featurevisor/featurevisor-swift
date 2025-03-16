@@ -1649,4 +1649,68 @@ class FeaturevisorInstanceTests: XCTestCase {
         XCTAssertEqual(variableWithDefaultContext!.value as! String, "red")
         XCTAssertEqual(variableWithExtendedContextByCountry!.value as! String, "orange")
     }
+
+    func testShouldParseNilVariables() {
+
+        // GIVEN
+        var options: InstanceOptions = .default
+        options.datafile = DatafileContent(
+            schemaVersion: "1",
+            revision: "1.0",
+            attributes: [
+                .init(key: "userId", type: "string", capture: true),
+            ],
+            segments: [
+                .init(
+                    key: "signedIn",
+                    conditions: .plain(
+                        .init(attribute: "userId", operator: .notEquals, value: .unknown)
+                    )
+                )
+            ],
+            features: [
+                .init(
+                    key: "test",
+                    bucketBy: .single("userId"),
+                    variablesSchema: [
+                        .init(key: "color", type: .string, defaultValue: .string("red"))
+                    ],
+                    traffic: [
+                        .init(
+                            key: "1",
+                            segments: .plain("signedIn"),
+                            percentage: 100000,
+                            allocation: [],
+                            variables: ["color": .string("orange")]
+                        ),
+                        .init(
+                            key: "2",
+                            segments: .plain("*"),
+                            percentage: 100000,
+                            allocation: []
+                        ),
+                    ]
+                )
+            ]
+        )
+
+        let sdk = try! createInstance(options: options)
+
+        // WHEN
+        let variableWithSignedInUser = sdk.getVariable(
+            featureKey: "test",
+            variableKey: "color",
+            context: ["userId": .string("123")]
+        )
+
+        let variableWithNotSignedInUser = sdk.getVariable(
+            featureKey: "test",
+            variableKey: "color",
+            context: ["userId": .unknown]
+        )
+
+        // THEN
+        XCTAssertEqual(variableWithSignedInUser!.value as! String, "orange")
+        XCTAssertEqual(variableWithNotSignedInUser!.value as! String, "red")
+    }
 }
