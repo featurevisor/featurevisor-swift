@@ -8,19 +8,19 @@ extension KeyedDecodingContainer {
         forKey key: KeyedDecodingContainer<K>.Key
     ) throws -> [T] where T: Decodable {
 
-        var arrayData: [T] = []
+        var arrayElements: [T] = []
 
         let container = try nestedUnkeyedContainer(forKey: key)
         var containerCopy = container
         while !containerCopy.isAtEnd {
             if let element = try? containerCopy.decode(T.self) {
-                arrayData.append(element)
+              arrayElements.append(element)
             } else {
                 // @TODO: add error handling for object decoding failed
                 _ = try containerCopy.decode(EmptyStructData.self)
             }
         }
 
-        return arrayData
+        return arrayElements
     }
 }
