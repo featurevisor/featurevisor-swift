@@ -2,7 +2,7 @@ import Foundation
 
 extension KeyedDecodingContainer {
 
-    private struct EmptyStructData : Codable {}
+    private struct EmptyStructData: Codable {}
 
     func decodeArrayElements<T: Decodable>(
         forKey key: KeyedDecodingContainer<K>.Key
@@ -14,8 +14,9 @@ extension KeyedDecodingContainer {
         var containerCopy = container
         while !containerCopy.isAtEnd {
             if let element = try? containerCopy.decode(T.self) {
-              arrayElements.append(element)
-            } else {
+                arrayElements.append(element)
+            }
+            else {
                 // @TODO: add error handling for object decoding failed
                 _ = try containerCopy.decode(EmptyStructData.self)
             }
