@@ -793,9 +793,9 @@ public struct DatafileContent: Decodable {
 
         schemaVersion = try values.decode(String.self, forKey: .schemaVersion)
         revision = try values.decode(String.self, forKey: .revision)
-        attributes = try values.decode([Attribute].self, forKey: .attributes)
-        segments = try values.decode([Segment].self, forKey: .segments)
-        features = try values.decode([Feature].self, forKey: .features)
+        attributes = try values.decodeArrayElements(forKey: .attributes)
+        segments = try values.decodeArrayElements(forKey: .segments)
+        features = try values.decodeArrayElements(forKey: .features)
     }
 
     enum CodingKeys: String, CodingKey {
