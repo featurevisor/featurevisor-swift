@@ -34,6 +34,8 @@ extension ConditionValue: Equatable {
                 return lhsBoolean == rhsBoolea
             case (.array(let lhsArray), .array(let rhsArray)):
                 return lhsArray == rhsArray
+            case (.unknown, .unknown):
+                return true
             default:
                 return false
         }

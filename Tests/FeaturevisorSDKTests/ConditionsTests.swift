@@ -385,4 +385,36 @@ class ConditionsTests: XCTestCase {
             )
         )
     }
+
+    func testUnkownEqualsNil() {
+        // Given
+        let condition = PlainCondition(
+            attribute: "age",
+            operator: .equals,
+            value: .unknown
+        )
+        var context = Context()
+
+        // When
+        context["age"] = nil
+
+        // Then
+        XCTAssertTrue(conditionIsMatched(condition: condition, context: context))
+    }
+
+    func testUnkownNotEqualsNil() {
+        // Given
+        let condition = PlainCondition(
+            attribute: "age",
+            operator: .notEquals,
+            value: .unknown
+        )
+        var context = Context()
+
+        // When
+        context["age"] = .integer(30)
+
+        // Then
+        XCTAssertTrue(conditionIsMatched(condition: condition, context: context))
+    }
 }
