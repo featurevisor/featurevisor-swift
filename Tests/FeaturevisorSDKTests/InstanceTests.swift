@@ -1658,7 +1658,7 @@ class FeaturevisorInstanceTests: XCTestCase {
             schemaVersion: "1",
             revision: "1.0",
             attributes: [
-                .init(key: "userId", type: "string", capture: true),
+                .init(key: "userId", type: "string", capture: true)
             ],
             segments: [
                 .init(
