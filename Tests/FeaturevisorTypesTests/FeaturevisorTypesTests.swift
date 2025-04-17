@@ -23,6 +23,7 @@ final class FeaturevisorTypesTests: XCTestCase {
         XCTAssertEqual(result.attributes.count, 4)
         XCTAssertEqual(result.features.count, 3)
         XCTAssertEqual(result.segments.count, 3)
+        XCTAssertEqual(result.decodeErrors.count, 0)
 
         let segment = result.segments[0]
         XCTAssertEqual(segment.key, "myAccount")
@@ -246,4 +247,81 @@ final class FeaturevisorTypesTests: XCTestCase {
         XCTAssertTrue(attribute3.capture!)
         XCTAssertEqual(attribute3.type, "string")
     }
+
+  func testDecodeReturnsValidDatafileContentObjectWithErrorsForInvalidDatafileContentJSONResponse() throws {
+
+      // GIVEN
+      let path = Bundle.module.url(
+          forResource: "DatafileContentInvalidResponse",
+          withExtension: "json"
+      )!
+
+      // WHEN
+      let json = try Data(contentsOf: path)
+      let result = try JSONDecoder().decode(DatafileContent.self, from: json)
+
+      // THEN
+      XCTAssertEqual(result.revision, "0.0.13")
+      XCTAssertEqual(result.schemaVersion, "1")
+      XCTAssertEqual(result.attributes.count, 1)
+      XCTAssertEqual(result.features.count, 1)
+      XCTAssertEqual(result.segments.count, 1)
+      XCTAssertEqual(result.decodeErrors.count, 6)
+    
+      let segment = result.segments[0]
+      XCTAssertEqual(segment.key, "validSegment")
+      XCTAssertNil(segment.archived)
+      XCTAssertEqual(
+          segment.conditions,
+          .multiple([
+              .plain(
+                  PlainCondition(
+                      attribute: "chapter",
+                      operator: .equals,
+                      value: .string("account")
+                  )
+              )
+          ])
+      )
+
+      let feature = result.features[0]
+      XCTAssertEqual(feature.key, "validFeature")
+      XCTAssertNil(feature.deprecated)
+      XCTAssertEqual(feature.bucketBy, .single("userId"))
+      XCTAssertEqual(feature.ranges.count, 0)
+      XCTAssertEqual(feature.variablesSchema.count, 1)
+      XCTAssertEqual(feature.variations.count, 0)
+      XCTAssertEqual(feature.traffic.count, 1)
+      XCTAssertEqual(feature.force.count, 0)
+
+      let attribute = result.attributes[0]
+      XCTAssertEqual(attribute.key, "validAttribute")
+      XCTAssertNil(attribute.archived)
+      XCTAssertNil(attribute.capture)
+      XCTAssertEqual(attribute.type, "string")
+
+      let error1 = result.decodeErrors[0]
+      XCTAssertEqual(error1.type, "Attribute")
+      XCTAssertEqual(error1.key, "invalidAttribute")
+
+      let error2 = result.decodeErrors[1]
+      XCTAssertEqual(error2.type, "Attribute")
+      XCTAssertEqual(error2.key, "<undefined>")
+
+      let error3 = result.decodeErrors[2]
+      XCTAssertEqual(error3.type, "Segment")
+      XCTAssertEqual(error3.key, "invalidSegment")
+
+      let error4 = result.decodeErrors[3]
+      XCTAssertEqual(error4.type, "Segment")
+      XCTAssertEqual(error4.key, "<undefined>")
+
+      let error5 = result.decodeErrors[4]
+      XCTAssertEqual(error5.type, "Feature")
+      XCTAssertEqual(error5.key, "invalidFeature")
+
+      let error6 = result.decodeErrors[5]
+      XCTAssertEqual(error6.type, "Feature")
+      XCTAssertEqual(error6.key, "<undefined>")
+  }
 }

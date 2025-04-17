@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "1",
+  "revision": "0.0.13",
+  "attributes": [
+    {
+      "key": "validAttribute",
+      "type": "string"
+    },
+    {
+      "key": "invalidAttribute",
+      "type": null
+    },
+    null
+  ],
+  "segments": [
+    {
+      "key": "validSegment",
+      "conditions": "[{\"attribute\":\"chapter\",\"operator\":\"equals\",\"value\":\"account\"}]"
+    },
+    {
+      "key": "invalidSegment",
+      "conditions": null
+    },
+    null
+  ],
+  "features": [
+    {
+      "key": "validFeature",
+      "bucketBy": "userId",
+      "variations": [
+        
+      ],
+      "traffic": [
+        {
+          "key": "1",
+          "segments": "[\"validSegment\"]",
+          "percentage": 100000,
+          "allocation": [
+            
+          ]
+        }
+      ],
+      "variablesSchema": [
+        {
+          "key": "color",
+          "type": "string",
+          "defaultValue": "red"
+        }
+      ]
+    },
+    {
+      "key": "invalidFeature",
+      "bucketBy": null
+    },
+    null
+  ]
+}

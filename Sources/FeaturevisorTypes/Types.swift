@@ -786,6 +786,7 @@ public struct DatafileContent: Decodable {
     public let attributes: [Attribute]
     public let segments: [Segment]
     public let features: [Feature]
+    public let decodeErrors: [ArrayElementDecodeError]
 
     public init(
         schemaVersion: String,
@@ -799,6 +800,7 @@ public struct DatafileContent: Decodable {
         self.attributes = attributes
         self.segments = segments
         self.features = features
+        self.decodeErrors = []
     }
 
     public init(from decoder: Decoder) throws {
@@ -806,9 +808,21 @@ public struct DatafileContent: Decodable {
 
         schemaVersion = try values.decode(String.self, forKey: .schemaVersion)
         revision = try values.decode(String.self, forKey: .revision)
-        attributes = try values.decodeArrayElements(forKey: .attributes)
-        segments = try values.decodeArrayElements(forKey: .segments)
-        features = try values.decodeArrayElements(forKey: .features)
+
+        let decodedAttributes: DecodeElements<Attribute> = try values.decodeArrayElements(forKey: .attributes)
+        attributes = decodedAttributes.elements
+
+        let decodedSegments: DecodeElements<Segment> = try values.decodeArrayElements(forKey: .segments)
+        segments = decodedSegments.elements
+
+        let decodedFeatures: DecodeElements<Feature> = try values.decodeArrayElements(forKey: .features)
+        features = decodedFeatures.elements
+
+        decodeErrors = [
+            decodedAttributes.errors,
+            decodedSegments.errors,
+            decodedFeatures.errors
+        ].flatMap(\.self)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -911,4 +925,9 @@ public struct TestSegment {
 public enum Test {
     case feature(TestFeature)
     case segment(TestSegment)
+}
+
+public struct ArrayElementDecodeError {
+    public let type: String
+    public let key: String
 }

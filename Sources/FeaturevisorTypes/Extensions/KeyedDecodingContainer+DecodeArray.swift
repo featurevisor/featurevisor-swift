@@ -1,14 +1,21 @@
 import Foundation
 
+typealias DecodeElements<T> = (elements: [T], errors: [ArrayElementDecodeError])
+
 extension KeyedDecodingContainer {
+
+    private struct KeyOnlyStructData: Codable {
+        let key: String
+    }
 
     private struct EmptyStructData: Codable {}
 
     func decodeArrayElements<T: Decodable>(
         forKey key: KeyedDecodingContainer<K>.Key
-    ) throws -> [T] where T: Decodable {
+    ) throws -> DecodeElements<T> where T: Decodable {
 
         var arrayElements: [T] = []
+        var arrayDecodeErrors: [ArrayElementDecodeError] = []
 
         let container = try nestedUnkeyedContainer(forKey: key)
         var containerCopy = container
@@ -17,11 +24,20 @@ extension KeyedDecodingContainer {
                 arrayElements.append(element)
             }
             else {
-                // @TODO: add error handling for object decoding failed
-                _ = try containerCopy.decode(EmptyStructData.self)
+                if let keyStructElement = try? containerCopy.decode(KeyOnlyStructData.self) {
+                    arrayDecodeErrors.append(
+                      ArrayElementDecodeError(type: String(describing: T.self), key: keyStructElement.key)
+                    )
+                }
+                else {
+                    arrayDecodeErrors.append(
+                      ArrayElementDecodeError(type: String(describing: T.self), key: "<undefined>")
+                    )
+                    _ = try containerCopy.decode(EmptyStructData.self)
+                }
             }
         }
 
-        return arrayElements
+        return (elements: arrayElements, errors: arrayDecodeErrors)
     }
 }
