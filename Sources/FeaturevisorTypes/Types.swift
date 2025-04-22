@@ -826,7 +826,7 @@ public struct DatafileContent: Decodable {
             decodedSegments.errors,
             decodedFeatures.errors,
         ]
-        .flatMap(\.self)
+        .flatMap { $0 }
     }
 
     enum CodingKeys: String, CodingKey {
