@@ -809,20 +809,24 @@ public struct DatafileContent: Decodable {
         schemaVersion = try values.decode(String.self, forKey: .schemaVersion)
         revision = try values.decode(String.self, forKey: .revision)
 
-        let decodedAttributes: DecodeElements<Attribute> = try values.decodeArrayElements(forKey: .attributes)
+        let decodedAttributes: DecodeElements<Attribute> =
+            try values.decodeArrayElements(forKey: .attributes)
         attributes = decodedAttributes.elements
 
-        let decodedSegments: DecodeElements<Segment> = try values.decodeArrayElements(forKey: .segments)
+        let decodedSegments: DecodeElements<Segment> =
+            try values.decodeArrayElements(forKey: .segments)
         segments = decodedSegments.elements
 
-        let decodedFeatures: DecodeElements<Feature> = try values.decodeArrayElements(forKey: .features)
+        let decodedFeatures: DecodeElements<Feature> =
+            try values.decodeArrayElements(forKey: .features)
         features = decodedFeatures.elements
 
         decodeErrors = [
             decodedAttributes.errors,
             decodedSegments.errors,
-            decodedFeatures.errors
-        ].flatMap(\.self)
+            decodedFeatures.errors,
+        ]
+        .flatMap(\.self)
     }
 
     enum CodingKeys: String, CodingKey {

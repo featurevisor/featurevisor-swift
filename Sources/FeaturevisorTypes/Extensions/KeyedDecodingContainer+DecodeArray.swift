@@ -26,12 +26,18 @@ extension KeyedDecodingContainer {
             else {
                 if let keyStructElement = try? containerCopy.decode(KeyOnlyStructData.self) {
                     arrayDecodeErrors.append(
-                      ArrayElementDecodeError(type: String(describing: T.self), key: keyStructElement.key)
+                        ArrayElementDecodeError(
+                            type: String(describing: T.self),
+                            key: keyStructElement.key
+                        )
                     )
                 }
                 else {
                     arrayDecodeErrors.append(
-                      ArrayElementDecodeError(type: String(describing: T.self), key: "<undefined>")
+                      ArrayElementDecodeError(
+                          type: String(describing: T.self),
+                          key: "<undefined>"
+                      )
                     )
                     _ = try containerCopy.decode(EmptyStructData.self)
                 }
