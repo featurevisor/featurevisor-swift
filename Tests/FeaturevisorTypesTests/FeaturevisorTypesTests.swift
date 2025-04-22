@@ -267,7 +267,7 @@ final class FeaturevisorTypesTests: XCTestCase {
         XCTAssertEqual(result.features.count, 1)
         XCTAssertEqual(result.segments.count, 1)
         XCTAssertEqual(result.decodeErrors.count, 6)
-    
+
         let segment = result.segments[0]
         XCTAssertEqual(segment.key, "validSegment")
         XCTAssertNil(segment.archived)
@@ -323,5 +323,5 @@ final class FeaturevisorTypesTests: XCTestCase {
         let error6 = result.decodeErrors[5]
         XCTAssertEqual(error6.type, "Feature")
         XCTAssertEqual(error6.key, "<undefined>")
-  }
+    }
 }
