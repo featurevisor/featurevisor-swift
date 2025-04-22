@@ -34,10 +34,10 @@ extension KeyedDecodingContainer {
                 }
                 else {
                     arrayDecodeErrors.append(
-                      ArrayElementDecodeError(
-                          type: String(describing: T.self),
-                          key: "<undefined>"
-                      )
+                        ArrayElementDecodeError(
+                            type: String(describing: T.self),
+                            key: "<undefined>"
+                        )
                     )
                     _ = try containerCopy.decode(EmptyStructData.self)
                 }
