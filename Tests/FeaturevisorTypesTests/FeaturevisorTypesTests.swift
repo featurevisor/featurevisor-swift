@@ -15,7 +15,7 @@ final class FeaturevisorTypesTests: XCTestCase {
 
         // WHEN
         let json = try Data(contentsOf: path)
-        let result = try JSONDecoder().decode(DatafileContent.self, from: json)
+        let result = try DatafileContent.from(string: String(decoding: json, as: UTF8.self))!
 
         // THEN
         XCTAssertEqual(result.revision, "0.0.13")
