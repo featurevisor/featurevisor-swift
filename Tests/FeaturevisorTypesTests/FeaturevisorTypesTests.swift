@@ -49,7 +49,7 @@ final class FeaturevisorTypesTests: XCTestCase {
         XCTAssertEqual(feature1.variablesSchema.count, 2)
         XCTAssertEqual(feature1.variations.count, 3)
         XCTAssertEqual(feature1.traffic.count, 2)
-        XCTAssertEqual(feature1.force.count, 1)
+        XCTAssertEqual(feature1.force.count, 2)
 
         let variation11 = feature1.variations[0]
         XCTAssertEqual(variation11.value, "control")
@@ -150,7 +150,17 @@ final class FeaturevisorTypesTests: XCTestCase {
         let force11 = feature1.force[0]
         XCTAssertTrue(force11.enabled!)
         XCTAssertEqual(
-            force11.conditions,
+            force11.segments,
+            .multiple([.plain("OsTvOS")])
+        )
+        XCTAssertNil(force11.conditions)
+        XCTAssertEqual(force11.variables, ["bar": .string("force_bar")])
+        XCTAssertEqual(force11.variation, "anotherTreatment")
+
+        let force12 = feature1.force[1]
+        XCTAssertTrue(force11.enabled!)
+        XCTAssertEqual(
+            force12.conditions,
             .and(
                 AndCondition(and: [
                     .plain(
@@ -170,9 +180,9 @@ final class FeaturevisorTypesTests: XCTestCase {
                 ])
             )
         )
-        XCTAssertNil(force11.segments)
-        XCTAssertEqual(force11.variables, ["bar": .string("yoooooo")])
-        XCTAssertEqual(force11.variation, "treatment")
+        XCTAssertNil(force12.segments)
+        XCTAssertEqual(force12.variables, ["bar": .string("yoooooo")])
+        XCTAssertEqual(force12.variation, "treatment")
 
         let feature2 = result.features[1]
         XCTAssertEqual(feature2.key, "f_foo")
