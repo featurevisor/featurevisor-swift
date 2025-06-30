@@ -1217,6 +1217,12 @@ class FeaturevisorInstanceTests: XCTestCase {
                         .init(attribute: "country", operator: .equals, value: .string("be"))
                     )
                 ),
+                .init(
+                    key: "poland",
+                    conditions: .plain(
+                        .init(attribute: "country", operator: .equals, value: .string("pl"))
+                    )
+                ),
             ],
             features: [
                 .init(
@@ -1337,6 +1343,15 @@ class FeaturevisorInstanceTests: XCTestCase {
                                     )
                                 )
                             ]),
+                            enabled: true
+                        ),
+                        .init(
+                            variation: "treatment",
+                            variables: [
+                                "color": .string("white and red"),
+                                "showSidebar": .boolean(false),
+                            ],
+                            segments: .plain("poland"),
                             enabled: true
                         ),
                         .init(
@@ -1478,6 +1493,32 @@ class FeaturevisorInstanceTests: XCTestCase {
                 context: ["userId": .string("user-forced-variation"), "country": .string("be")]
             )!,
             "sidebar title from variation"
+        )
+
+        XCTAssertEqual(
+            sdk.getVariableString(
+                featureKey: "test",
+                variableKey: "color",
+                context: ["country": .string("pl")]
+            )!,
+            "white and red"
+        )
+
+        XCTAssertEqual(
+            sdk.getVariableBoolean(
+                featureKey: "test",
+                variableKey: "showSidebar",
+                context: ["country": .string("pl")]
+            )!,
+            false
+        )
+
+        XCTAssertEqual(
+            sdk.getVariation(
+                featureKey: "test",
+                context: ["country": .string("pl")]
+            )!,
+            "treatment"
         )
 
         XCTAssertEqual(
