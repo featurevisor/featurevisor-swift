@@ -15,30 +15,37 @@ extension KeyedDecodingContainer {
 
     func decodeGroupSegment(forKey key: KeyedDecodingContainer<K>.Key) throws -> GroupSegment {
 
-        let stringifiedGroupSegment = try self.decode(String.self, forKey: key)
+        if let stringifiedGroupSegment = try? self.decode(String.self, forKey: key) {
 
-        switch stringifiedGroupSegment {
-            case "*":
-                return .plain(stringifiedGroupSegment)
-            default:
-                guard let data = stringifiedGroupSegment.data(using: .utf8) else {
-
-                    let context = DecodingError.Context(
-                        codingPath: self.codingPath,
-                        debugDescription:
-                            "Featurevisor: DataCorrupted when decoding: \(GroupSegment.self)"
-                    )
-
-                    throw DecodingError.dataCorrupted(context)
-                }
-
-                guard
-                    let _ = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
-                else {
+            switch stringifiedGroupSegment {
+                case "*":
                     return .plain(stringifiedGroupSegment)
-                }
+                default:
+                    guard let data = stringifiedGroupSegment.data(using: .utf8) else {
 
-                return try JSONDecoder().decode(GroupSegment.self, from: data)
+                        let context = DecodingError.Context(
+                            codingPath: self.codingPath,
+                            debugDescription:
+                                "Featurevisor: DataCorrupted when decoding: \(GroupSegment.self)"
+                        )
+
+                        throw DecodingError.dataCorrupted(context)
+                    }
+
+                    guard
+                        let _ = try? JSONSerialization.jsonObject(
+                            with: data,
+                            options: .allowFragments
+                        )
+                    else {
+                        return .plain(stringifiedGroupSegment)
+                    }
+
+                    return try JSONDecoder().decode(GroupSegment.self, from: data)
+            }
+        }
+        else {
+            return try self.decode(GroupSegment.self, forKey: key)
         }
     }
 }
