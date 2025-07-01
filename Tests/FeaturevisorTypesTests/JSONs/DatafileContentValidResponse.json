@@ -129,12 +129,14 @@
       ],
       "force": [
         {
-        "segments": "[\"OsTvOS\"]",
-        "variation": "anotherTreatment",
-        "variables": {
-          "bar": "force_bar"
-        },
-        "enabled": true
+          "segments": [
+            "OsTvOS"
+          ],
+          "variation": "anotherTreatment",
+          "variables": {
+            "bar": "force_bar"
+          },
+          "enabled": true
         },
         {
           "conditions": {
