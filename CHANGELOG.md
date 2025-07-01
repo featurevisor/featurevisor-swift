@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.0.0](https://github.com/featurevisor/featurevisor-swift/compare/3.0.0...3.1.0) (2025-07-01)
+
+### Bugfixs
+* Handle non-stringified segments under force section(#85)
+
+### Refactor
+* Handle matrix variable declarations with and without whitespaces(#86)
+
 ## [3.0.0](https://github.com/featurevisor/featurevisor-swift/compare/2.0.0...3.0.0) (2025-05-30)
 
 ### Features
