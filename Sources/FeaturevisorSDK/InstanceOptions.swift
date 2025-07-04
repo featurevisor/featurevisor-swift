@@ -1,6 +1,10 @@
 import FeaturevisorTypes
 import Foundation
 
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 public struct InstanceOptions {
 
     private static let defaultBucketKeySeparator = "."
