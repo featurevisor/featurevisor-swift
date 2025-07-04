@@ -79,31 +79,32 @@ class FeatureResultOutputBuilder {
         output.append("\nTesting: \(feature).feature.yml (\(totalElapsedTimeInMilliSeconds)ms)")
         output.append("\n feature \"\(feature)\"")
 
-        assertions.forEach({ assertion in
+        assertions.sorted(by: { $0.index < $1.index })
+            .forEach({ assertion in
 
-            let mark = ResultMark(result: assertion.assertionResult)
-            let index = assertion.index
-            let env = assertion.environment.rawValue
-            let description = assertion.description
-            let expectedValueFailures = assertion.expectedValueFailures
-            let elapsedTimeInMilliSeconds = assertion.elapsedTime.milliseconds
+                let mark = ResultMark(result: assertion.assertionResult)
+                let index = assertion.index
+                let env = assertion.environment.rawValue
+                let description = assertion.description
+                let expectedValueFailures = assertion.expectedValueFailures
+                let elapsedTimeInMilliSeconds = assertion.elapsedTime.milliseconds
 
-            output.append(
-                "\n \(mark.rawValue) Assertion #\(index): \(env) \(description) (\(elapsedTimeInMilliSeconds)ms)"
-            )
+                output.append(
+                    "\n \(mark.rawValue) Assertion #\(index): \(env) \(description) (\(elapsedTimeInMilliSeconds)ms)"
+                )
 
-            expectedValueFailures.forEach({ (key, value) in
-                output.append("\n   => variable key: \(key)")
-                output.append("\n          => expected: \(value.expected)")
+                expectedValueFailures.forEach({ (key, value) in
+                    output.append("\n   => variable key: \(key)")
+                    output.append("\n          => expected: \(value.expected)")
 
-                if let got = value.got {
-                    output.append("\n          => received: \(got)")
-                }
-                else {
-                    output.append("\n          => received: nil")
-                }
+                    if let got = value.got {
+                        output.append("\n          => received: \(got)")
+                    }
+                    else {
+                        output.append("\n          => received: nil")
+                    }
+                })
             })
-        })
 
         return output
     }

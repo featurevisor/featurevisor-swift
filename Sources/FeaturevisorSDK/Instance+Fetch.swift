@@ -2,7 +2,7 @@ import FeaturevisorTypes
 import Foundation
 
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 extension FeaturevisorInstance {

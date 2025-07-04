@@ -170,6 +170,8 @@ extension Featurevisor {
 
         mutating func run() async throws {
 
+            let startTime = DispatchTime.now()
+
             // Run Featurevisor CLI to build the datafiles
             // TODO: Handle better, react on errors etc.
             Commands.Task.run("bash -c cd \(featuresTestDirectoryPath) && npx featurevisor build")
@@ -179,8 +181,6 @@ extension Featurevisor {
             )
 
             let features = try loadAllFeatures(featuresTestDirectoryPath: featuresTestDirectoryPath)
-
-            var totalElapsedDurationInMilliseconds: UInt64 = 0
 
             var totalTestSpecs = 0
             var failedTestSpecs = 0
@@ -211,20 +211,18 @@ extension Featurevisor {
             }
 
             for suite in suiteResults {
-                if let output = suite.output {
-                    print(output)
-                }
-
                 totalAssertionsCount += suite.assertions
                 failedAssertionsCount += suite.failedAssertions
 
-                totalElapsedDurationInMilliseconds += suite.elapsedTime
                 totalTestSpecs += 1
 
                 if suite.isFailing {
                     failedTestSpecs += 1
                 }
             }
+
+            let endTime = DispatchTime.now()
+            let elapsedTime = endTime.uptimeNanoseconds - startTime.uptimeNanoseconds
 
             print(
                 "\nTest specs: \(totalTestSpecs - failedTestSpecs) passed, \(failedTestSpecs) failed"
@@ -233,12 +231,7 @@ extension Featurevisor {
                 "Assertions: \(totalAssertionsCount - failedAssertionsCount) passed, \(failedAssertionsCount) failed"
             )
 
-            print(
-                String(
-                    format: "Assertions execution duration: %.2fs",
-                    totalElapsedDurationInMilliseconds.seconds
-                )
-            )
+            print(String(format: "Time: %.2fs", elapsedTime.seconds))
         }
     }
 }
@@ -309,6 +302,10 @@ extension Featurevisor.Test {
         }
 
         let output = outputBuilder.build()
+
+        if let output {
+            print(output)
+        }
 
         return TestSuiteResult(
             assertions: testSuit.assertions.count,
