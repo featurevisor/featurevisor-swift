@@ -30,6 +30,17 @@ class FeatureResultOutputBuilder {
         self.feature = feature
     }
 
+    func addAssertion(_ result: Featurevisor.Test.AssertionResult) {
+        addAssertion(
+            environment: result.environment,
+            index: result.index,
+            assertionResult: result.success,
+            expectedValueFailures: result.expectedValueFailures,
+            description: result.description ?? "",
+            elapsedTime: result.elapsedTime
+        )
+    }
+
     @discardableResult func addAssertion(
         environment: Environment,
         index: Int,

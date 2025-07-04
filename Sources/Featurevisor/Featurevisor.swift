@@ -7,7 +7,7 @@ import Foundation
 import Yams
 
 @main
-struct Featurevisor: ParsableCommand {
+struct Featurevisor: AsyncParsableCommand {
 
     static let configuration = CommandConfiguration(
         abstract: "Featurevisor CLI.",
@@ -17,7 +17,7 @@ struct Featurevisor: ParsableCommand {
 
 extension Featurevisor {
 
-    struct Benchmark: ParsableCommand {
+    struct Benchmark: AsyncParsableCommand {
 
         struct Options {
             let environment: Environment
@@ -73,7 +73,7 @@ extension Featurevisor {
         )
         var variation: Bool = false
 
-        mutating func run() throws {
+        mutating func run() async throws {
 
             let _context = try JSONDecoder()
                 .decode(
@@ -97,7 +97,7 @@ extension Featurevisor {
 
 extension Featurevisor {
 
-    struct Evaluate: ParsableCommand {
+    struct Evaluate: AsyncParsableCommand {
 
         struct Options {
             let environment: Environment
@@ -133,7 +133,7 @@ extension Featurevisor {
         )
         var context: String
 
-        mutating func run() throws {
+        mutating func run() async throws {
 
             let _context = try JSONDecoder()
                 .decode(
@@ -154,7 +154,7 @@ extension Featurevisor {
 
 extension Featurevisor {
 
-    struct Test: ParsableCommand {
+    struct Test: AsyncParsableCommand {
 
         static let configuration = CommandConfiguration(
             abstract:
@@ -168,11 +168,11 @@ extension Featurevisor {
         @Flag(help: "If you are interested to see only the test specs that fail.")
         var onlyFailures = false
 
-        mutating func run() throws {
+        mutating func run() async throws {
 
             // Run Featurevisor CLI to build the datafiles
             // TODO: Handle better, react on errors etc.
-            Commands.Task.run("bash -c cd \(featuresTestDirectoryPath) && featurevisor build")
+            Commands.Task.run("bash -c cd \(featuresTestDirectoryPath) && npx featurevisor build")
 
             let testSuits = try loadAllFeatureTestSuits(
                 featuresTestDirectoryPath: featuresTestDirectoryPath
@@ -188,205 +188,43 @@ extension Featurevisor {
             var totalAssertionsCount = 0
             var failedAssertionsCount = 0
 
-            try testSuits.forEach({ testSuit in
+            let datafileProvider = DatafileProvider(
+                featuresTestDirectoryPath: self.featuresTestDirectoryPath
+            )
 
-                // skip features which are not supported by ios, tvos
-                guard
-                    isFeatureSupported(
-                        by: [.ios, .tvos],
-                        featureKey: testSuit.feature,
-                        in: features
-                    )
-                else {
-                    return
-                }
+            let suiteResults = try await withThrowingTaskGroup(of: TestSuiteResult.self) { group in
 
-                let output = FeatureResultOutputBuilder(
-                    feature: testSuit.feature,
-                    onlyFailures: onlyFailures
-                )
+                let onlyFailures = self.onlyFailures
 
-                totalTestSpecs += 1
-                totalAssertionsCount += testSuit.assertions.count
-
-                var isTestSpecFailing = false
-
-                for (index, testCase) in testSuit.assertions.enumerated() {
-
-                    var sdks: [Feature.Tag: [Environment: FeaturevisorInstance]] = [:]
-
-                    try [Feature.Tag.ios, Feature.Tag.tvos]
-                        .forEach({ tag in
-                            let sdkProduction = try SDKProvider.provide(
-                                for: tag,
-                                under: .production,
-                                using: featuresTestDirectoryPath,
-                                assertionAt: testCase.at
-                            )
-
-                            let sdkStaging = try SDKProvider.provide(
-                                for: tag,
-                                under: .staging,
-                                using: featuresTestDirectoryPath,
-                                assertionAt: testCase.at
-                            )
-
-                            sdks[tag] = [
-                                .staging: sdkStaging,
-                                .production: sdkProduction,
-                            ]
-                        })
-
-                    let isFeatureEnabledResult: Bool
-
-                    var expectedValueFailures:
-                        [VariableKey: (expected: VariableValue, got: VariableValue?)] = [:]
-
-                    switch testCase.environment {
-                        case .staging:
-
-                            guard
-                                isFeatureExposed(
-                                    for: [.ios, .tvos],
-                                    under: Environment.staging.rawValue,
-                                    featureKey: testSuit.feature,
-                                    in: features
-                                )
-                            else {
-                                break
-                            }
-
-                            let tag = firstTagToVerifyAgainst(
-                                tags: [.ios, .tvos],
-                                environment: .staging,
-                                featureKey: testSuit.feature,
-                                in: features
-                            )
-
-                            let startTime = DispatchTime.now()
-
-                            isFeatureEnabledResult =
-                                sdks[tag]![.staging]!
-                                .isEnabled(
-                                    featureKey: testSuit.feature,
-                                    context: testCase.context ?? [:]
-                                ) == testCase.expectedToBeEnabled
-
-                            testCase.expectedVariables?
-                                .forEach({ (variableKey, variableExpectedValue) in
-                                    let variable = sdks[tag]![.staging]!
-                                        .getVariable(
-                                            featureKey: testSuit.feature,
-                                            variableKey: variableKey,
-                                            context: testCase.context ?? [:]
-                                        )
-
-                                    if variable != variableExpectedValue {
-                                        expectedValueFailures[variableKey] = (
-                                            variableExpectedValue, variable
-                                        )
-                                    }
-                                })
-
-                            let endTime = DispatchTime.now()
-
-                            let finalAssertionResult =
-                                isFeatureEnabledResult && expectedValueFailures.isEmpty
-
-                            isTestSpecFailing = isTestSpecFailing || !finalAssertionResult
-                            failedAssertionsCount =
-                                finalAssertionResult
-                                ? failedAssertionsCount : failedAssertionsCount + 1
-
-                            let elapsedTime =
-                                endTime.uptimeNanoseconds - startTime.uptimeNanoseconds
-                            totalElapsedDurationInMilliseconds += elapsedTime
-
-                            output.addAssertion(
-                                environment: testCase.environment,
-                                index: index,
-                                assertionResult: finalAssertionResult,
-                                expectedValueFailures: expectedValueFailures,
-                                description: testCase.description,
-                                elapsedTime: elapsedTime
-                            )
-
-                        case .production:
-
-                            guard
-                                isFeatureExposed(
-                                    for: [.ios, .tvos],
-                                    under: Environment.production.rawValue,
-                                    featureKey: testSuit.feature,
-                                    in: features
-                                )
-                            else {
-                                break
-                            }
-
-                            let tag = firstTagToVerifyAgainst(
-                                tags: [.ios, .tvos],
-                                environment: .production,
-                                featureKey: testSuit.feature,
-                                in: features
-                            )
-
-                            let startTime = DispatchTime.now()
-
-                            isFeatureEnabledResult =
-                                sdks[tag]![.production]!
-                                .isEnabled(
-                                    featureKey: testSuit.feature,
-                                    context: testCase.context ?? [:]
-                                ) == testCase.expectedToBeEnabled
-
-                            testCase.expectedVariables?
-                                .forEach({ (variableKey, variableExpectedValue) in
-                                    let variable = sdks[tag]![.production]!
-                                        .getVariable(
-                                            featureKey: testSuit.feature,
-                                            variableKey: variableKey,
-                                            context: testCase.context ?? [:]
-                                        )
-
-                                    if variable != variableExpectedValue {
-                                        expectedValueFailures[variableKey] = (
-                                            variableExpectedValue, variable
-                                        )
-                                    }
-                                })
-
-                            let endTime = DispatchTime.now()
-
-                            let finalAssertionResult =
-                                isFeatureEnabledResult && expectedValueFailures.isEmpty
-
-                            isTestSpecFailing = isTestSpecFailing || !finalAssertionResult
-                            failedAssertionsCount =
-                                finalAssertionResult
-                                ? failedAssertionsCount : failedAssertionsCount + 1
-
-                            let elapsedTime =
-                                endTime.uptimeNanoseconds - startTime.uptimeNanoseconds
-                            totalElapsedDurationInMilliseconds += elapsedTime
-
-                            output.addAssertion(
-                                environment: testCase.environment,
-                                index: index,
-                                assertionResult: finalAssertionResult,
-                                expectedValueFailures: expectedValueFailures,
-                                description: testCase.description,
-                                elapsedTime: elapsedTime
-                            )
+                for testSuit in testSuits {
+                    group.addTask {
+                        try await Featurevisor.Test.runTestSuite(
+                            testSuit: testSuit,
+                            features: features,
+                            datafileProvider: datafileProvider,
+                            onlyFailures: onlyFailures
+                        )
                     }
                 }
 
-                if let output = output.build() {
+                return try await group.reduce(into: [TestSuiteResult]()) { $0.append($1) }
+            }
+
+            for suite in suiteResults {
+                if let output = suite.output {
                     print(output)
                 }
 
-                failedTestSpecs = isTestSpecFailing ? failedTestSpecs + 1 : failedTestSpecs
-            })
+                totalAssertionsCount += suite.assertions
+                failedAssertionsCount += suite.failedAssertions
+
+                totalElapsedDurationInMilliseconds += suite.elapsedTime
+                totalTestSpecs += 1
+
+                if suite.isFailing {
+                    failedTestSpecs += 1
+                }
+            }
 
             print(
                 "\nTest specs: \(totalTestSpecs - failedTestSpecs) passed, \(failedTestSpecs) failed"
@@ -396,9 +234,194 @@ extension Featurevisor {
             )
 
             print(
-                "Assertions execution duration: \(totalElapsedDurationInMilliseconds.milliseconds)ms"
+                String(
+                    format: "Assertions execution duration: %.2fs",
+                    totalElapsedDurationInMilliseconds.seconds
+                )
             )
         }
+    }
+}
+
+extension Featurevisor.Test {
+
+    struct TestSuiteResult {
+        let assertions: Int
+        let failedAssertions: Int
+        let elapsedTime: UInt64
+        let isFailing: Bool
+        let output: String?
+    }
+
+    static func runTestSuite(
+        testSuit: FeatureTestSuitFile,
+        features: [Feature],
+        datafileProvider: DatafileProvider,
+        onlyFailures: Bool
+    ) async throws -> TestSuiteResult {
+
+        guard
+            Featurevisor.Test.isFeatureSupported(
+                by: [.ios, .tvos],
+                featureKey: testSuit.feature,
+                in: features
+            )
+        else {
+            return TestSuiteResult(
+                assertions: 0,
+                failedAssertions: 0,
+                elapsedTime: 0,
+                isFailing: false,
+                output: nil
+            )
+        }
+
+        let outputBuilder = FeatureResultOutputBuilder(
+            feature: testSuit.feature,
+            onlyFailures: onlyFailures
+        )
+
+        var failedAssertions = 0
+        var totalElapsed: UInt64 = 0
+
+        let results = try await withThrowingTaskGroup(of: AssertionResult.self) { group in
+            for (index, testCase) in testSuit.assertions.enumerated() {
+                group.addTask {
+                    return try await Featurevisor.Test.evaluateAssertion(
+                        index: index,
+                        testCase: testCase,
+                        testSuit: testSuit,
+                        features: features,
+                        datafileProvider: datafileProvider
+                    )
+                }
+            }
+
+            return try await group.reduce(into: [AssertionResult]()) { $0.append($1) }
+        }
+
+        for result in results {
+            if !result.success {
+                failedAssertions += 1
+            }
+            totalElapsed += result.elapsedTime
+            outputBuilder.addAssertion(result)
+        }
+
+        let output = outputBuilder.build()
+
+        return TestSuiteResult(
+            assertions: testSuit.assertions.count,
+            failedAssertions: failedAssertions,
+            elapsedTime: totalElapsed,
+            isFailing: failedAssertions > 0,
+            output: output
+        )
+    }
+
+}
+
+extension Featurevisor.Test {
+
+    struct AssertionResult {
+        let success: Bool
+        let elapsedTime: UInt64
+        let environment: Environment
+        let index: Int
+        let expectedValueFailures: [VariableKey: (expected: VariableValue, got: VariableValue?)]
+        let description: String?
+    }
+
+    static func evaluateAssertion(
+        index: Int,
+        testCase: Assertion,
+        testSuit: FeatureTestSuitFile,
+        features: [Feature],
+        datafileProvider: DatafileProvider
+    ) async throws -> AssertionResult {
+        var sdks: [Feature.Tag: [Environment: FeaturevisorInstance]] = [:]
+
+        for tag in [Feature.Tag.ios, Feature.Tag.tvos] {
+            let sdkProduction = try SDKProvider.provide(
+                for: datafileProvider.all[tag]![.production]!,
+                assertionAt: testCase.at
+            )
+
+            let sdkStaging = try SDKProvider.provide(
+                for: datafileProvider.all[tag]![.staging]!,
+                assertionAt: testCase.at
+            )
+
+            sdks[tag] = [
+                .staging: sdkStaging,
+                .production: sdkProduction,
+            ]
+        }
+
+        let environment = testCase.environment
+        let context = testCase.context ?? [:]
+        let tag = firstTagToVerifyAgainst(
+            tags: [.ios, .tvos],
+            environment: environment,
+            featureKey: testSuit.feature,
+            in: features
+        )
+
+        guard
+            Featurevisor.Test.isFeatureExposed(
+                for: [.ios, .tvos],
+                under: environment.rawValue,
+                featureKey: testSuit.feature,
+                in: features
+            )
+        else {
+            return AssertionResult(
+                success: true,
+                elapsedTime: 0,
+                environment: environment,
+                index: index,
+                expectedValueFailures: [:],
+                description: testCase.description
+            )
+        }
+
+        let sdk = sdks[tag]![environment]!
+
+        let startTime = DispatchTime.now()
+
+        let isFeatureEnabled =
+            sdk.isEnabled(featureKey: testSuit.feature, context: context)
+            == testCase.expectedToBeEnabled
+
+        var expectedValueFailures: [VariableKey: (expected: VariableValue, got: VariableValue?)] =
+            [:]
+
+        if let expectedVariables = testCase.expectedVariables {
+            for (key, expectedValue) in expectedVariables {
+                let actual = sdk.getVariable(
+                    featureKey: testSuit.feature,
+                    variableKey: key,
+                    context: context
+                )
+                if actual != expectedValue {
+                    expectedValueFailures[key] = (expected: expectedValue, got: actual)
+                }
+            }
+        }
+
+        let endTime = DispatchTime.now()
+        let elapsedTime = endTime.uptimeNanoseconds - startTime.uptimeNanoseconds
+
+        let success = isFeatureEnabled && expectedValueFailures.isEmpty
+
+        return AssertionResult(
+            success: success,
+            elapsedTime: elapsedTime,
+            environment: environment,
+            index: index,
+            expectedValueFailures: expectedValueFailures,
+            description: testCase.description
+        )
     }
 }
 
@@ -443,7 +466,7 @@ extension Featurevisor.Test {
         return featureTestSuits
     }
 
-    func isFeatureSupported(
+    static func isFeatureSupported(
         by tags: [Feature.Tag],
         featureKey: String,
         in features: [Feature]
@@ -458,7 +481,7 @@ extension Featurevisor.Test {
     }
 
     // If feature is exposed for iOS or tvOS then it doesn't matter which datafile e.g. ios or tvos we use
-    func firstTagToVerifyAgainst(
+    static func firstTagToVerifyAgainst(
         tags: [Feature.Tag],
         environment: Environment,
         featureKey: String,
@@ -473,10 +496,10 @@ extension Featurevisor.Test {
                     featureKey: featureKey,
                     in: features
                 )
-        })!  // TODO: Deal with force unwrap, redesign the way how we iterate the test suit
+        }) ?? .ios  // TODO: Deal with fallback, redesign the way how we iterate the test suit
     }
 
-    func isFeatureExposed(
+    static func isFeatureExposed(
         for tags: [Feature.Tag],
         under environment: String,
         featureKey: String,

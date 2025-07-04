@@ -10,10 +10,14 @@ extension Featurevisor.Evaluate {
         // TODO: Handle this better
         Commands.Task.run("bash -c featurevisor build")
 
-        let f = try! SDKProvider.provide(
+        let datafileContent = try! DatafileProvider.datafile(
             for: .ios,
-            under: options.environment,
-            using: ".",
+            path: ".",
+            environment: options.environment
+        )
+
+        let f = try! SDKProvider.provide(
+            for: datafileContent,
             assertionAt: 1
         )
 
