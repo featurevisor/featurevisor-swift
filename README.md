@@ -374,10 +374,16 @@ $ swift run featurevisor test .
 
 If you are interested to see only the test specs that fail:
 
+```bash
+'--feature feature_key_xxx'
+```
+
+Only if you are interested to run tests only for specific feature:
+
 Example command:
 
 ```
-$ swift run featurevisor test --only-failures .
+$ swift run featurevisor test --only-failures --feature feature_key_xxx .
 ```
 
 ### Benchmarking
