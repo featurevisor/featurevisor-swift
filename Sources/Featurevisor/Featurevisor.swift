@@ -165,6 +165,12 @@ extension Featurevisor {
         @Argument(help: "The path to features test directory.")
         var featuresTestDirectoryPath: String
 
+        @Option(
+            help:
+                "The option is used to specify the feature key which will be used for testing."
+        )
+        var feature: String?
+
         @Flag(help: "If you are interested to see only the test specs that fail.")
         var onlyFailures = false
 
@@ -176,9 +182,13 @@ extension Featurevisor {
             // TODO: Handle better, react on errors etc.
             Commands.Task.run("bash -c cd \(featuresTestDirectoryPath) && npx featurevisor build")
 
-            let testSuits = try loadAllFeatureTestSuits(
+            var testSuits = try loadAllFeatureTestSuits(
                 featuresTestDirectoryPath: featuresTestDirectoryPath
             )
+
+            if let feature {
+                testSuits = testSuits.filter { $0.feature == feature }
+            }
 
             let features = try loadAllFeatures(featuresTestDirectoryPath: featuresTestDirectoryPath)
 
