@@ -25,10 +25,14 @@ extension Featurevisor.Benchmark {
 
         print("Datafile build duration: \(datafileBuildDuration.seconds)s")
 
-        let f = try! SDKProvider.provide(
+        let datafileContent = try! DatafileProvider.datafile(
             for: .ios,
-            under: options.environment,
-            using: ".",
+            path: ".",
+            environment: options.environment
+        )
+
+        let f = try! SDKProvider.provide(
+            for: datafileContent,
             assertionAt: 1
         )
 

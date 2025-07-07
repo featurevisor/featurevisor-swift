@@ -1,6 +1,10 @@
 import FeaturevisorTypes
 import Foundation
 
+#if canImport(FoundationNetworking)
+    import FoundationNetworking
+#endif
+
 public typealias ConfigureBucketKey = (Feature, Context, BucketKey) -> BucketKey
 public typealias ConfigureBucketValue = (Feature, Context, BucketValue) -> BucketValue
 public typealias InterceptContext = (Context) -> Context
