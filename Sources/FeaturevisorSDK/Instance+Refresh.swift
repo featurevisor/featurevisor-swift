@@ -52,53 +52,47 @@ extension FeaturevisorInstance {
     }
 
     public func startRefreshing() {
+      refreshQueue.async { [weak self] in
+              guard let self else { return }
 
-        guard datafileUrl != nil else {
-            logger.error("cannot start refreshing since `datafileUrl` is not provided")
-            return
-        }
+              guard self.datafileUrl != nil else {
+                  self.logger.error("cannot start refreshing since `datafileUrl` is not provided")
+                  return
+              }
 
-        guard timer == nil else {
-            logger.warn("refreshing has already started")
-            return
-        }
+              guard self.refreshTimer == nil else {
+                  self.logger.warn("refreshing has already started")
+                  return
+              }
 
-        guard let refreshInterval else {
-            logger.warn("no `refreshInterval` option provided")
-            return
-        }
+              guard let refreshInterval = self.refreshInterval else {
+                  self.logger.warn("no `refreshInterval` option provided")
+                  return
+              }
 
-        DispatchQueue.global()
-            .async { [weak self] in
-                self?.timer = Timer.scheduledTimer(
-                    withTimeInterval: TimeInterval(refreshInterval),
-                    repeats: true
-                ) { _ in
-                    self?.refresh()
-                }
+              let timer = DispatchSource.makeTimerSource(queue: self.refreshQueue)
+              timer.schedule(deadline: .now() + refreshInterval, repeating: refreshInterval)
+              timer.setEventHandler { [weak self] in
+                  self?.refresh()
+              }
+              timer.resume()
 
-                if let timer = self?.timer {
-                    RunLoop.current.add(timer, forMode: .common)
-                    RunLoop.current.run()
-                }
-            }
+              self.refreshTimer = timer
+          }
     }
 
     public func stopRefreshing() {
+      refreshQueue.async { [weak self] in
+          guard let self else { return }
 
-        DispatchQueue.global()
-            .async { [weak self] in
+          guard let timer = self.refreshTimer else {
+              self.logger.warn("refreshing has not started yet")
+              return
+          }
 
-                guard let intervalId = self?.timer else {
-                    self?.logger.warn("refreshing has not started yet")
-                    return
-                }
-
-                intervalId.invalidate()
-                self?.timer = nil
-            }
-
-        logger.warn("refreshing has stopped")
+          timer.cancel()
+          self.refreshTimer = nil
+          self.logger.warn("refreshing has stopped")
+      }
     }
-
 }
