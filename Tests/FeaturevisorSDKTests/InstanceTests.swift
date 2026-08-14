@@ -986,9 +986,11 @@ class FeaturevisorInstanceTests: XCTestCase {
     func testShouldStopRefreshing() {
 
         // GIVEN
-        var isRefreshingStopped = false
         var revision = 1
         let refreshInterval = 1.0
+
+        let readyExpectation = expectation(description: "sdk_ready")
+        let stoppedExpectation = expectation(description: "refreshing_stopped")
 
         MockURLProtocol.requestHandler = { request in
             let jsonString =
@@ -1007,25 +1009,27 @@ class FeaturevisorInstanceTests: XCTestCase {
         options.sessionConfiguration.protocolClasses = [MockURLProtocol.self]
         options.refreshInterval = refreshInterval
         options.datafileUrl = "https://featurevisor-awesome-url.com/tags.json"
+        options.onReady = { _ in
+            readyExpectation.fulfill()
+        }
         options.logger = createLogger { level, message, details in
             guard case .warn = level else {
                 return
             }
 
             if message.contains("refreshing has stopped") {
-                isRefreshingStopped = true
+                stoppedExpectation.fulfill()
             }
         }
 
         // WHEN
         let sdk = try! createInstance(options: options)
-
-        XCTAssertEqual(isRefreshingStopped, false)
+        wait(for: [readyExpectation], timeout: 1.0)
 
         sdk.stopRefreshing()
 
         // THEN
-        XCTAssertEqual(isRefreshingStopped, true)
+        wait(for: [stoppedExpectation], timeout: 1.0)
     }
 
     func testSetDatafileByValidJSON() {

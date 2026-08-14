@@ -185,7 +185,8 @@ public class FeaturevisorInstance {
     internal var stickyFeatures: StickyFeatures?
 
     // internally created
-    internal var timer: Timer?
+    internal let refreshQueue = DispatchQueue(label: "com.featurevisor.datafile.refresh")
+    internal var refreshTimer: DispatchSourceTimer?
     internal var datafileReader: DatafileReader
     internal var emitter: Emitter
     internal var statuses: Statuses
