@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.0](https://github.com/featurevisor/featurevisor-swift/compare/3.1.1...3.2.0) (2026-08-14)
+
+### Refactor
+* refactor: introduce dedicated refresh queue (#90)
+
+### CI
+* use github runner default swift version (#91)
+
 ## [3.1.1](https://github.com/featurevisor/featurevisor-swift/compare/3.1.0...3.1.1) (2025-07-07)
 
 ### Test
